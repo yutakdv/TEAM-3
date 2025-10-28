@@ -1,6 +1,5 @@
 plugins {
     id 'application'
-    id 'pmd'
     id 'com.github.spotbugs' version '6.4.4'
 }
 
