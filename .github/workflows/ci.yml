@@ -1,0 +1,63 @@
+name: CI - Build & Test + Slack Notify
+
+on:
+  pull_request:
+    branches: [ development ] #development로 PR이 열릴떄 자동으로 실행
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+  
+      # JDK 환경 세팅
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+  
+      # Gradle 캐시 (속도 향상)
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle
+  
+      # Build + Unit Test 실행
+      - name: Build and Run Tests
+        run: ./gradlew clean build test --stacktrace
+
+      # Checkstyle (코드 스타일 검사)
+      - name: Run Checkstyle
+        run: ./gradlew checkstyleMain checkstyleTest
+
+      # 정적 분석 (버그 탐지)
+      - name: Run SpotBugs
+        run: ./gradlew spotbugsMain
+
+      # 코드 복잡도 검사
+      - name: Run PMD Analysis
+        run: ./gradlew pmdMain
+
+      # Slack 알림 전송 (빌드 검사)
+      - name: Send Slack Notification (Detailed)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,commit,author,ref,workflow,job,took
+          custom_payload: |
+            {
+              "text": "*TEAM-3 CI Results* \nStatus: `${{ job.status }}`\nAuthor: `${{ github.actor }}`\nBranch: `${{ github.ref_name }}`\n\nCheck the test report 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}      
