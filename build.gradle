@@ -1,0 +1,41 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+}
+
+application {
+    mainClass = 'engine.Core'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src'] // 기존 src 디렉터리 사용
+        }
+        resources {
+            srcDirs = ['res'] // 리소스 폴더 지정
+        }
+    }
+}
+
+tasks.withType(JavaExec).configureEach {
+    systemProperty "file.encoding", "UTF-8"
+}
+
+tasks.test {
+    useJUnitPlatform()
+}

@@ -7,7 +7,6 @@
 .metadata
 bin/
 tmp/
-*.tmp
 *.bak
 *.swp
 *~.nib
@@ -164,6 +163,8 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+.AppleDouble
+.LSOverride
 
 #############
 ## Custom
@@ -177,3 +178,16 @@ log*
 *.iml
 *.class
 /out/
+
+#################
+## Gradle
+#################
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+#################
+## DO NOT IGNORE
+#################
+# Keep CI/CD workflow files
+!.github/
