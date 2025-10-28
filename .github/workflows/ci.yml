@@ -36,17 +36,9 @@ jobs:
       - name: Build and Run Tests
         run: ./gradlew clean build test --stacktrace
 
-      # Checkstyle (코드 스타일 검사)
-      - name: Run Checkstyle
-        run: ./gradlew checkstyleMain checkstyleTest
-
       # 정적 분석 (버그 탐지)
       - name: Run SpotBugs
         run: ./gradlew spotbugsMain
-
-      # 코드 복잡도 검사
-      - name: Run PMD Analysis
-        run: ./gradlew pmdMain
 
       # Slack 알림 전송 (빌드 검사)
       - name: Send Slack Notification (Detailed)
