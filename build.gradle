@@ -1,5 +1,7 @@
 plugins {
     id 'application'
+    id 'pmd'
+    id 'com.github.spotbugs' version '6.4.4'
 }
 
 repositories {
@@ -13,6 +15,13 @@ dependencies {
 
 application {
     mainClass = 'engine.Core'
+}
+
+spotbugs {
+    toolVersion = '4.8.6'
+    effort = 'max'
+    reportLevel = 'low'
+    ignoreFailures = true
 }
 
 java {
