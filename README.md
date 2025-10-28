@@ -1,3 +1,5 @@
+# This is just for CI Automatic Test
+
 # Space Invaders
 
 > Course: Software Development Practices (CES2024) - 25-2-24788
