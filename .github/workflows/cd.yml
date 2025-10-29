@@ -1,0 +1,99 @@
+name: CD - Auto Tag & Release
+
+on:
+  push:
+    branches:
+      - development
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 레포지토리 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   
+
+      # JDK 설정
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Gradle 빌드
+      - name: Build project
+        run: ./gradlew clean build --stacktrace
+
+      # 기존 태그에서 최신 버전 결정
+      - name: Determine next version
+        id: version
+        run: |
+          git fetch --tags
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          echo "Latest tag: $latest_tag"
+
+          commit_msg=$(git log -1 --pretty=%B | tr '[:upper:]' '[:lower:]')
+          echo "Commit message: $commit_msg"
+
+          IFS='.' read -r major minor patch <<<"${latest_tag#v}"
+
+          if [[ "$commit_msg" == *"hotfix"* || "$commit_msg" == *"fix"* ]]; then
+            new_tag="v$major.$minor.$((patch+1))"
+          elif [[ "$commit_msg" == *"feature"* || "$commit_msg" == *"feat"* ]]; then
+            new_tag="v$major.$((minor+1)).0"
+          elif [[ "$commit_msg" == *"release"* || "$commit_msg" == *"major"* ]]; then
+            new_tag="v$((major+1)).0.0"
+          else
+            new_tag="v$major.$minor.$((patch+1))"
+          fi
+
+          echo "New tag: $new_tag"
+          echo "tag=$new_tag" >> $GITHUB_OUTPUT
+
+      # 태그 생성 및 푸시
+      - name: Create Git Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
+
+      # 릴리스 본문에 커밋 로그 포함
+      - name: Generate commit log
+        id: changelog
+        run: |
+          previous_tag=$(git describe --tags --abbrev=0 --exclude=${{ steps.version.outputs.tag }} 2>/dev/null || echo "")
+          if [ -z "$previous_tag" ]; then
+            echo "No previous tag found, using initial commits."
+            changelog=$(git log --pretty=format:"- %s")
+          else
+            changelog=$(git log ${previous_tag}..HEAD --pretty=format:"- %s")
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # GitHub Release 자동 생성
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "TEAM-3 Release ${{ steps.version.outputs.tag }}"
+          body: |
+            **자동 릴리스 생성**
+            - Branch: `${{ github.ref_name }}`
+            - Commit: `${{ github.sha }}`
+            - Author: `${{ github.actor }}`
+
+            ### 포함된 커밋 내역
+            ${{ steps.changelog.outputs.changelog }}
+          files: |
+            build/libs/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
