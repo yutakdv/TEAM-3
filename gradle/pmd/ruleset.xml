@@ -3,7 +3,7 @@
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
-                             https://pmd.github.io/pmd-7.0.0/ruleset_2_0_0.xsd"
+                             http://pmd.github.io/pmd-7.0.0/ruleset_2_0_0.xsd"
          xmlns:pmd="http://pmd.sourceforge.net/ruleset/2.0.0">
 
     <description>
@@ -17,37 +17,37 @@
     <exclude-pattern>.*/out/.*</exclude-pattern>
 
     <!-- ===== Basic Code Style / Error-Prone ===== -->
-    <rule ref="rulesets/java/codestyle.xml/UnusedImports"/>
-    <rule ref="rulesets/java/errorprone.xml/UnusedLocalVariable"/>
-    <rule ref="rulesets/java/errorprone.xml/UnusedPrivateField"/>
-    <rule ref="rulesets/java/maintainability.xml/DuplicateStringLiteral"/>
-    <rule ref="rulesets/java/errorprone.xml/ReassigningParameter"/>
-    <rule ref="rulesets/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
+    <rule ref="category/java/bestpractices.xml/UnusedImports"/>
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+    <rule ref="category/java/bestpractices.xml/AvoidDuplicateLiterals"/>
+    <rule ref="category/java/bestpractices.xml/AvoidReassigningParameters"/>
+    <rule ref="category/java/bestpractices.xml/UnnecessaryFullyQualifiedName"/>
 
     <!-- ===== Design / Maintainability ===== -->
-    <rule ref="rulesets/java/design.xml/CyclomaticComplexity">
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
             <property name="methodReportLevel" value="12"/>
         </properties>
     </rule>
-    <rule ref="rulesets/java/design.xml/ExcessiveMethodLength">
+    <rule ref="category/java/design.xml/ExcessiveMethodLength">
         <properties>
             <property name="minimum" value="80"/>
         </properties>
     </rule>
-    <rule ref="rulesets/java/design.xml/ExcessiveParameterList">
+    <rule ref="category/java/design.xml/ExcessiveParameterList">
         <properties>
             <property name="minimum" value="7"/>
         </properties>
     </rule>
-    <rule ref="rulesets/java/design.xml/CollapsibleIfStatements"/>
-    <rule ref="rulesets/java/design.xml/SimplifyBooleanExpressions"/>
+    <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
+    <rule ref="category/java/design.xml/SimplifyBooleanExpressions"/>
 
     <!-- ===== Performance ===== -->
-    <rule ref="rulesets/java/performance.xml/AvoidInstantiatingObjectsInLoops"/>
+    <rule ref="category/java/performance.xml/AvoidInstantiatingObjectsInLoops"/>
 
     <!-- ===== Logging / Style ===== -->
-    <rule ref="rulesets/java/bestpractices.xml/SystemPrintln"/>
-    <rule ref="rulesets/java/errorprone.xml/PrintStackTrace"/>
+    <rule ref="category/java/logging-java.xml/SystemPrintln"/>
+    <rule ref="category/java/logging-java.xml/AvoidPrintStackTrace"/>
 
 </ruleset>
