@@ -36,6 +36,8 @@ jobs:
           rm -rf ~/.gradle/caches
           rm -rf ~/.gradle/configuration-cache
           rm -rf ~/.m2/repository/net/sourceforge/pmd
+      - name: Run PMD (Force 6.55.0)
+        run : ./gradlew --no-build-cache clean pmdMain --stacktrace
 
       # Build + Unit Test 실행
       - name: Build and Run Tests

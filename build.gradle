@@ -49,7 +49,7 @@ tasks.withType(SpotBugsTask).configureEach {
 pmd {
     toolVersion = "6.55.0"
     ruleSets = [] // 기본 ruleset 비활성화
-    ruleSetFiles = files("gradle/pmd/ruleset.xml")
+    ruleSetFiles = files("$projectDir/gradle/pmd/ruleset.xml")
 }
 
 tasks.withType(Pmd).configureEach {
