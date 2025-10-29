@@ -49,7 +49,7 @@ jobs:
 
       # PMD 실행 (리포트 전용, 빌드 차단 X)
       - name: Run PMD (Report Only)
-        run: ./gradlew pmdMain --stacktrace || true
+        run: ./gradlew --no-build-cache clean pmdMain --stacktrace || true
 
       - name: Upload PMD Report
         if: always()
