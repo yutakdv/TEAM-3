@@ -10,15 +10,6 @@ repositories {
     mavenCentral()
 }
 
-beforeEvaluate {
-    configurations.configureEach {
-        resolutionStrategy {
-            force "net.sourceforge.pmd:pmd-java:6.55.0"
-            force "net.sourceforge.pmd:pmd-core:6.55.0"
-        }
-    }
-}
-
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'

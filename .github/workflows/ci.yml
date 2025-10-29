@@ -31,6 +31,11 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle
+      - name: Remove Gradle Cache
+        run: rm -rf ~/.gradle/caches
+
+      - name: Run PMD (Force 6.55.0)
+        run: ./gradlew --no-build-cache clean pmdMain --stacktrace
   
       # Build + Unit Test 실행
       - name: Build and Run Tests
