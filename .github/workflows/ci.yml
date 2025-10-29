@@ -13,7 +13,7 @@ jobs:
       # 코드 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v4
-  
+
       # JDK 환경 세팅
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -31,7 +31,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle
-  
+
       # Build + Unit Test 실행
       - name: Build and Run Tests
         run: ./gradlew clean build test --stacktrace
@@ -46,17 +46,6 @@ jobs:
         with:
           name: SpotBugs-Report
           path: build/reports/spotbugs/*.html
-
-      # PMD 실행 (리포트 전용, 빌드 차단 X)
-      - name: Run PMD (Report Only)
-        run: ./gradlew --no-build-cache clean pmdMain --stacktrace || true
-
-      - name: Upload PMD Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: PMD-Report
-          path: build/reports/pmd/*.html
 
       # Slack 알림 전송 (빌드 검사))
       - name: Send Slack Notification (Detailed)

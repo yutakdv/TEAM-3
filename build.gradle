@@ -3,7 +3,6 @@ import com.github.spotbugs.snom.SpotBugsTask
 plugins {
     id 'application'
     id 'com.github.spotbugs' version '6.4.4'
-    id 'pmd'
 }
 
 repositories {
@@ -37,21 +36,6 @@ tasks.withType(SpotBugsTask).configureEach {
     ]
 }
 
-// PMD 설정
-pmd {
-    toolVersion = "6.55.0"
-    ruleSets = [] // 기본 ruleset 비활성화
-    ruleSetFiles = files("gradle/pmd/ruleset.xml")
-}
-
-tasks.withType(Pmd).configureEach {
-    ignoreFailures = true
-    reports {
-        xml.required.set(false)
-        html.required.set(true)
-    }
-}
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -72,11 +56,6 @@ sourceSets {
 tasks.withType(JavaExec).configureEach {
     systemProperty "file.encoding", "UTF-8"
 }
-
-tasks.register("qa") {
-    dependsOn "spotbugsMain", "pmdMain"
-}
-check.dependsOn "qa"
 
 tasks.test {
     useJUnitPlatform()
