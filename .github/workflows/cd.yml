@@ -43,11 +43,11 @@ jobs:
 
           IFS='.' read -r major minor patch <<<"${latest_tag#v}"
 
-          if [[ "$commit_msg" == *"hotfix"* || "$commit_msg" == *"fix"* ]]; then
+          if [[ "$commit_msg" == *"fix"* || "$commit_msg" == *":fix:"* ]]; then
             new_tag="v$major.$minor.$((patch+1))"
-          elif [[ "$commit_msg" == *"feature"* || "$commit_msg" == *"feat"* ]]; then
+          elif [[ "$commit_msg" == *"feat"* || "$commit_msg" == *":feat:"* ]]; then
             new_tag="v$major.$((minor+1)).0"
-          elif [[ "$commit_msg" == *"release"* || "$commit_msg" == *"major"* ]]; then
+          elif [[ "$commit_msg" == *"release"* || "$commit_msg" == *":release:"* || "$commit_msg" == *"major"* ]]; then
             new_tag="v$((major+1)).0.0"
           else
             new_tag="v$major.$minor.$((patch+1))"
@@ -97,3 +97,24 @@ jobs:
             build/libs/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Slack 알림 (릴리스 완료 후에만)
+      - name: Notify Slack of Release
+        if: success()  # 릴리스가 성공적으로 끝났을 때만 실행
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          custom_payload: |
+            {
+              "text": ":rocket: *TEAM-3 Release Completed!*",
+              "attachments": [
+                {
+                  "color": "#36a64f",
+                  "title": "Release ${{ steps.version.outputs.tag }}",
+                  "title_link": "https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}",
+                  "text": "포함된 커밋 내역:\n${{ steps.changelog.outputs.changelog }}"
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
