@@ -1,5 +1,8 @@
+import com.github.spotbugs.snom.SpotBugsTask
+
 plugins {
     id 'application'
+    id 'pmd'
     id 'com.github.spotbugs' version '6.4.4'
 }
 
@@ -16,11 +19,37 @@ application {
     mainClass = 'engine.Core'
 }
 
+// SpotBugs 설정
 spotbugs {
     toolVersion = '4.8.6'
-    effort = 'max'
-    reportLevel = 'low'
+    ignoreFailures = false
+    effort = "max"
+    reportLevel = "medium"
+}
+
+tasks.withType(SpotBugsTask).configureEach {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    extraArgs = [
+            '-excludeBugs', 'gradle/spotbugs/spotbugs-baseline.xml'
+    ]
+}
+
+// PMD 설정
+pmd {
+    toolVersion = "6.55.0"
+    ruleSets = [] // 기본 ruleset 비활성화
+    ruleSetFiles = files("gradle/pmd/ruleset.xml")
+}
+
+tasks.withType(Pmd).configureEach {
     ignoreFailures = true
+    reports {
+        xml.required.set(false)
+        html.required.set(true)
+    }
 }
 
 java {
@@ -43,6 +72,11 @@ sourceSets {
 tasks.withType(JavaExec).configureEach {
     systemProperty "file.encoding", "UTF-8"
 }
+
+tasks.register("qa") {
+    dependsOn "spotbugsMain", "pmdMain"
+}
+check.dependsOn "qa"
 
 tasks.test {
     useJUnitPlatform()

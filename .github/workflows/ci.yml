@@ -36,11 +36,29 @@ jobs:
       - name: Build and Run Tests
         run: ./gradlew clean build test --stacktrace
 
-      # 정적 분석 (버그 탐지)
-      - name: Run SpotBugs
-        run: ./gradlew spotbugsMain
+      # Spotbugs 실행 (품질 게이트)
+      - name: Run SpotBugs (Build Gate)
+        run: ./gradlew spotbugsMain --stacktrace
 
-      # Slack 알림 전송 (빌드 검사)
+      - name: Upload SpotBugs Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpotBugs-Report
+          path: build/reports/spotbugs/*.html
+
+      # PMD 실행 (리포트 전용, 빌드 차단 X)
+      - name: Run PMD (Report Only)
+        run: ./gradlew pmdMain --stacktrace || true
+
+      - name: Upload PMD Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PMD-Report
+          path: build/reports/pmd/*.html
+
+      # Slack 알림 전송 (빌드 검사))
       - name: Send Slack Notification (Detailed)
         if: always()
         uses: 8398a7/action-slack@v3
@@ -49,7 +67,7 @@ jobs:
           fields: repo,commit,author,ref,workflow,job,took
           custom_payload: |
             {
-              "text": "*TEAM-3 CI Results* \nStatus: `${{ job.status }}`\nAuthor: `${{ github.actor }}`\nBranch: `${{ github.ref_name }}`\n\nCheck the test report 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "*TEAM-3 CI Results* \nStatus: `${{ job.status }}`\nAuthor: `${{ github.actor }}`\nBranch: `${{ github.ref_name }}`\n\n• SpotBugs & PMD Reports are available in Artifacts.\n• Check the full details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}      
