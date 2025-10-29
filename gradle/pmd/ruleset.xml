@@ -3,7 +3,8 @@
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
-                             https://pmd.github.io/pmd-7.0.0/ruleset_2_0_0.xsd">
+                             https://pmd.github.io/pmd-7.0.0/ruleset_2_0_0.xsd"
+         xmlns:pmd="http://pmd.sourceforge.net/ruleset/2.0.0">
 
     <description>
         TEAM-3 프로젝트용:
@@ -15,13 +16,12 @@
     <exclude-pattern>.*/build/.*</exclude-pattern>
     <exclude-pattern>.*/out/.*</exclude-pattern>
 
-    <!-- ===== Best Practices ===== -->
-    <rule ref="category/java/bestpractices.xml/UnusedImports"/>
-    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
-    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
-    <rule ref="category/java/bestpractices.xml/AvoidDuplicateLiterals"/>
-    <rule ref="category/java/bestpractices.xml/AvoidReassigningParameters"/>
-    <rule ref="category/java/bestpractices.xml/UnnecessaryFullyQualifiedName"/>
+    <rule ref="category/java/codestyle.xml/UnusedImports"/>
+    <rule ref="category/java/errorprone.xml/UnusedLocalVariable"/>
+    <rule ref="category/java/errorprone.xml/UnusedPrivateField"/>
+    <rule ref="category/java/maintainability.xml/DuplicateStringLiteral"/>
+    <rule ref="category/java/errorprone.xml/ReassigningParameter"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
 
     <!-- ===== Design / Maintainability ===== -->
     <rule ref="category/java/design.xml/CyclomaticComplexity">
@@ -46,7 +46,7 @@
     <rule ref="category/java/performance.xml/AvoidInstantiatingObjectsInLoops"/>
 
     <!-- ===== Logging / Style ===== -->
-    <rule ref="category/java/logging-java.xml/SystemPrintln"/>
-    <rule ref="category/java/logging-java.xml/AvoidPrintStackTrace"/>
+    <rule ref="category/java/bestpractices.xml/SystemPrintln"/>
+    <rule ref="category/java/errorprone.xml/PrintStackTrace"/>
 
 </ruleset>
