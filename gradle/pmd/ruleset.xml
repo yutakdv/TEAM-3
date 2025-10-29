@@ -16,37 +16,38 @@
     <exclude-pattern>.*/build/.*</exclude-pattern>
     <exclude-pattern>.*/out/.*</exclude-pattern>
 
-    <rule ref="category/java/codestyle.xml/UnusedImports"/>
-    <rule ref="category/java/errorprone.xml/UnusedLocalVariable"/>
-    <rule ref="category/java/errorprone.xml/UnusedPrivateField"/>
-    <rule ref="category/java/maintainability.xml/DuplicateStringLiteral"/>
-    <rule ref="category/java/errorprone.xml/ReassigningParameter"/>
-    <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
+    <!-- ===== Basic Code Style / Error-Prone ===== -->
+    <rule ref="rulesets/java/codestyle.xml/UnusedImports"/>
+    <rule ref="rulesets/java/errorprone.xml/UnusedLocalVariable"/>
+    <rule ref="rulesets/java/errorprone.xml/UnusedPrivateField"/>
+    <rule ref="rulesets/java/maintainability.xml/DuplicateStringLiteral"/>
+    <rule ref="rulesets/java/errorprone.xml/ReassigningParameter"/>
+    <rule ref="rulesets/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
 
     <!-- ===== Design / Maintainability ===== -->
-    <rule ref="category/java/design.xml/CyclomaticComplexity">
+    <rule ref="rulesets/java/design.xml/CyclomaticComplexity">
         <properties>
             <property name="methodReportLevel" value="12"/>
         </properties>
     </rule>
-    <rule ref="category/java/design.xml/ExcessiveMethodLength">
+    <rule ref="rulesets/java/design.xml/ExcessiveMethodLength">
         <properties>
             <property name="minimum" value="80"/>
         </properties>
     </rule>
-    <rule ref="category/java/design.xml/ExcessiveParameterList">
+    <rule ref="rulesets/java/design.xml/ExcessiveParameterList">
         <properties>
             <property name="minimum" value="7"/>
         </properties>
     </rule>
-    <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
-    <rule ref="category/java/design.xml/SimplifyBooleanExpressions"/>
+    <rule ref="rulesets/java/design.xml/CollapsibleIfStatements"/>
+    <rule ref="rulesets/java/design.xml/SimplifyBooleanExpressions"/>
 
     <!-- ===== Performance ===== -->
-    <rule ref="category/java/performance.xml/AvoidInstantiatingObjectsInLoops"/>
+    <rule ref="rulesets/java/performance.xml/AvoidInstantiatingObjectsInLoops"/>
 
     <!-- ===== Logging / Style ===== -->
-    <rule ref="category/java/bestpractices.xml/SystemPrintln"/>
-    <rule ref="category/java/errorprone.xml/PrintStackTrace"/>
+    <rule ref="rulesets/java/bestpractices.xml/SystemPrintln"/>
+    <rule ref="rulesets/java/errorprone.xml/PrintStackTrace"/>
 
 </ruleset>
