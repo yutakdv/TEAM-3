@@ -53,14 +53,8 @@ jobs:
           latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
           echo "Latest tag: $latest_tag"
 
-          # 최근 merge된 PR 제목 가져오기 (base=development)
-          pr_title=$(gh pr list \
-            --state merged \
-            --base development \
-            --sort merged_at \
-            --limit 1 \
-            --json title \
-            --jq '.[0].title' | tr '[:upper:]' '[:lower:]')
+          # 최근 merge 커밋 메시지의 첫 줄을 PR 제목으로 인식
+          pr_title=$(git log -1 --pretty=%B | head -n 1 | tr '[:upper:]' '[:lower:]')
           
           echo "PR title: $pr_title"
           echo "pr_title=$pr_title" >> $GITHUB_OUTPUT
@@ -147,6 +141,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: success
+          fields: ''
           custom_payload: |
             {
               "text": ":rocket: *TEAM-3 Release Completed!*",
