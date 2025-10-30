@@ -137,22 +137,18 @@ jobs:
 
       # Slack 알림 (릴리스 완료 후에만)
       - name: Notify Slack of Release
-        if: success()  # 릴리스가 성공적으로 끝났을 때만 실행
-        uses: 8398a7/action-slack@v3
-        with:
-          status: success
-          fields: ''
-          custom_payload: |
-            {
-              "text": ":rocket: *TEAM-3 Release Completed!*",
-              "attachments": [
-                {
-                  "color": "#36a64f",
-                  "title": "Release ${{ steps.version.outputs.tag }}",
-                  "title_link": "https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}",
-                  "text": "🎯 *Latest Version:* `${{ steps.version.outputs.tag }}`\n📝 *PR Title:* `${{ steps.version.outputs.pr_title }}`\n\n릴리스가 성공적으로 완료되었습니다!"
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data "{
+            \"text\": \":rocket: *TEAM-3 Release Completed!*\",
+            \"attachments\": [
+              {
+                \"color\": \"#36a64f\",
+                \"title\": \"Release ${{ steps.version.outputs.tag }}\",
+                \"title_link\": \"https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}\",
+                \"text\": \"🎯 *Latest Version:* \`${{ steps.version.outputs.tag }}\`\n📝 *PR Title:* \`${{ steps.version.outputs.pr_title }}\`\n\n릴리스가 성공적으로 완료되었습니다!\"
+              }
+            ]
+          }" \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
