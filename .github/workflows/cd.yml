@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   
+          fetch-depth: 0
 
       # JDK 설정
       - name: Set up Java
@@ -69,11 +69,11 @@ jobs:
           IFS='.' read -r major minor patch <<<"${latest_tag#v}"
 
           # 버전 규칙 적용 (:gitmoji: type: desc)
-          if echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(hotfix|fix)\s*:'; then
+          if echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(hotfix|fix)\s*:\s*.+'; then
             new_tag="v$major.$minor.$((patch+1))"
-          elif echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(feature|feat)\s*:'; then
+          elif echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(feature|feat)\s*:\s*.+'; then
             new_tag="v$major.$((minor+1)).0"
-          elif echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(release|major)\s*:'; then
+          elif echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(release|major)\s*:\s*.+'; then
             new_tag="v$((major+1)).0.0"
           else
             new_tag="v$major.$minor.$((patch+1))"
@@ -155,7 +155,7 @@ jobs:
                   "color": "#36a64f",
                   "title": "Release ${{ steps.version.outputs.tag }}",
                   "title_link": "https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}",
-                  "text": "포함된 커밋 내역:\n${{ steps.changelog.outputs.changelog }}"
+                  "text": "🎯 *Latest Version:* `${{ steps.version.outputs.tag }}`\n📝 *PR Title:* `${{ steps.version.outputs.pr_title }}`\n\n릴리스가 성공적으로 완료되었습니다!"
                 }
               ]
             }
