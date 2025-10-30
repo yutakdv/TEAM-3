@@ -1,12 +1,14 @@
 name: CI - Build & Test + Slack Notify
 
 on:
-  pull_request:
-    branches: [ development ] #development로 PR이 열릴떄 자동으로 실행
-    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows: ["PR Title Check"]
+    types:
+      - completed
 
 jobs:
   build-test:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
