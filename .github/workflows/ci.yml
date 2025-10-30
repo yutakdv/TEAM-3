@@ -94,10 +94,10 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          fields: repo,commit,author,ref,workflow,job,took
+          fields: repo,commit,author,ref,workflow
           custom_payload: |
             {
-              "text": "*TEAM-3 CI Results* \nStatus: `${{ job.status }}`\nAuthor: `${{ github.actor }}`\nBranch: `${{ github.ref_name }}`\n\n• SpotBugs & PMD Reports are available in Artifacts.\n• Check the full details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "*TEAM-3 CI Results* \nStatus: `${{ job.status }}`\nAuthor: `${{ github.actor }}`\nBranch: `${{ github.ref_name }}`\n\n• SpotBugs Reports are available in Artifacts.\n• Check the full details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}      
