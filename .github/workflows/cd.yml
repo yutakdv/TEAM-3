@@ -34,24 +34,46 @@ jobs:
       - name: Build project
         run: ./gradlew clean build --stacktrace
 
-      # 기존 태그에서 최신 버전 결정
-      - name: Determine next version
+      # GitHub API 호출용
+      - name: Ensure GitHub CLI installed
+        run: |
+          if ! command -v gh &> /dev/null; then
+            sudo apt update && sudo apt install gh -y
+          fi
+
+      # 최신 PR 제목 기반 버전 계산
+      - name: Determine next version (Based on PR title)
         id: version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git fetch --tags
+          
+          # 기존 최신 태그 확인
           latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
           echo "Latest tag: $latest_tag"
 
-          commit_msg=$(git log -1 --pretty=%B | tr '[:upper:]' '[:lower:]')
-          echo "Commit message: $commit_msg"
-
+          # 최근 merge된 PR 제목 가져오기 (base=development)
+          pr_title=$(gh pr list \
+            --state merged \
+            --base development \
+            --sort merged_at \
+            --limit 1 \
+            --json title \
+            --jq '.[0].title' | tr '[:upper:]' '[:lower:]')
+          
+          echo "PR title: $pr_title"
+          echo "pr_title=$pr_title" >> $GITHUB_OUTPUT
+          
+          # 태그 숫자 분리
           IFS='.' read -r major minor patch <<<"${latest_tag#v}"
 
-          if [[ "$commit_msg" == *"fix"* || "$commit_msg" == *":fix:"* ]]; then
+          # 버전 규칙 적용 (:gitmoji: type: desc)
+          if echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(hotfix|fix)\s*:'; then
             new_tag="v$major.$minor.$((patch+1))"
-          elif [[ "$commit_msg" == *"feat"* || "$commit_msg" == *":feat:"* ]]; then
+          elif echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(feature|feat)\s*:'; then
             new_tag="v$major.$((minor+1)).0"
-          elif [[ "$commit_msg" == *"release"* || "$commit_msg" == *":release:"* || "$commit_msg" == *"major"* ]]; then
+          elif echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(release|major)\s*:'; then
             new_tag="v$((major+1)).0.0"
           else
             new_tag="v$major.$minor.$((patch+1))"
@@ -72,13 +94,28 @@ jobs:
       - name: Generate commit log
         id: changelog
         run: |
-          previous_tag=$(git describe --tags --abbrev=0 --exclude=${{ steps.version.outputs.tag }} 2>/dev/null || echo "")
+          # 최신 태그 목록 정렬 (작성 순서 기준)
+          all_tags=($(git tag --sort=creatordate))
+          current_tag=${{ steps.version.outputs.tag }}
+          previous_tag=""
+
+          # 현재 태그 이전의 태그 찾기
+          for ((i=${#all_tags[@]}-1; i>=0; i--)); do
+            if [[ "${all_tags[$i]}" == "$current_tag" && $i -gt 0 ]]; then
+              previous_tag=${all_tags[$((i-1))]}
+              break
+            fi
+          done
+
           if [ -z "$previous_tag" ]; then
-            echo "No previous tag found, using initial commits."
+            echo "⚠️ No previous tag found. Using initial commits."
             changelog=$(git log --pretty=format:"- %s")
           else
+            echo "Previous tag found: $previous_tag"
             changelog=$(git log ${previous_tag}..HEAD --pretty=format:"- %s")
           fi
+
+          # Slack과 Release용 출력
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$changelog" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -94,6 +131,7 @@ jobs:
             - Branch: `${{ github.ref_name }}`
             - Commit: `${{ github.sha }}`
             - Author: `${{ github.actor }}`
+            - PR Title: `${{ steps.version.outputs.pr_title }}`
 
             ### 포함된 커밋 내역
             ${{ steps.changelog.outputs.changelog }}
@@ -108,6 +146,7 @@ jobs:
         if: success()  # 릴리스가 성공적으로 끝났을 때만 실행
         uses: 8398a7/action-slack@v3
         with:
+          status: success
           custom_payload: |
             {
               "text": ":rocket: *TEAM-3 Release Completed!*",
