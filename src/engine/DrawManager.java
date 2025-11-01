@@ -273,14 +273,7 @@ public final class DrawManager {
          * Checks if the entity is an EnemyShip of type A (EnemyShipA1 or A2),
          * and sets its color alpha to 32 to indicate critical damage.
          */
-        if (entity instanceof entity.EnemyShip) {
-            entity.EnemyShip enemy = (entity.EnemyShip) entity;
-            if ((enemy.getSpriteType() == SpriteType.EnemyShipA1
-                    || enemy.getSpriteType() == SpriteType.EnemyShipA2)
-                    && enemy.getHealth() == 1) {
-                color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 32);
-            }
-        }
+
 
         // --- Scaling logic ---
         // Original sprite dimensions
