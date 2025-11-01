@@ -975,6 +975,48 @@ public final class DrawManager {
         drawBackButton(screen, false);
     }
 
+    public Rectangle[] getAchievementNavHitboxes(final Screen screen) {
+        if (fontRegularMetrics == null) {
+            backBufferGraphics.setFont(fontRegular);
+            fontRegularMetrics = backBufferGraphics.getFontMetrics(fontRegular);
+        }
+
+        String fullText = "PREV                                                              NEXT";
+        int baseY = (int)(screen.getHeight() * 0.8);
+
+        int fullWidth = fontRegularMetrics.stringWidth(fullText);
+        int textHeight = fontRegularMetrics.getHeight();
+
+        int startX = screen.getWidth() / 2 - fullWidth / 2;
+
+        int prevWidth = fontRegularMetrics.stringWidth("PREV");
+        int nextWidth = fontRegularMetrics.stringWidth("NEXT");
+
+        int prevX = startX;
+        int nextX = startX + fullWidth - nextWidth;
+
+        int paddingX = 10;
+        int paddingY = 3;
+
+
+        Rectangle prevBox = new Rectangle(
+                prevX - paddingX,
+                baseY - textHeight / 2 + 20,
+                prevWidth + paddingX * 2,
+                textHeight + paddingY
+        );
+
+        Rectangle nextBox = new Rectangle(
+                nextX - paddingX,
+                baseY - textHeight / 2 + 20,
+                nextWidth + paddingX * 2,
+                textHeight + paddingY
+        );
+        return new Rectangle[]{prevBox, nextBox};
+
+
+    }
+
 
 
     public void drawSettingMenu(final Screen screen) {
