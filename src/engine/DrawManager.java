@@ -1199,8 +1199,14 @@ public final class DrawManager {
      */
     // Modify to accept hoverIndex for highlighting
     public void drawPlayMenu(final Screen screen, final Integer hoverOption, final int selectedIndex) {
-        String[] items = {"1 Player", "2 Players"};
+        String[] items = {"1P mode", "2P mode"};
         // Removed center back button
+
+        backBufferGraphics.setColor(Color.GREEN);
+        drawCenteredBigString(screen, "Select Play Mode", screen.getHeight() / 5);
+
+        backBufferGraphics.setColor(Color.GRAY);
+        drawCenteredRegularString(screen, "Press ESC to Return, Confirm with Space", screen.getHeight() / 5 + fontRegularMetrics.getHeight() * 2);
 
         // draw back button at top-left corner\, Set the selectedIndex to Highlight the Back Button
         drawBackButton(screen, selectedIndex == 2);
