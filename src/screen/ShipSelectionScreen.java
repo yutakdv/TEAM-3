@@ -66,6 +66,12 @@ public class ShipSelectionScreen extends Screen {
         super.update();
         draw();
         if (this.selectionCooldown.checkFinished() && this.inputDelay.checkFinished()) {
+
+            if(inputManager.isKeyDown(KeyEvent.VK_ESCAPE)){
+                this.returnCode = (player == 1) ? 5 : 6;
+                this.isRunning = false;
+                return;
+            }
             if (inputManager.isKeyDown(KeyEvent.VK_UP) || inputManager.isKeyDown(KeyEvent.VK_W)) {
                 backSelected = true;
                 selectionCooldown.reset();

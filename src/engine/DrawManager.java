@@ -1321,7 +1321,7 @@ public final class DrawManager {
         drawCenteredRegularString(screen, shipFireRates[selectedShipIndex], screen.getHeight() / 2 + 80);
 
         backBufferGraphics.setColor(Color.GRAY);
-        drawCenteredRegularString(screen, "Press SPACE to Select", screen.getHeight() - 50);
+        drawCenteredRegularString(screen, "Press Esc to return, Confirm with Space", screen.getHeight() - 50);
     }
 
     /*
