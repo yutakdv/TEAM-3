@@ -241,32 +241,39 @@ public final class DrawManager {
      * @param positionY
      *                  Coordinates for the upper side of the image.
      */
+    //override the team color
+    public void drawEntity(final Entity entity, final int positionX, final int positionY) {
+        drawEntity(entity, positionX, positionY, null);
+    }
     public void drawEntity(final Entity entity, final int positionX,
-                           final int positionY) {
+                           final int positionY, final Color override) {
         boolean[][] image = spriteMap.get(entity.getSpriteType());
 
-        // 2P mode: start with the entity's own color
-        Color color = entity.getColor();
+        Color color = (override != null) ? override : entity.getColor();
 
-        // Color-code by player when applicable
-        if (entity instanceof Ship) {
-            Ship ship = (Ship) entity;
-            int pid = ship.getPlayerId(); // requires Ship.getPlayerId()
-            if (pid == 1)
-                color = Color.BLUE; // P1 ship
-            else if (pid == 2)
-                color = Color.RED; // P2 ship
+        if (override == null) {
+            // Color-code by player when applicable
+            if (entity instanceof Ship) {
+                Ship ship = (Ship) entity;
+                int pid = ship.getPlayerId(); // requires Ship.getPlayerId()
+                if (pid == 1)
+                    color = Color.BLUE; // P1 ship
+                else if (pid == 2)
+                    color = Color.RED; // P2 ship
 
-            // else leave default (e.g., green) for legacy/unknown
-        } else if (entity instanceof Bullet) {
-            Bullet bullet = (Bullet) entity;
-            int pid = bullet.getPlayerId(); // requires Bullet.getPlayerId()
-            if (pid == 1)
-                color = Color.CYAN; // P1 bullet
-            else if (pid == 2)
-                color = Color.MAGENTA; // P2 bullet
-            // enemy bullets will keep their default color from the entity
+                // else leave default (e.g., green) for legacy/unknown
+            } else if (entity instanceof Bullet) {
+                Bullet bullet = (Bullet) entity;
+                int pid = bullet.getPlayerId(); // requires Bullet.getPlayerId()
+                if (pid == 1)
+                    color = Color.CYAN; // P1 bullet
+                else if (pid == 2)
+                    color = Color.MAGENTA; // P2 bullet
+                // enemy bullets will keep their default color from the entity
+            }
+
         }
+
 
         /**
          * Makes A-type enemies semi-transparent when their health is 1.
@@ -1343,7 +1350,17 @@ public final class DrawManager {
         String[] shipSpeeds = {"SPEED: NORMAL", "SPEED: SLOW", "SPEED: SLOW", "SPEED: FAST"};
         String[] shipFireRates = {"FIRE RATE: NORMAL", "FIRE RATE: NORMAL", "FIRE RATE: NORMAL", "FIRE RATE: SLOW"};
 
-        drawEntity(ship, ship.getPositionX() - ship.getWidth()/2, ship.getPositionY());
+        for(int i = 0; i < shipExamples.length; i++){
+            Ship s = shipExamples[i];
+            int x = s.getPositionX() - s.getWidth() / 2;
+            int y = s.getPositionY();
+
+            if (i == selectedShipIndex){
+                drawEntity(s, x, y, null);
+            }else{
+                drawEntity(s, x, y, Color.GRAY.darker().darker());
+            }
+        }
 //        for (int i = 0; i < 4; i++) {
 //            // Draw Player Ship
 //            drawManager.drawEntity(ship, ship.getPositionX() - ship.getWidth()/2, ship.getPositionY());
