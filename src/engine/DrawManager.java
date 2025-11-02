@@ -1357,6 +1357,15 @@ public final class DrawManager {
 
             if (i == selectedShipIndex){
                 drawEntity(s, x, y, null);
+
+                int padding = 5;
+                int frameX = x - padding;
+                int frameY = y - padding;
+                int frameW = s.getWidth() + padding * 2;
+                int frameH = s.getHeight() + padding * 2;
+
+                drawFrame(frameX, frameY, frameW, frameH, Color.WHITE, 8, 1);
+
             }else{
                 drawEntity(s, x, y, Color.GRAY.darker().darker());
             }
@@ -1480,5 +1489,28 @@ public final class DrawManager {
         int height = barThickness * 2;
 
         return new Rectangle(x, y, width, height);
+    }
+
+    // draw Corner Frame at ship selection screen
+    private void drawFrame(int x, int y, int width, int height, Color color, int cornerLength, int thickness) {
+        Graphics2D g2d = (Graphics2D) backBufferGraphics;
+        g2d.setColor(color);
+        g2d.setStroke(new BasicStroke(thickness));
+
+        // upper left
+        g2d.drawLine(x, y, x + cornerLength, y);             // 가로
+        g2d.drawLine(x, y, x, y + cornerLength);             // 세로
+
+        // upper right
+        g2d.drawLine(x + width - cornerLength, y, x + width, y);
+        g2d.drawLine(x + width, y, x + width, y + cornerLength);
+
+        // lower left
+        g2d.drawLine(x, y + height, x + cornerLength, y + height);
+        g2d.drawLine(x, y + height - cornerLength, x, y + height);
+
+        // lower right
+        g2d.drawLine(x + width - cornerLength, y + height, x + width, y + height);
+        g2d.drawLine(x + width, y + height - cornerLength, x + width, y + height);
     }
 }
