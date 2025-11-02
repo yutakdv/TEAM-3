@@ -1513,4 +1513,15 @@ public final class DrawManager {
         g2d.drawLine(x + width - cornerLength, y + height, x + width, y + height);
         g2d.drawLine(x + width, y + height - cornerLength, x + width, y + height);
     }
+
+    public Rectangle[] getShipSelectionHitboxes(final Screen screen, final Ship[] ships) {
+        Rectangle[] boxes = new Rectangle[ships.length];
+        for (int i = 0; i < ships.length; i++) {
+            Ship s = ships[i];
+            int x = s.getPositionX() - s.getWidth() / 2;
+            int y = s.getPositionY() + 30;
+            boxes[i] = new Rectangle(x - 10, y - 10, s.getWidth() + 20, s.getHeight() + 20);
+        }
+        return boxes;
+    }
 }

@@ -14,6 +14,8 @@ public class ShipSelectionScreen extends Screen {
     private int selectedShipIndex = 0; // 0: NORMAL, 1: BIG_SHOT, 2: DOUBLE_SHOT, 3: MOVE_FAST
     private Ship[] shipExamples = new Ship[4];
 
+    private Integer hovershipIndex = null;
+
     private int player;
     private boolean backSelected = false; // If current state is on the back button, can't select ship
 
@@ -106,13 +108,33 @@ public class ShipSelectionScreen extends Screen {
             boolean clicked = inputManager.isMouseClicked();
 
             java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+            java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
 
-            if (clicked && backBox.contains(mx, my)) {
-                if (player == 1) this.returnCode = 5;
-                else if (player == 2) this.returnCode = 6;
-                this.isRunning = false;
-
+            hovershipIndex = null;
+            for (int i = 0; i < shipBoxes.length; i++) {
+                if (shipBoxes[i].contains(mx, my)) {
+                    hovershipIndex = i;
+                    this.selectedShipIndex = i;  // ←/→ 누른 것과 동일하게 선택 상태 변경
+                    break;
+                }
             }
+
+            if(clicked){
+                if(backBox.contains(mx, my)){
+                    this.returnCode = (player == 1) ? 5 : 6;
+                    this.isRunning = false;
+                    return;
+                }
+                if(hovershipIndex != null){
+                    switch (player) {
+                        case 1 -> this.returnCode = 6;
+                        case 2 -> this.returnCode = 2;
+                    }
+                    this.isRunning = false;
+                }
+            }
+
+
         }
     }
 
