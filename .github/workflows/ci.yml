@@ -79,7 +79,7 @@ jobs:
 
       # PMD 실행 (불필요한 코드 체크)
       - name: Run PMD Analysis (Build Gate)
-        run: ./gradlew pmdCheck --stacktrace
+        run: ./gradlew pmdMain --stacktrace
 
       # PMD Report Upload
       - name: Upload PMD Report
