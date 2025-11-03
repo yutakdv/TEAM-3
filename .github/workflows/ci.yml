@@ -87,7 +87,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: PMD-Report
-          path: build/reports/pmd/*.html
+          path: build/reports/pmd/pmd-report.html
 
       # Spotbugs 실행 (품질 게이트)
       - name: Run SpotBugs (Build Gate)
@@ -98,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SpotBugs-Report
-          path: build/reports/spotbugs/*.html
+          path: build/reports/spotbugs/spotbugs-report.html
 
       # Slack 알림 전송 (빌드 검사))
       - name: Send Slack Notification (Detailed)
@@ -113,7 +113,7 @@ jobs:
             Author: `${{ github.actor }}`
             Branch: `${{ github.ref_name }}`
 
-            • SpotBugs Reports available in Artifacts.
+            • Pmd Reports & SpotBugs Reports available in Artifacts.
             • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
