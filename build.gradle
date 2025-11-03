@@ -3,6 +3,7 @@ import com.github.spotbugs.snom.SpotBugsTask
 plugins {
     id 'application'
     id 'com.github.spotbugs' version '6.4.4'
+    id 'pmd'
 }
 
 repositories {
@@ -16,6 +17,13 @@ dependencies {
 
 application {
     mainClass = 'engine.Core'
+}
+
+// PMD 규칙
+pmd {
+    ruleSetFiles = files("gradle/pmd/ruleset.xml")
+    ignoreFailures = true
+    reportsDir = layout.buildDirectory.dir("reports/pmd").get().asFile
 }
 
 // SpotBugs 설정

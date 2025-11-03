@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - development
+    paths: [ 'src/**', 'build.gradle', 'settings.gradle' ]
     paths-ignore:
       - '.github/workflows/**'
     tags-ignore:
