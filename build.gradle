@@ -21,9 +21,17 @@ application {
 
 // PMD 규칙
 pmd {
+    toolVersion = "6.55.0"
     ruleSetFiles = files("gradle/pmd/ruleset.xml")
     ignoreFailures = true
     reportsDir = layout.buildDirectory.dir("reports/pmd").get().asFile
+}
+
+tasks.withType(Pmd).configureEach {
+    reports {
+        html.required.set(true)
+        html.outputLocation = layout.buildDirectory.file('reports/pmd/pmd-report.html').get().asFile
+    }
 }
 
 // SpotBugs 설정
@@ -34,10 +42,13 @@ spotbugs {
     reportLevel = "medium"
 }
 
+def projectLayout = layout
+
 tasks.withType(SpotBugsTask).configureEach {
     reports {
         xml.required.set(true)
         html.required.set(true)
+        html.outputLocation = projectLayout.buildDirectory.file('reports/spotbugs/spotbugs-report.html').get().asFile
     }
     extraArgs = [
             '-excludeBugs', 'gradle/spotbugs/spotbugs-baseline.xml'
