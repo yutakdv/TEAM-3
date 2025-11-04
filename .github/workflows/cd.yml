@@ -35,7 +35,7 @@ jobs:
 
       # Gradle 빌드
       - name: Build project (skip static analysis)
-        run: ./gradlew clean assemble --stacktrace
+        run: ./gradlew clean assemble -x spotbugsMain -x pmdMain -x test --stacktrace
 
       # GitHub API 호출용
       - name: Ensure GitHub CLI installed
