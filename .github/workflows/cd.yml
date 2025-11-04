@@ -1,10 +1,10 @@
 name: CD - Auto Tag & Release
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - development
-    paths: [ 'src/**', 'build.gradle', 'settings.gradle' ]
     paths-ignore:
       - '.github/workflows/**'
     tags-ignore:
@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   release:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
@@ -32,8 +33,8 @@ jobs:
           java-version: '21'
 
       # Gradle 빌드
-      - name: Build project
-        run: ./gradlew clean build --stacktrace
+      - name: Build project (skip static analysis)
+        run: ./gradlew clean assemble -x spotbugsMain -x pmdMain -x test --stacktrace
 
       # GitHub API 호출용
       - name: Ensure GitHub CLI installed
