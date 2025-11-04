@@ -71,20 +71,6 @@ public class AchievementScreen extends Screen {
                 this.returnCode = 1;
                 this.isRunning = false;
             }
-
-            java.awt.Rectangle[] navBoxes = drawManager.getAchievementNavHitboxes(this);
-
-            if (navBoxes[0].contains(mx, my)) {
-                currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
-                completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-                inputDelay.reset();
-            }
-
-            if (navBoxes[1].contains(mx, my)) {
-                currentIdx = (currentIdx + 1) % achievements.size();
-                completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-                inputDelay.reset();
-            }
         }
     }
 

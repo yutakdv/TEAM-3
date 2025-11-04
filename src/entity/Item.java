@@ -69,27 +69,6 @@ public class Item extends Entity {
         } else {
             this.spriteType = SpriteType.ItemScore;
         }
-
-        // added this line for set color of items for better visibility
-        switch (this.type) {
-            case "COIN":
-                this.changeColor(Color.YELLOW);
-                break;
-
-            case "SCORE":
-            case "SCOREBOOST":
-                this.changeColor(Color.GREEN);
-                break;
-
-            case "HEAL":
-                this.changeColor(Color.PINK);
-                break;
-
-            case "TRIPLESHOT":
-            case "BULLETSPEEDUP":
-                this.changeColor(Color.BLUE);
-                break;
-        }
     }
 
     /**

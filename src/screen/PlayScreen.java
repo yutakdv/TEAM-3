@@ -43,13 +43,6 @@ public class PlayScreen extends Screen {
         draw();
 
         if (this.selectionCooldown.checkFinished() && this.inputDelay.checkFinished()) {
-
-            if(inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {
-                this.returnCode = 1;
-                this.isRunning = false;
-                return;
-            }
-
             if (inputManager.isKeyDown(KeyEvent.VK_UP) || inputManager.isKeyDown(KeyEvent.VK_W)) {
                 this.menuIndex = (this.menuIndex + 2) % 3; // UP
                 this.selectionCooldown.reset();
