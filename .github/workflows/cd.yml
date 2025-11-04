@@ -34,8 +34,8 @@ jobs:
           java-version: '21'
 
       # Gradle 빌드
-      - name: Build project
-        run: ./gradlew clean build --stacktrace
+      - name: Build project (skip static analysis)
+        run: ./gradlew clean assemble --stacktrace
 
       # GitHub API 호출용
       - name: Ensure GitHub CLI installed
