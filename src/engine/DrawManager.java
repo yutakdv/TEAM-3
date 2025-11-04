@@ -241,46 +241,46 @@ public final class DrawManager {
      * @param positionY
      *                  Coordinates for the upper side of the image.
      */
+    //override the team color
+    public void drawEntity(final Entity entity, final int positionX, final int positionY) {
+        drawEntity(entity, positionX, positionY, null);
+    }
     public void drawEntity(final Entity entity, final int positionX,
-                           final int positionY) {
+                           final int positionY, final Color override) {
         boolean[][] image = spriteMap.get(entity.getSpriteType());
 
-        // 2P mode: start with the entity's own color
-        Color color = entity.getColor();
+        Color color = (override != null) ? override : entity.getColor();
 
-        // Color-code by player when applicable
-        if (entity instanceof Ship) {
-            Ship ship = (Ship) entity;
-            int pid = ship.getPlayerId(); // requires Ship.getPlayerId()
-            if (pid == 1)
-                color = Color.BLUE; // P1 ship
-            else if (pid == 2)
-                color = Color.RED; // P2 ship
+        if (override == null) {
+            // Color-code by player when applicable
+            if (entity instanceof Ship) {
+                Ship ship = (Ship) entity;
+                int pid = ship.getPlayerId(); // requires Ship.getPlayerId()
+                if (pid == 1)
+                    color = Color.BLUE; // P1 ship
+                else if (pid == 2)
+                    color = Color.RED; // P2 ship
 
-            // else leave default (e.g., green) for legacy/unknown
-        } else if (entity instanceof Bullet) {
-            Bullet bullet = (Bullet) entity;
-            int pid = bullet.getPlayerId(); // requires Bullet.getPlayerId()
-            if (pid == 1)
-                color = Color.CYAN; // P1 bullet
-            else if (pid == 2)
-                color = Color.MAGENTA; // P2 bullet
-            // enemy bullets will keep their default color from the entity
+                // else leave default (e.g., green) for legacy/unknown
+            } else if (entity instanceof Bullet) {
+                Bullet bullet = (Bullet) entity;
+                int pid = bullet.getPlayerId(); // requires Bullet.getPlayerId()
+                if (pid == 1)
+                    color = Color.CYAN; // P1 bullet
+                else if (pid == 2)
+                    color = Color.MAGENTA; // P2 bullet
+                // enemy bullets will keep their default color from the entity
+            }
+
         }
+
 
         /**
          * Makes A-type enemies semi-transparent when their health is 1.
          * Checks if the entity is an EnemyShip of type A (EnemyShipA1 or A2),
          * and sets its color alpha to 32 to indicate critical damage.
          */
-        if (entity instanceof entity.EnemyShip) {
-            entity.EnemyShip enemy = (entity.EnemyShip) entity;
-            if ((enemy.getSpriteType() == SpriteType.EnemyShipA1
-                    || enemy.getSpriteType() == SpriteType.EnemyShipA2)
-                    && enemy.getHealth() == 1) {
-                color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 32);
-            }
-        }
+
 
         // --- Scaling logic ---
         // Original sprite dimensions
@@ -982,6 +982,48 @@ public final class DrawManager {
         drawBackButton(screen, false);
     }
 
+    public Rectangle[] getAchievementNavHitboxes(final Screen screen) {
+        if (fontRegularMetrics == null) {
+            backBufferGraphics.setFont(fontRegular);
+            fontRegularMetrics = backBufferGraphics.getFontMetrics(fontRegular);
+        }
+
+        String fullText = "PREV                                                              NEXT";
+        int baseY = (int)(screen.getHeight() * 0.8);
+
+        int fullWidth = fontRegularMetrics.stringWidth(fullText);
+        int textHeight = fontRegularMetrics.getHeight();
+
+        int startX = screen.getWidth() / 2 - fullWidth / 2;
+
+        int prevWidth = fontRegularMetrics.stringWidth("PREV");
+        int nextWidth = fontRegularMetrics.stringWidth("NEXT");
+
+        int prevX = startX;
+        int nextX = startX + fullWidth - nextWidth;
+
+        int paddingX = 10;
+        int paddingY = 3;
+
+
+        Rectangle prevBox = new Rectangle(
+                prevX - paddingX,
+                baseY - textHeight / 2 + 20,
+                prevWidth + paddingX * 2,
+                textHeight + paddingY
+        );
+
+        Rectangle nextBox = new Rectangle(
+                nextX - paddingX,
+                baseY - textHeight / 2 + 20,
+                nextWidth + paddingX * 2,
+                textHeight + paddingY
+        );
+        return new Rectangle[]{prevBox, nextBox};
+
+
+    }
+
 
 
     public void drawSettingMenu(final Screen screen) {
@@ -1206,8 +1248,14 @@ public final class DrawManager {
      */
     // Modify to accept hoverIndex for highlighting
     public void drawPlayMenu(final Screen screen, final Integer hoverOption, final int selectedIndex) {
-        String[] items = {"1 Player", "2 Players"};
+        String[] items = {"1P mode", "2P mode"};
         // Removed center back button
+
+        backBufferGraphics.setColor(Color.GREEN);
+        drawCenteredBigString(screen, "Select Play Mode", screen.getHeight() / 5);
+
+        backBufferGraphics.setColor(Color.GRAY);
+        drawCenteredRegularString(screen, "Press ESC to Return, Confirm with Space", screen.getHeight() / 5 + fontRegularMetrics.getHeight() * 2);
 
         // draw back button at top-left corner\, Set the selectedIndex to Highlight the Back Button
         drawBackButton(screen, selectedIndex == 2);
@@ -1302,7 +1350,26 @@ public final class DrawManager {
         String[] shipSpeeds = {"SPEED: NORMAL", "SPEED: SLOW", "SPEED: SLOW", "SPEED: FAST"};
         String[] shipFireRates = {"FIRE RATE: NORMAL", "FIRE RATE: NORMAL", "FIRE RATE: NORMAL", "FIRE RATE: SLOW"};
 
-        drawEntity(ship, ship.getPositionX() - ship.getWidth()/2, ship.getPositionY());
+        for(int i = 0; i < shipExamples.length; i++){
+            Ship s = shipExamples[i];
+            int x = s.getPositionX() - s.getWidth() / 2;
+            int y = s.getPositionY();
+
+            if (i == selectedShipIndex){
+                drawEntity(s, x, y, null);
+
+                int padding = 5;
+                int frameX = x - padding;
+                int frameY = y - padding;
+                int frameW = s.getWidth() + padding * 2;
+                int frameH = s.getHeight() + padding * 2;
+
+                drawFrame(frameX, frameY, frameW, frameH, Color.WHITE, 8, 1);
+
+            }else{
+                drawEntity(s, x, y, Color.GRAY.darker().darker());
+            }
+        }
 //        for (int i = 0; i < 4; i++) {
 //            // Draw Player Ship
 //            drawManager.drawEntity(ship, ship.getPositionX() - ship.getWidth()/2, ship.getPositionY());
@@ -1322,7 +1389,7 @@ public final class DrawManager {
         drawCenteredRegularString(screen, shipFireRates[selectedShipIndex], screen.getHeight() / 2 + 80);
 
         backBufferGraphics.setColor(Color.GRAY);
-        drawCenteredRegularString(screen, "Press SPACE to Select", screen.getHeight() - 50);
+        drawCenteredRegularString(screen, "Press Esc to return, Confirm with Space", screen.getHeight() - 50);
     }
 
     /*
@@ -1422,5 +1489,39 @@ public final class DrawManager {
         int height = barThickness * 2;
 
         return new Rectangle(x, y, width, height);
+    }
+
+    // draw Corner Frame at ship selection screen
+    private void drawFrame(int x, int y, int width, int height, Color color, int cornerLength, int thickness) {
+        Graphics2D g2d = (Graphics2D) backBufferGraphics;
+        g2d.setColor(color);
+        g2d.setStroke(new BasicStroke(thickness));
+
+        // upper left
+        g2d.drawLine(x, y, x + cornerLength, y);             // 가로
+        g2d.drawLine(x, y, x, y + cornerLength);             // 세로
+
+        // upper right
+        g2d.drawLine(x + width - cornerLength, y, x + width, y);
+        g2d.drawLine(x + width, y, x + width, y + cornerLength);
+
+        // lower left
+        g2d.drawLine(x, y + height, x + cornerLength, y + height);
+        g2d.drawLine(x, y + height - cornerLength, x, y + height);
+
+        // lower right
+        g2d.drawLine(x + width - cornerLength, y + height, x + width, y + height);
+        g2d.drawLine(x + width, y + height - cornerLength, x + width, y + height);
+    }
+
+    public Rectangle[] getShipSelectionHitboxes(final Screen screen, final Ship[] ships) {
+        Rectangle[] boxes = new Rectangle[ships.length];
+        for (int i = 0; i < ships.length; i++) {
+            Ship s = ships[i];
+            int x = s.getPositionX() - s.getWidth() / 2;
+            int y = s.getPositionY() + 30;
+            boxes[i] = new Rectangle(x - 10, y - 10, s.getWidth() + 20, s.getHeight() + 20);
+        }
+        return boxes;
     }
 }

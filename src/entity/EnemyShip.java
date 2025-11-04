@@ -202,19 +202,11 @@ public class EnemyShip extends Entity {
                 default:
                     break;
             }
-            Color color = this.getColor();
-            if(initialHealth != 0) {
-                int alpha = (int)Math.clamp(70 + 150 * (float)health / initialHealth, 0, 255);
-                color = new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
-                changeColor(color);
-            }
+
+            this.refreshAlpha();
         }
     }
 
-    public final int getDamage(int dmg){
-        this.health -= dmg;
-        return this.health;
-    }
 
     /**
      * Destroys the ship, causing an explosion.
@@ -234,4 +226,47 @@ public class EnemyShip extends Entity {
     }
 
     public int getCoinValue() { return this.coinValue; }
+
+    // make alpha value always in 0~255 value
+    private static int clamp(int v, int lo, int hi) {
+        return Math.max(lo, Math.min(hi, v));
+    }
+
+    private void refreshAlpha(){
+        float t = (initialHealth > 0) ? (this.health / (float) initialHealth) : 1f;
+
+        final int Min_Alpha = 100;
+        final int One_Hp_Alpha = 100;
+
+        int alpha = clamp(
+                Min_Alpha + (int)Math.round((255 - Min_Alpha) * t),
+                Min_Alpha, 255
+        );
+
+        if(this.health == 1 && this.initialHealth > 1) {
+            alpha = Math.max(alpha, One_Hp_Alpha);
+        }
+
+        Color c = this.getColor();
+        if(c == null) c = Color.WHITE;
+        Color withAlpha = new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
+        this.changeColor(withAlpha);
+
+    }
+
+    //fixed getDamage() for new alpha
+    public final int getDamage(int dmg) {
+        this.health -= dmg;
+
+        if(this.health <= 0) {
+            this.isDestroyed = true;
+            this.spriteType = SpriteType.Explosion;
+            Color c = this.getColor();
+            if(c == null) c = Color.WHITE;
+            this.changeColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 255));
+        }else{
+            this.refreshAlpha();
+        }
+        return this.health;
+    }
 }
