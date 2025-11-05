@@ -101,6 +101,10 @@ jobs:
             Status: `${{ job.status }}`
             Author: `${{ github.actor }}`
             Branch: `${{ github.ref_name }}`
+            
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
 
             • Pmd Reports & SpotBugs Reports available in Artifacts.
             • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
