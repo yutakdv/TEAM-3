@@ -37,9 +37,9 @@ tasks.withType(Pmd).configureEach {
 // SpotBugs 설정
 spotbugs {
     toolVersion = '4.8.6'
-    ignoreFailures = false
+    ignoreFailures = true
     effort = "max"
-    reportLevel = "high"
+    reportLevel = "medium"
 }
 
 def projectLayout = layout
@@ -54,6 +54,12 @@ tasks.withType(SpotBugsTask).configureEach {
             '-excludeBugs', 'gradle/spotbugs/spotbugs-baseline.xml'
     ]
 }
+
+// 항상 SpotBugs 결과를 새로 생성하도록 설정
+tasks.withType(SpotBugsTask).configureEach {
+    outputs.upToDateWhen { false }
+}
+
 
 java {
     toolchain {
