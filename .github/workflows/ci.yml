@@ -64,7 +64,7 @@ jobs:
 
       # Build + Unit Test 실행
       - name: Build and Run Tests
-        run: ./gradlew clean build test --stacktrace --no-build-cache
+        run: ./gradlew clean build test --stacktrace --no-build-cache --rerun-tasks
 
       # PMD 실행 (불필요한 코드 체크)
       - name: Run PMD Analysis (Build Gate)
