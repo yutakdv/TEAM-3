@@ -90,10 +90,9 @@ public class Item extends Entity {
                 this.changeColor(Color.BLUE);
                 break;
 
-            default: {
+            default:
                 this.changeColor(Color.WHITE);
                 break;
-            }
         }
     }
 
