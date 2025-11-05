@@ -62,6 +62,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Remove Gradle cache (force clean)
+        run: |
+          rm -rf ~/.gradle/caches
+          rm -rf ~/.gradle/daemon
+          rm -rf ~/.gradle/native
+          rm -rf ~/.gradle/wrapper
+          rm -rf build/
+
       # Build + Unit Test 실행
       - name: Build and Run Tests
         run: ./gradlew clean build test --stacktrace --no-build-cache
@@ -80,7 +88,7 @@ jobs:
 
       # Spotbugs 실행 (품질 게이트)
       - name: Run SpotBugs (Build Gate)
-        run: ./gradlew spotbugsMain --stacktrace
+        run: ./gradlew clean spotbugsMain --stacktrace --no-build-cache --rerun-tasks
 
       - name: Upload SpotBugs Report
         if: always()
