@@ -39,7 +39,7 @@ spotbugs {
     toolVersion = '4.8.6'
     ignoreFailures = false
     effort = "max"
-    reportLevel = "medium"
+    reportLevel = "high"
 }
 
 def projectLayout = layout
