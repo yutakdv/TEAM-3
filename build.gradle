@@ -37,7 +37,7 @@ tasks.withType(Pmd).configureEach {
 // SpotBugs 설정
 spotbugs {
     toolVersion = '4.8.6'
-    ignoreFailures = true
+    ignoreFailures = false
     effort = "max"
     reportLevel = "medium"
 }
