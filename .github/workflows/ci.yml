@@ -80,7 +80,7 @@ jobs:
 
       # Spotbugs 실행 (품질 게이트)
       - name: Run SpotBugs (Build Gate)
-        run: ./gradlew clean spotbugsMain --stacktrace --no-build-cache --rerun-tasks
+        run: ./gradlew spotbugsMain --stacktrace --rerun-tasks
 
       - name: Upload SpotBugs Report
         if: always()
