@@ -40,6 +40,8 @@ spotbugs {
     ignoreFailures = false
     effort = "max"
     reportLevel = "medium"
+
+    excludeFilter = file("gradle/spotbugs/spotbugs-exclude.xml")
 }
 
 def projectLayout = layout
