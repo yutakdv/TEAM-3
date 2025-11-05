@@ -89,6 +89,9 @@ public class Item extends Entity {
             case "BULLETSPEEDUP":
                 this.changeColor(Color.BLUE);
                 break;
+
+            default:
+                this.changeColor(Color.WHITE);
         }
     }
 
