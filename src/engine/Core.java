@@ -302,13 +302,19 @@ public final class Core {
         return new Cooldown(milliseconds, variance);
     }
 
-    private static int volumeLevel = 50;
+    private static int volumeLevel = 0;
+    private static int volumetype = 0;
+    private static int[] volumearray = {50,50};
 
-    public static int getVolumeLevel() {
-        return volumeLevel;
+    public static int getVolumeLevel(int w) {
+        return volumearray[w];
+    }
+    public static int getVolumetype() {
+        return volumetype;
     }
 
-    public static void setVolumeLevel(int v) {
-        volumeLevel = Math.max(0, Math.min(100, v));
+    public static void setVolumeLevel(int w, int v) {
+        volumearray[w] = Math.max(0, Math.min(100, v));
+        volumetype = w;
     }
 }

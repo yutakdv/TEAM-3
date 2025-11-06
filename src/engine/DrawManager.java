@@ -1412,7 +1412,7 @@ public final class DrawManager {
     }
 
     //
-    public void drawVolumeBar(final Screen screen, final int volumlevel, final boolean dragging,final int index, final String title){
+    public void drawVolumeBar(final Screen screen, final int volumelevel, final boolean dragging,final int index, final String title, int selectedSection, int volumetype){
        final int space = 70;
        final int baseY = screen.getHeight() * 3 / 10;
        final int presentY = baseY + (index * space);
@@ -1424,14 +1424,19 @@ public final class DrawManager {
         backBufferGraphics.setColor(Color.WHITE);
         backBufferGraphics.drawLine(bar_startWidth, presentY, bar_endWidth, presentY);
 
+        if (selectedSection == 1 && index == volumetype) {
+            backBufferGraphics.setColor(Color.green);
+        }
+        else {
+            backBufferGraphics.setColor(Color.white);
+        }
         backBufferGraphics.setFont(fontRegular);
-        backBufferGraphics.setColor(Color.WHITE);
         backBufferGraphics.drawString(title, bar_startWidth - 30, presentY-20);
 
 
 //		change this line to get indicator center position
         int size = 14;
-        double ratio = volumlevel / 100.0;
+        double ratio = volumelevel / 100.0;
         int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
         int indicatorX = centerX - size / 2 - 3;
         int indicatorY = presentY - size / 2 ;
@@ -1454,7 +1459,7 @@ public final class DrawManager {
         backBufferGraphics.fillRect(indicatorX, indicatorY, size, size);
 
         backBufferGraphics.setColor(Color.WHITE);
-        String volumeText = Integer.toString(volumlevel);
+        String volumeText = Integer.toString(volumelevel);
         backBufferGraphics.drawString(volumeText, bar_endWidth+10, presentY +7);
 
     }
