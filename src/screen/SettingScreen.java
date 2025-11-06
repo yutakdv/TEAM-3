@@ -58,13 +58,13 @@ public class SettingScreen extends Screen {
         if(index == 0){
             this.volumelevel = val;
             Core.setVolumeLevel(index, val);
-            SoundManager.updateVolume();
+
         }
         if(index == 1){
             this.volumelevel = val;
             Core.setVolumeLevel(index, val);
-            SoundManager.updateVolume();
         }
+        SoundManager.updateVolume();
     }
 
     /**
@@ -79,8 +79,8 @@ public class SettingScreen extends Screen {
         this.selectMenuItem = volumeMenu;
 
         int master = Core.getVolumeLevel(Core.getVolumetype());
-        volumeLevels[0] = master;
-        volumeLevels[1] = master;
+        volumeLevels[0] = Core.getVolumeLevel(0);
+        volumeLevels[1] = Core.getVolumeLevel(1);
         this.volumelevel = master;
     }
     public final int run(){
@@ -139,16 +139,18 @@ public class SettingScreen extends Screen {
                 this.volumetype++;
                 this.inputCooldown.reset();
             }
-            if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && volumelevel > 0 && this.volumetype > 0 && selectedSection == 1) {
+            if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && volumelevel > 0 && selectedSection == 1) {
                 this.volumelevel--;
                 Core.setVolumeLevel(this.volumetype, this.volumelevel);
                 SoundManager.updateVolume();
+                volumeLevels[this.volumetype] = this.volumelevel;
                 this.inputCooldown.reset();
             }
-            if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && volumelevel < 100 && this.volumetype > 0 && selectedSection == 1) {
+            if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && volumelevel < 100 && selectedSection == 1) {
                 this.volumelevel++;
                 Core.setVolumeLevel(this.volumetype, this.volumelevel);
                 SoundManager.updateVolume();
+                volumeLevels[this.volumetype] = this.volumelevel;
                 this.inputCooldown.reset();
             }
         }

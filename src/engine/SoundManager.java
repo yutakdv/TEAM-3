@@ -242,12 +242,11 @@ public final class  SoundManager {
      * This should be called when the volume slider is changed.
      */
     public static void updateVolume() {
-        float typeDb = Core.getVolumetype();
         float volumeDb = calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
 
         
         // Update looped sound volume (menu music)
-        if (typeDb == 0 && loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+        if (Core.getVolumetype() == 0 && loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
             FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
             gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
         }
