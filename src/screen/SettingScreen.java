@@ -264,7 +264,8 @@ public class SettingScreen extends Screen {
 
         switch(this.selectMenuItem) {
             case volumeMenu:
-                drawManager.drawVolumeBar(this,this.volumelevel, this.draggingVolume);
+                drawManager.drawVolumeBar(this,this.volumelevel, this.draggingVolume, 0, "BGM");
+                drawManager.drawVolumeBar(this,this.volumelevel, this.draggingVolume, 1, "Effect Sound");
                 break;
             case firstplayerMenu:
                 drawManager.drawKeysettings(this, 1, this.selectedSection, this.selectedKeyIndex, this.keySelected,this.player1Keys);

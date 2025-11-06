@@ -1411,25 +1411,29 @@ public final class DrawManager {
         return new Rectangle(x, y, textWidth, h);
     }
 
-    public void drawVolumeBar(final Screen screen, final int volumlevel, final boolean dragging){
+    //
+    public void drawVolumeBar(final Screen screen, final int volumlevel, final boolean dragging,final int index, final String title){
+       final int space = 70;
+       final int baseY = screen.getHeight() * 3 / 10;
+       final int presentY = baseY + (index * space);
+
         int bar_startWidth = screen.getWidth() / 2;
         int bar_endWidth = screen.getWidth()-40;
-        int barHeight = screen.getHeight()*3/10;
 
-        String volumelabel = "Volume";
+
+        backBufferGraphics.setColor(Color.WHITE);
+        backBufferGraphics.drawLine(bar_startWidth, presentY, bar_endWidth, presentY);
+
         backBufferGraphics.setFont(fontRegular);
         backBufferGraphics.setColor(Color.WHITE);
-        backBufferGraphics.drawLine(bar_startWidth, barHeight, bar_endWidth, barHeight);
-
-        backBufferGraphics.setColor(Color.WHITE);
-        backBufferGraphics.drawString(volumelabel, bar_startWidth-80, barHeight+7);
+        backBufferGraphics.drawString(title, bar_startWidth-80, presentY-20);
 
 //		change this line to get indicator center position
         int size = 14;
         double ratio = volumlevel / 100.0;
         int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
         int indicatorX = centerX - size / 2 - 3;
-        int indicatorY = barHeight - size / 2 ;
+        int indicatorY = presentY - size / 2 ;
 
         int rawX = Core.getInputManager().getMouseX();
         int rawY = Core.getInputManager().getMouseY();
@@ -1450,7 +1454,7 @@ public final class DrawManager {
 
         backBufferGraphics.setColor(Color.WHITE);
         String volumeText = Integer.toString(volumlevel);
-        backBufferGraphics.drawString(volumeText, bar_endWidth+10, barHeight +7);
+        backBufferGraphics.drawString(volumeText, bar_endWidth+10, presentY +7);
 
     }
 
