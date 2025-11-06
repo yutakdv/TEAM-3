@@ -146,6 +146,7 @@ public class SettingScreen extends Screen {
             if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && this.inputCooldown.checkFinished() && volumelevel > 0 && selectedSection == 1) {
                 this.volumelevel--;
                 Core.setVolumeLevel(this.volumetype, this.volumelevel);
+                Core.setMute(this.volumetype, false);
                 SoundManager.updateVolume();
                 volumeLevels[this.volumetype] = this.volumelevel;
                 this.inputCooldown.reset();
@@ -153,6 +154,7 @@ public class SettingScreen extends Screen {
             if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && this.inputCooldown.checkFinished() && volumelevel < 100 && selectedSection == 1) {
                 this.volumelevel++;
                 Core.setVolumeLevel(this.volumetype, this.volumelevel);
+                Core.setMute(this.volumetype, false);
                 SoundManager.updateVolume();
                 volumeLevels[this.volumetype] = this.volumelevel;
                 this.inputCooldown.reset();
@@ -294,6 +296,7 @@ public class SettingScreen extends Screen {
             if (draggingIndex != -1 && pressed) {
                 java.awt.Rectangle box = drawManager.getVolumeBarHitbox(this, draggingIndex);
                 setVolumeFromX(box, mx, draggingIndex);
+                Core.setMute(this.volumetype, false);
             }
 
             if (!pressed) {
