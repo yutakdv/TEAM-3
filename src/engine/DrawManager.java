@@ -1428,9 +1428,6 @@ public final class DrawManager {
         backBufferGraphics.setColor(Color.WHITE);
         backBufferGraphics.drawString(title, bar_startWidth - 30, presentY-20);
 
-        int speakerSize = 20;
-        int speakerX = bar_startWidth - 100;
-        int speakerY = presentY - speakerSize;
 
 //		change this line to get indicator center position
         int size = 14;
@@ -1479,22 +1476,24 @@ public final class DrawManager {
         backBufferGraphics.drawLine(splitPointX, screen.getHeight()/4, splitPointX,(menuY+menuItems.length*60));
     }
 
-    //	int for adjust volume hitbox
-    private int volumeHitBoxOffset = 20;
 
     public Rectangle getVolumeBarHitbox(final Screen screen){
-        int bar_startWidth = screen.getWidth() / 2 -40;
-        int bar_endWidth = screen.getWidth() - 80;
-        int barHeight = screen.getHeight() * 3 / 10;
+        return getVolumeBarHitbox(screen, 0);
+    }
+    public Rectangle getVolumeBarHitbox(final Screen screen, int index){
+        final int space = 70;
+        final int baseY = screen.getHeight() * 3 / 10 + 30;
+        final int presentY = baseY + (index * space);
+
+        int bar_startWidth = screen.getWidth() / 2 - 40;
+        int bar_endWidth   = screen.getWidth() - 80;
 
         int barThickness = 20;
 
-        int centerY = barHeight + volumeHitBoxOffset;
-
         int x = bar_startWidth;
-        int y = centerY - barThickness;
-        int width = bar_endWidth - bar_startWidth;
-        int height = barThickness * 2;
+        int y = presentY - barThickness / 2;
+        int width  = bar_endWidth - bar_startWidth;
+        int height = barThickness;
 
         return new Rectangle(x, y, width, height);
     }

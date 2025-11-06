@@ -23,6 +23,11 @@ public class SettingScreen extends Screen {
     private int[] player1Keys;
     private int[] player2Keys;
 
+    private final String[] SLIDER_TITLES = {"BGM", "Effect Sound"};
+    private final int NUM_SLIDERS = SLIDER_TITLES.length;
+    private int[] volumeLevels = new int[NUM_SLIDERS];
+    private int draggingIndex = -1;
+
     /**
      * Constructor, establishes the properties of the screen.
      *
@@ -42,13 +47,18 @@ public class SettingScreen extends Screen {
         SoundManager.playLoop("sound/menu_sound.wav");
     }
 
-    private void setVolumeFromX(java.awt.Rectangle barBox, int mouseX) {
+    private void setVolumeFromX(java.awt.Rectangle barBox, int mouseX, int index) {
         double ratio = (double)(mouseX - barBox.x) / (double)barBox.width;
         ratio = Math.max(0.0, Math.min(1.0, ratio));
-        this.volumelevel = (int)Math.round(ratio * 100.0);
-        Core.setVolumeLevel(this.volumelevel);
-        // Update volume of currently playing sounds
-        SoundManager.updateVolume();
+        int val = (int)Math.round(ratio * 100.0);
+
+        volumeLevels[index] = val;
+
+        if(index == 0){
+            this.volumelevel = val;
+            Core.setVolumeLevel(val);
+            SoundManager.updateVolume();
+        }
     }
 
     /**
@@ -61,7 +71,11 @@ public class SettingScreen extends Screen {
         this.inputCooldown = Core.getCooldown(200);
         this.inputCooldown.reset();
         this.selectMenuItem = volumeMenu;
-        this.volumelevel = Core.getVolumeLevel();
+
+        int master = Core.getVolumeLevel();
+        volumeLevels[0] = master;
+        volumeLevels[1] = master;
+        this.volumelevel = master;
     }
     public final int run(){
         super.run();
@@ -100,20 +114,20 @@ public class SettingScreen extends Screen {
         }
 
         if(this.selectMenuItem == volumeMenu) {
-             if(this.inputCooldown.checkFinished()) {
-                 if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && volumelevel > 0) {
-                     this.volumelevel--;
-                     Core.setVolumeLevel(this.volumelevel);
-                     SoundManager.updateVolume();
-                     this.inputCooldown.reset();
-                 }
-                 if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && volumelevel < 100) {
-                     this.volumelevel++;
-                     Core.setVolumeLevel(this.volumelevel);
-                     SoundManager.updateVolume();
-                     this.inputCooldown.reset();
-                 }
-             }
+//             if(this.inputCooldown.checkFinished()) {
+//                 if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && volumelevel > 0) {
+//                     this.volumelevel--;
+//                     Core.setVolumeLevel(this.volumelevel);
+//                     SoundManager.updateVolume();
+//                     this.inputCooldown.reset();
+//                 }
+//                 if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && volumelevel < 100) {
+//                     this.volumelevel++;
+//                     Core.setVolumeLevel(this.volumelevel);
+//                     SoundManager.updateVolume();
+//                     this.inputCooldown.reset();
+//                 }
+//             }
         }
         /**
          * Change key settings
@@ -229,19 +243,27 @@ public class SettingScreen extends Screen {
             return;
         }
 
-        if (!draggingVolume && pressed && barBox.contains(mx, my)) {
-            draggingVolume = true;
-            setVolumeFromX(barBox, mx);
-        }
+        if(this.selectMenuItem == volumeMenu) {
+            if (draggingIndex == -1 && pressed) {
+                for (int i = 0; i < SLIDER_TITLES.length; i++) {
+                    java.awt.Rectangle box = drawManager.getVolumeBarHitbox(this, i);
+                    if (box.contains(mx, my)) {
+                        draggingIndex = i;
+                        setVolumeFromX(box, mx, i);
+                        break;
+                    }
+                }
+            }
 
-        if (draggingVolume && pressed) {
-            setVolumeFromX(barBox, mx);
-        }
+            if (draggingIndex != -1 && pressed) {
+                java.awt.Rectangle box = drawManager.getVolumeBarHitbox(this, draggingIndex);
+                setVolumeFromX(box, mx, draggingIndex);
+            }
 
-        if (!pressed) {
-            draggingVolume = false;
+            if (!pressed) {
+                draggingIndex = -1;
+            }
         }
-
         if (inputManager.isKeyDown(KeyEvent.VK_SPACE) && this.inputCooldown.checkFinished()) {
             if (this.selectMenuItem == back) {
                 this.returnCode = 1;
@@ -264,8 +286,10 @@ public class SettingScreen extends Screen {
 
         switch(this.selectMenuItem) {
             case volumeMenu:
-                drawManager.drawVolumeBar(this,this.volumelevel, this.draggingVolume, 0, "BGM");
-                drawManager.drawVolumeBar(this,this.volumelevel, this.draggingVolume, 1, "Effect Sound");
+                for(int i = 0; i < NUM_SLIDERS; i++) {
+                    boolean dragging = (draggingIndex == i);
+                    drawManager.drawVolumeBar(this, volumeLevels[i], dragging, i, SLIDER_TITLES[i]);
+                }
                 break;
             case firstplayerMenu:
                 drawManager.drawKeysettings(this, 1, this.selectedSection, this.selectedKeyIndex, this.keySelected,this.player1Keys);
