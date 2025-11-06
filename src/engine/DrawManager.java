@@ -1417,8 +1417,16 @@ public final class DrawManager {
        final int baseY = screen.getHeight() * 3 / 10;
        final int presentY = baseY + (index * space);
 
-        int bar_startWidth = screen.getWidth() / 2 - 40;
-        int bar_endWidth = screen.getWidth() - 80;
+        int bar_startWidth = screen.getWidth() / 2 - 10;
+        int bar_endWidth = screen.getWidth() - 50;
+
+        int iconSize = 16;
+        int iconBoxW = 24;
+        int iconX = bar_startWidth - iconBoxW - 25;
+        int iconY = presentY - iconSize / 2;
+
+        boolean mutedVisual = (volumelevel == 0);
+        drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
 
 
         backBufferGraphics.setColor(Color.WHITE);
@@ -1431,7 +1439,7 @@ public final class DrawManager {
             backBufferGraphics.setColor(Color.white);
         }
         backBufferGraphics.setFont(fontRegular);
-        backBufferGraphics.drawString(title, bar_startWidth - 30, presentY-20);
+        backBufferGraphics.drawString(title, bar_startWidth - 60, presentY-20);
 
 
 //		change this line to get indicator center position
@@ -1490,8 +1498,8 @@ public final class DrawManager {
         final int baseY = screen.getHeight() * 3 / 10 + 30;
         final int presentY = baseY + (index * space);
 
-        int bar_startWidth = screen.getWidth() / 2 - 40;
-        int bar_endWidth   = screen.getWidth() - 80;
+        int bar_startWidth = screen.getWidth() / 2 - 10;
+        int bar_endWidth   = screen.getWidth() - 50;
 
         int barThickness = 20;
 
@@ -1535,5 +1543,53 @@ public final class DrawManager {
             boxes[i] = new Rectangle(x - 10, y - 10, s.getWidth() + 20, s.getHeight() + 20);
         }
         return boxes;
+    }
+
+    private void drawSpeakerIcon(int x, int y, int size, boolean muted) {
+        Graphics2D g = (Graphics2D) backBufferGraphics;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int squareW = size;
+        int squareH = size;
+        int squareX = x + 10 ;
+        int squareY = y  ;
+        g.setColor(Color.WHITE);
+        g.fillRect(squareX, squareY, squareW, squareH);
+
+        int x1 = x + squareW;
+        int x2 = x1 + 10;
+        int y1 = squareY + squareH;
+        int y2 = y1 + 5  ;
+        int y4 = squareY  ;
+        int y3 = y4 - 5  ;
+
+        int[] xpoints = {x1, x2, x2, x1};
+        int[] ypoints = {y1, y2, y3, y4};
+        Polygon trapezoid = new Polygon(xpoints, ypoints, 4);
+        g.setColor(Color.WHITE);
+        g.fillPolygon(trapezoid);
+
+        g.setStroke(new BasicStroke(2));
+        if (muted) {
+            g.setColor(Color.RED);
+            g.drawLine(x+10, y, x + size + 10, y + size);
+            g.drawLine(x + 10, y + size, x + size + 10, y);
+        } else {
+            g.setColor(Color.WHITE);
+
+            int cx = x2 + 6;           // 음파 중심 X (혼 끝에서 살짝 오른쪽)
+            int cy = y + size / 2;
+
+            int r1 = (int)(size * 0.28);
+
+            int r3 = (int)(size * 0.56);
+
+            g.drawArc(cx - r1, cy - r1, 2 * r1, 2 * r1, -60, 120);
+            g.drawArc(cx - r3, cy - r3, 2 * r3, 2 * r3, -60, 120);
+        }
+
+
+
+
     }
 }
