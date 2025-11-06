@@ -34,25 +34,23 @@ public final class  SoundManager {
         AudioInputStream audioStream = null;
         Clip clip = null;
         try {
-            if (Core.getVolumetype() == 1) {
-                audioStream = openAudioStream(resourcePath);
-                if (audioStream == null) return;
-                audioStream = toPcmSigned(audioStream);
-                DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
-                clip = (Clip) AudioSystem.getLine(info);
-                clip.open(audioStream);
+            audioStream = openAudioStream(resourcePath);
+            if (audioStream == null) return;
+            audioStream = toPcmSigned(audioStream);
+            DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+            clip = (Clip) AudioSystem.getLine(info);
+            clip.open(audioStream);
 
-                // Set volume based on user settings
-                if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                    FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                    float volumeDb = calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
-                    gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
-                }
+            // Set volume based on user settings
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                float volumeDb = calculateVolumeDb(Core.getVolumeLevel(1));
+                gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
 
                 clip.start();
                 logger.info("Started one-shot sound: " + resourcePath);
             }
-        }         catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+        }  catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             logger.info("Unable to play sound '" + resourcePath + "': " + e.getMessage());
         } finally {
             // We can't close 'in' immediately because AudioSystem may stream; rely on clip close
@@ -79,27 +77,24 @@ public final class  SoundManager {
 
         AudioInputStream audioStream = null;
         try {
+            audioStream = openAudioStream(resourcePath);
+            if (audioStream == null) return;
+            audioStream = toPcmSigned(audioStream);
 
-            if (Core.getVolumetype() == 0) {
-                audioStream = openAudioStream(resourcePath);
-                if (audioStream == null) return;
-                audioStream = toPcmSigned(audioStream);
+            DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+            loopClip = (Clip) AudioSystem.getLine(info);
+            loopClip.open(audioStream);
 
-                DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
-                loopClip = (Clip) AudioSystem.getLine(info);
-                loopClip.open(audioStream);
-
-                // Set volume based on user settings for loops
-                if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                    FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
-                    float volumeDb = calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
-                    gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
-                }
-
-                loopClip.loop(Clip.LOOP_CONTINUOUSLY);
-                loopClip.start();
-                logger.fine("Started looped sound: " + resourcePath);
+            // Set volume based on user settings for loops
+            if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
+                float volumeDb = calculateVolumeDb(Core.getVolumeLevel(0));
+                gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
             }
+
+            loopClip.loop(Clip.LOOP_CONTINUOUSLY);
+            loopClip.start();
+            logger.fine("Started looped sound: " + resourcePath);
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             logger.fine("Unable to loop sound '" + resourcePath + "': " + e.getMessage());
             if (loopClip != null) {

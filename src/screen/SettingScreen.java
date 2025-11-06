@@ -81,7 +81,9 @@ public class SettingScreen extends Screen {
         int master = Core.getVolumeLevel(Core.getVolumetype());
         volumeLevels[0] = Core.getVolumeLevel(0);
         volumeLevels[1] = Core.getVolumeLevel(1);
-        this.volumelevel = master;
+
+        this.volumetype = 0;
+        this.volumelevel = volumeLevels[this.volumetype];
     }
     public final int run(){
         super.run();
@@ -133,10 +135,12 @@ public class SettingScreen extends Screen {
             }
             if (this.selectedSection == 1 && inputManager.isKeyDown(KeyEvent.VK_UP) && this.inputCooldown.checkFinished() && volumetype > 0 && selectedSection == 1) {
                 this.volumetype--;
+                this.volumelevel = volumeLevels[this.volumetype];
                 this.inputCooldown.reset();
             }
             if (this.selectedSection == 1 && inputManager.isKeyDown(KeyEvent.VK_DOWN) && this.inputCooldown.checkFinished() && volumetype < SLIDER_TITLES.length - 1 && selectedSection == 1) {
                 this.volumetype++;
+                this.volumelevel = volumeLevels[this.volumetype];
                 this.inputCooldown.reset();
             }
             if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && volumelevel > 0 && selectedSection == 1) {

@@ -302,7 +302,6 @@ public final class Core {
         return new Cooldown(milliseconds, variance);
     }
 
-    private static int volumeLevel = 0;
     private static int volumetype = 0;
     private static int[] volumearray = {50,50};
 
