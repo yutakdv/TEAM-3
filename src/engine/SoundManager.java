@@ -44,6 +44,8 @@ public final class  SoundManager {
             // Set volume based on user settings
             if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                int vol = Core.getVolumeLevel(1);
+                boolean muted = Core.isMuted(1) || vol == 0; //mute function
                 float volumeDb = calculateVolumeDb(Core.getVolumeLevel(1));
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
 
@@ -87,6 +89,8 @@ public final class  SoundManager {
 
             // Set volume based on user settings for loops
             if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                int vol = Core.getVolumeLevel(0);
+                boolean muted = Core.isMuted(0) || vol == 0; //mute function
                 FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
                 float volumeDb = calculateVolumeDb(Core.getVolumeLevel(0));
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
@@ -161,8 +165,10 @@ public final class  SoundManager {
 
             // set music volume based on user settings
             if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                int vol = Core.getVolumeLevel(0);
+                boolean muted = Core.isMuted(0) || vol == 0; //mute function
                 FloatControl gain = (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
-                float volumeDb = calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
+                float volumeDb = calculateVolumeDb(Core.getVolumeLevel(0));
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
             }
 
@@ -237,6 +243,9 @@ public final class  SoundManager {
      * This should be called when the volume slider is changed.
      */
     public static void updateVolume() {
+        int vol0 = Core.getVolumeLevel(0);
+        boolean muted0 = Core.isMuted(0) || vol0 == 0;
+        float bgmDb = muted0 ? -80.0f : calculateVolumeDb(vol0);
         float volumeDb = calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
 
         

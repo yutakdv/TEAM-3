@@ -316,4 +316,14 @@ public final class Core {
         volumearray[w] = Math.max(0, Math.min(100, v));
         volumetype = w;
     }
+
+    private static boolean [] Mute = {false, false};
+
+    public static boolean isMuted(int index){
+        return Mute[index];
+    }
+    public static void setMute(int index, boolean m){
+        Mute[index] = m;
+    }
+
 }
