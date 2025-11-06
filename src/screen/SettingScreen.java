@@ -45,7 +45,7 @@ public class SettingScreen extends Screen {
         this.player2Keys = Core.getInputManager().getPlayer2Keys();
         
         // Start menu music loop when the settings screen is created
-        SoundManager.playLoop("sound/menu_sound.wav");
+        SoundManager.playBGM("sound/menu_sound.wav");
     }
 
     private void setVolumeFromX(java.awt.Rectangle barBox, int mouseX, int index) {
@@ -143,18 +143,24 @@ public class SettingScreen extends Screen {
                 this.volumelevel = volumeLevels[this.volumetype];
                 this.inputCooldown.reset();
             }
-            if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && volumelevel > 0 && selectedSection == 1) {
+            if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && this.inputCooldown.checkFinished() && volumelevel > 0 && selectedSection == 1) {
                 this.volumelevel--;
                 Core.setVolumeLevel(this.volumetype, this.volumelevel);
                 SoundManager.updateVolume();
                 volumeLevels[this.volumetype] = this.volumelevel;
                 this.inputCooldown.reset();
             }
-            if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && volumelevel < 100 && selectedSection == 1) {
+            if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && this.inputCooldown.checkFinished() && volumelevel < 100 && selectedSection == 1) {
                 this.volumelevel++;
                 Core.setVolumeLevel(this.volumetype, this.volumelevel);
                 SoundManager.updateVolume();
                 volumeLevels[this.volumetype] = this.volumelevel;
+                this.inputCooldown.reset();
+            }
+            if (inputManager.isKeyDown(KeyEvent.VK_SPACE) && selectedSection == 1 && this.inputCooldown.checkFinished()) {
+                boolean newMuted = !Core.isMuted(this.volumetype);
+                Core.setMute(this.volumetype, newMuted);
+                SoundManager.updateVolume();
                 this.inputCooldown.reset();
             }
         }

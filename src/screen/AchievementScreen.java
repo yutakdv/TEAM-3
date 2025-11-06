@@ -26,7 +26,7 @@ public class AchievementScreen extends Screen {
         this.returnCode = 3;
 
         // Start menu music loop when the achievement screen is created
-        SoundManager.playLoop("sound/menu_sound.wav");
+        SoundManager.playBGM("sound/menu_sound.wav");
     }
 
     public final int run() {

@@ -30,7 +30,7 @@ public final class  SoundManager {
      * Plays a short WAV from resources folder. Example path: "sound/shoot.wav".
      * Uses a new Clip per invocation for simplicity; suitable for very short SFX.
      */
-    public static void playOnce(String resourcePath) {
+    public static void playeffect(String resourcePath) {
         AudioInputStream audioStream = null;
         Clip clip = null;
         try {
@@ -44,11 +44,14 @@ public final class  SoundManager {
             // Set volume based on user settings
             if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                int vol = Core.getVolumeLevel(1);
-                boolean muted = Core.isMuted(1) || vol == 0; //mute function
-                float volumeDb = calculateVolumeDb(Core.getVolumeLevel(1));
+                int saved = Core.getVolumeLevel(1);
+                boolean muted = Core.isMuted(1) || saved == 0;
+                if (muted) {
+                    clip.close();
+                    return;
+                }
+                float volumeDb = calculateVolumeDb(saved);
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
-
                 clip.start();
                 logger.info("Started one-shot sound: " + resourcePath);
             }
@@ -73,7 +76,7 @@ public final class  SoundManager {
     /**
      * Plays a WAV in a loop until {@link #stop()} is called.
      */
-    public static void playLoop(String resourcePath) {
+    public static void playBGM(String resourcePath) {
         stop();
         stopBackgroundMusic();
 
@@ -89,10 +92,10 @@ public final class  SoundManager {
 
             // Set volume based on user settings for loops
             if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                int vol = Core.getVolumeLevel(0);
-                boolean muted = Core.isMuted(0) || vol == 0; //mute function
+                int saved = Core.getVolumeLevel(0);
+                boolean muted = Core.isMuted(0) || saved == 0;
                 FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
-                float volumeDb = calculateVolumeDb(Core.getVolumeLevel(0));
+                float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
             }
 
@@ -140,7 +143,7 @@ public final class  SoundManager {
     /**
      * starts playing background music that loops during gameplay
      */
-    public static void startBackgroundMusic(String musicResourcePath) {
+    public static void playBackgroundMusic(String musicResourcePath) {
         // stop any currently playing music (both loop and background music)
         stop();
         stopBackgroundMusic();
@@ -165,10 +168,11 @@ public final class  SoundManager {
 
             // set music volume based on user settings
             if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                int vol = Core.getVolumeLevel(0);
-                boolean muted = Core.isMuted(0) || vol == 0; //mute function
+                int saved = Core.getVolumeLevel(0);
+                boolean muted = Core.isMuted(0) || saved == 0;
                 FloatControl gain = (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
-                float volumeDb = calculateVolumeDb(Core.getVolumeLevel(0));
+
+                float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
             }
 
@@ -245,10 +249,9 @@ public final class  SoundManager {
     public static void updateVolume() {
         int vol0 = Core.getVolumeLevel(0);
         boolean muted0 = Core.isMuted(0) || vol0 == 0;
-        float bgmDb = muted0 ? -80.0f : calculateVolumeDb(vol0);
-        float volumeDb = calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
+        float volumeDb = muted0 ? -80.0f : calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
 
-        
+
         // Update looped sound volume (menu music)
         if (Core.getVolumetype() == 0 && loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
             FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);

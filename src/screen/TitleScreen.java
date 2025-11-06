@@ -1,5 +1,6 @@
 package screen;
 
+import java.awt.*;
 import java.awt.event.KeyEvent;
 
 import engine.Cooldown;
@@ -50,7 +51,7 @@ public class TitleScreen extends Screen {
 		this.selectionCooldown.reset();
 
         // Start menu music loop when the title screen is created
-        SoundManager.playLoop("sound/menu_sound.wav");
+        SoundManager.playBGM("sound/menu_sound.wav");
 	}
 
 	/**
@@ -74,13 +75,13 @@ public class TitleScreen extends Screen {
         draw();
         if (this.selectionCooldown.checkFinished() && this.inputDelay.checkFinished()) {
             if (inputManager.isKeyDown(KeyEvent.VK_UP) || inputManager.isKeyDown(KeyEvent.VK_W)) {
-                SoundManager.playOnce("sound/hover.wav");
+                SoundManager.playeffect("sound/hover.wav");
                 previousMenuItem();
                 this.selectionCooldown.reset();
                 this.hoverOption = null;
             }
             if (inputManager.isKeyDown(KeyEvent.VK_DOWN) || inputManager.isKeyDown(KeyEvent.VK_S)) {
-                SoundManager.playOnce("sound/hover.wav");
+                SoundManager.playeffect("sound/hover.wav");
                 nextMenuItem();
                 this.selectionCooldown.reset();
                 this.hoverOption = null;
@@ -88,7 +89,7 @@ public class TitleScreen extends Screen {
 
             // Play : Adjust the case so that 1p and 2p can be determined within the play.
             if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
-                SoundManager.playOnce("sound/select.wav");
+                SoundManager.playeffect("sound/select.wav");
                 switch (this.menuIndex) {
                     case 0: // "Play"
                         this.returnCode = 5; // go to PlayScreen
@@ -121,7 +122,7 @@ public class TitleScreen extends Screen {
                 int temp_x = inputManager.getMouseX();
                 int temp_y = inputManager.getMouseY();
 
-                java.awt.Rectangle[] boxes = drawManager.getMenuHitboxes(this);
+                Rectangle[] boxes = drawManager.getMenuHitboxes(this);
                 int[] pos = {5, 3, 8, 4, 0};
 
                 for (int i = 0; i < boxes.length; i++) {

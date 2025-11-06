@@ -1425,7 +1425,7 @@ public final class DrawManager {
         int iconX = bar_startWidth - iconBoxW - 25;
         int iconY = presentY - iconSize / 2;
 
-        boolean mutedVisual = (volumelevel == 0);
+        boolean mutedVisual = (volumelevel == 0 || Core.isMuted(index));
         drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
 
 
@@ -1518,8 +1518,8 @@ public final class DrawManager {
         g2d.setStroke(new BasicStroke(thickness));
 
         // upper left
-        g2d.drawLine(x, y, x + cornerLength, y);             // 가로
-        g2d.drawLine(x, y, x, y + cornerLength);             // 세로
+        g2d.drawLine(x, y, x + cornerLength, y);
+        g2d.drawLine(x, y, x, y + cornerLength);
 
         // upper right
         g2d.drawLine(x + width - cornerLength, y, x + width, y);
@@ -1577,7 +1577,7 @@ public final class DrawManager {
         } else {
             g.setColor(Color.WHITE);
 
-            int cx = x2 + 6;           // 음파 중심 X (혼 끝에서 살짝 오른쪽)
+            int cx = x2 + 6;
             int cy = y + size / 2;
 
             int r1 = (int)(size * 0.28);

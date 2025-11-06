@@ -2,9 +2,8 @@ package screen;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 import engine.Core;
 import engine.Score;
 import engine.SoundManager;
@@ -32,7 +31,7 @@ public class HighScoreScreen extends Screen {
      */
     public HighScoreScreen(final int width, final int height, final int fps) {
         super(width, height, fps);
-        SoundManager.playLoop("sound/menu_sound.wav");
+        SoundManager.playBGM("sound/menu_sound.wav");
 
         this.returnCode = 1;
 
@@ -58,7 +57,7 @@ public class HighScoreScreen extends Screen {
      */
     public final int run() {
         super.run();
-        SoundManager.playOnce("sound/select.wav");
+        SoundManager.playeffect("sound/select.wav");
 
         return this.returnCode;
     }
