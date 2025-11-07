@@ -37,7 +37,7 @@ tasks.withType(Pmd).configureEach {
 // SpotBugs 설정
 spotbugs {
     toolVersion = '4.8.6'
-    ignoreFailures = false
+    ignoreFailures = System.getenv("CI") != "true"
     effort = "max"
     reportLevel = "medium"
 
@@ -80,4 +80,13 @@ tasks.withType(JavaExec).configureEach {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+// Build .jar file
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'engine.Core'
+        )
+    }
 }
