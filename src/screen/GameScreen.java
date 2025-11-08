@@ -258,7 +258,7 @@ public class GameScreen extends Screen {
         }
 
         checkAchievement();
-        if (this.inputDelay.checkFinished() && inputManager.isKeyDown(KeyEvent.VK_ESCAPE) && this.pauseCooldown.checkFinished()) {
+        if (this.inputDelay.checkFinished() && inputManager.isKeyPressed(KeyEvent.VK_ESCAPE) && this.pauseCooldown.checkFinished()) {
             this.isPaused = !this.isPaused;
             this.pauseCooldown.reset();
 
