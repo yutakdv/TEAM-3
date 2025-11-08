@@ -49,9 +49,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y launch4j
 
-      - name: Build EXE using Launch4j
+      - name: Build EXE using Launch4j (manual)
         run: |
-          launch4j launch4j-config.xml
+          wget https://github.com/launch4j/launch4j/releases/download/3.50/launch4j-3.50-linux.tar.gz
+          tar -xzf launch4j-3.50-linux.tar.gz
+          cd launch4j
+          ./launch4j ../launch4j-config.xml
 
       # 최신 PR 제목 기반 버전 계산
       - name: Determine next version (Based on PR title)
