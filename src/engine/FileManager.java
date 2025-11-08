@@ -71,7 +71,7 @@ public final class FileManager {
 
         try {
             inputStream = DrawManager.class.getClassLoader()
-                    .getResourceAsStream("graphics");
+                    .getResourceAsStream("res/graphics");
             char c;
 
             // Sprite loading.
@@ -117,7 +117,7 @@ public final class FileManager {
         try {
             // Font loading.
             inputStream = FileManager.class.getClassLoader()
-                    .getResourceAsStream("font.ttf");
+                    .getResourceAsStream("res/font.ttf");
             font = Font.createFont(Font.TRUETYPE_FONT, inputStream).deriveFont(
                     size);
         } finally {
@@ -157,7 +157,7 @@ public final class FileManager {
         BufferedReader reader;
 
         try {
-            inputStream = FileManager.class.getClassLoader().getResourceAsStream("1Pscores.csv");
+            inputStream = FileManager.class.getClassLoader().getResourceAsStream("res/1Pscores.csv");
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
             // except first line
