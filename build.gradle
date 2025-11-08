@@ -91,6 +91,13 @@ jar {
     }
 }
 
+tasks.processResources {
+    from('res') {
+        include '**/*'
+        into 'res'
+    }
+}
+
 sourceSets {
     main {
         java {
