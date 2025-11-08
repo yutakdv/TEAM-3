@@ -50,8 +50,7 @@ jobs:
           wget -q https://downloads.sourceforge.net/project/launch4j/launch4j-3/3.50/launch4j-3.50-linux-x64.tgz
           tar -xzf launch4j-3.50-linux-x64.tgz
           cd launch4j
-          chmod +x launch4j
-          ./launch4j ../launch4j-config.xml
+          java -jar launch4j.jar ../launch4j-config.xml
 
       # 최신 PR 제목 기반 버전 계산
       - name: Determine next version (Based on PR title)
