@@ -193,7 +193,7 @@ public final class FileManager {
         BufferedReader bufferedReader = null;
 
         try {
-            String scoresPath = getFilePath(mode+"scores.csv");
+            String scoresPath = getFilePath("res/"+mode+"scores.csv");
 
             File scoresFile = new File(scoresPath);
             inputStream = new FileInputStream(scoresFile);
@@ -237,7 +237,7 @@ public final class FileManager {
         BufferedWriter bufferedWriter = null;
 
         try {
-            String scoresPath = getFilePath(mode+"scores.csv");
+            String scoresPath = getFilePath("res/"+mode+"scores.csv");
 
             File scoresFile = new File(scoresPath);
 
