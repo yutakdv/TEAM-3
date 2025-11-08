@@ -44,6 +44,15 @@ jobs:
             sudo apt update && sudo apt install gh -y
           fi
 
+      - name: Install Launch4j
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y launch4j
+
+      - name: Build EXE using Launch4j
+        run: |
+          launch4j launch4j-config.xml
+
       # 최신 PR 제목 기반 버전 계산
       - name: Determine next version (Based on PR title)
         id: version
@@ -134,6 +143,7 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
           files: |
             build/libs/*.jar
+            build/libs/*.exe
           prerelease: ${{ startsWith(steps.version.outputs.tag, 'v1.') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

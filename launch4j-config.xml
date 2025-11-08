@@ -1,0 +1,21 @@
+<launch4jConfig>
+    <dontWrapJar>false</dontWrapJar>
+    <headerType>gui</headerType>
+    <jar>build/libs/TEAM-3.jar</jar>
+    <outfile>build/libs/TEAM-3.exe</outfile>
+    <errTitle>TEAM-3 Game</errTitle>
+    <cmdLine></cmdLine>
+    <chdir>.</chdir>
+    <priority>normal</priority>
+    <downloadUrl>https://adoptium.net/</downloadUrl>
+    <supportUrl></supportUrl>
+    <stayAlive>false</stayAlive>
+    <manifest></manifest>
+    <icon></icon>
+    <classPath>
+        <mainClass>engine.Core</mainClass>
+    </classPath>
+    <jre>
+        <minVersion>21</minVersion>
+    </jre>
+</launch4jConfig>
