@@ -96,6 +96,9 @@ sourceSets {
         java {
             srcDirs = ['src'] // Java 코드 경로
         }
+        resources {
+            srcDirs = ['res']
+        }
     }
 }
 
