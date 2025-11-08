@@ -16,9 +16,6 @@
         <mainClass>engine.Core</mainClass>
     </classPath>
     <jre>
-        <bundledJrePath>jre</bundledJrePath>
         <minVersion>21</minVersion>
-        <runtimeBits>64</runtimeBits>
-        <opt>-Dfile.encoding=UTF-8</opt>
     </jre>
 </launch4jConfig>
