@@ -90,3 +90,14 @@ jar {
         )
     }
 }
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src'] // Java 코드 경로
+        }
+        resources {
+            srcDirs = ['res'] // 리소스 폴더 경로
+        }
+    }
+}
