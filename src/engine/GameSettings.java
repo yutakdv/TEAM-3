@@ -7,6 +7,10 @@ import java.util.Collections;
 import java.util.List;
 import java.nio.file.*;
 import java.util.logging.Logger;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 /**
  * Implements an object that stores a single game's difficulty settings.
@@ -79,8 +83,18 @@ public class GameSettings {
 		return new Color(rgb);
 	}
 
-	public static List<StageData> parseStages(Path path) throws Exception {
-		String raw = Files.readString(path);
+	public static List<StageData> parseStages(InputStream in) throws Exception {
+		String raw;
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+            raw = sb.toString();
+        }
+
 		raw = raw.replace("\uFEFF", "");
 		raw = raw.replaceAll("(?m)^\\s*//.*$", "");
 
@@ -134,7 +148,12 @@ public class GameSettings {
 		GameSettings setting;
 
 		try {
-			stageDataList = parseStages(Paths.get("res", "level.csv"));
+            InputStream in = GameSettings.class.getClassLoader().getResourceAsStream("res/level.csv");
+            if (in == null) {
+                in = Files.newInputStream(Paths.get("res", "level.csv"));
+            }
+            stageDataList = parseStages(in);
+
 			for(StageData s : stageDataList) {
 				setting = s.settings;
 				setting.changeDataList = new ArrayList<>();

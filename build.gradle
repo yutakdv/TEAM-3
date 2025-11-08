@@ -91,20 +91,18 @@ jar {
     }
 }
 
-tasks.processResources {
-    from('res') {
-        include '**/*'
-        into 'res'
-    }
-}
-
 sourceSets {
     main {
         java {
             srcDirs = ['src'] // Java 코드 경로
         }
-        resources {
-            srcDirs = ['res'] // 리소스 폴더 경로
-        }
+    }
+}
+
+tasks.processResources {
+    from('res') {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        include '**/*'
+        into 'res'
     }
 }
