@@ -25,6 +25,10 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
 	/** Array with the keys marked as pressed or not. */
 	private static boolean[] keys;
 
+    // add this line
+    /** Check the status of the previous frame key */
+    private static boolean[] prestatuskeys;
+
     /** Mouse pressed state. */
     private static  boolean mousePressed; // add this line
 
@@ -70,6 +74,7 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
 	 */
 	private InputManager() {
 		keys = new boolean[NUM_KEYS];
+        prestatuskeys = new boolean[NUM_KEYS];
         lastCharTyped = '\0';
         charTyped = false;
 	}
@@ -117,7 +122,15 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
      *
      * @return True if Player 1 is moving left
      */
-
+    public boolean isKeyPressed(final int keyCode) {
+        if (keyCode >= 0 && keyCode < NUM_KEYS) {
+            return keys[keyCode] && !prestatuskeys[keyCode];
+        }
+        return false;
+    }
+    public static void updatekeystatus(){
+        System.arraycopy(keys, 0, prestatuskeys, 0, NUM_KEYS);
+    }
     public boolean isP1LeftPressed() {
         return isKeyDown(player1Keys[0]);
     }
