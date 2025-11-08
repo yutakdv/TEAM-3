@@ -43,12 +43,7 @@ jobs:
           if ! command -v gh &> /dev/null; then
             sudo apt update && sudo apt install gh -y
           fi
-
-      - name: Install Launch4j
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y launch4j
-
+          
       - name: Build EXE using Launch4j (manual)
         run: |
           wget https://github.com/launch4j/launch4j/releases/download/3.50/launch4j-3.50-linux.tar.gz
