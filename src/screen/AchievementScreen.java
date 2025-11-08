@@ -42,12 +42,12 @@ public class AchievementScreen extends Screen {
         // [2025-10-17] feat: Added key input logic to navigate achievements
         // When the right or left arrow key is pressed, update the current achievement index
         // and reload the completer list for the newly selected achievement.
-        if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && inputDelay.checkFinished()) {
+        if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT)) {
             currentIdx = (currentIdx + 1) % achievements.size();
             completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
             inputDelay.reset();
         }
-        if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && inputDelay.checkFinished()) {
+        if (inputManager.isKeyPressed(KeyEvent.VK_LEFT)) {
             currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
             completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
             inputDelay.reset();
@@ -56,7 +56,7 @@ public class AchievementScreen extends Screen {
         super.update();
         draw();
 
-        if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE) && this.inputDelay.checkFinished()) {
+        if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
             this.returnCode = 1;
             this.isRunning = false;
         }
