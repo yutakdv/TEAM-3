@@ -45,12 +45,10 @@ public class AchievementScreen extends Screen {
         if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT)) {
             currentIdx = (currentIdx + 1) % achievements.size();
             completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-            inputDelay.reset();
         }
         if (inputManager.isKeyPressed(KeyEvent.VK_LEFT)) {
             currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
             completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-            inputDelay.reset();
         }
 
         super.update();
@@ -77,13 +75,11 @@ public class AchievementScreen extends Screen {
             if (navBoxes[0].contains(mx, my)) {
                 currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
                 completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-                inputDelay.reset();
             }
 
             if (navBoxes[1].contains(mx, my)) {
                 currentIdx = (currentIdx + 1) % achievements.size();
                 completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-                inputDelay.reset();
             }
         }
     }

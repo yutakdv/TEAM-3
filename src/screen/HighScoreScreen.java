@@ -70,8 +70,7 @@ public class HighScoreScreen extends Screen {
         super.update();
 
         draw();
-        if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)
-                && this.inputDelay.checkFinished())
+        if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE))
             this.isRunning = false;
 
         // back button click event
