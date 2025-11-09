@@ -9,10 +9,7 @@ import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.logging.Logger;
 
 /**
@@ -202,15 +199,21 @@ public final class  SoundManager {
             throws UnsupportedAudioFileException, IOException {
         InputStream in = SoundManager.class.getClassLoader().getResourceAsStream(resourcePath);
         if (in != null) {
-            return AudioSystem.getAudioInputStream(in);
+            return AudioSystem.getAudioInputStream(new BufferedInputStream(in));
         }
         // Fallback to file system path for developer/local runs
-        try (FileInputStream fis = new FileInputStream(resourcePath)) {
-            return AudioSystem.getAudioInputStream(fis);
-        } catch (FileNotFoundException e) {
-            logger.fine("Audio resource not found: " + resourcePath);
-            return null;
+        File file = new File(System.getProperty("user.dir"), resourcePath);
+        if (file.exists()) {
+            return AudioSystem.getAudioInputStream(file);
         }
+        logger.warning("Audio file not found in resources or local path: " + resourcePath);
+        return null;
+//        try (FileInputStream fis = new FileInputStream(resourcePath)) {
+//            return AudioSystem.getAudioInputStream(fis);
+//        } catch (FileNotFoundException e) {
+//            logger.fine("Audio resource not found: " + resourcePath);
+//            return null;
+//        }
     }
 
     /** Ensures the audio stream is PCM_SIGNED for Clip compatibility on all JVMs. */
