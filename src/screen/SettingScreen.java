@@ -28,6 +28,7 @@ public class SettingScreen extends Screen {
     private final int NUM_SLIDERS = SLIDER_TITLES.length;
     private int[] volumeLevels = new int[NUM_SLIDERS];
     private int draggingIndex = -1;
+    private boolean enableSoundMouseControl = false;
 
     /**
      * Constructor, establishes the properties of the screen.
@@ -120,6 +121,13 @@ public class SettingScreen extends Screen {
             }
             this.inputCooldown.reset();
         }
+
+        /*
+            2025-11-09 "Choi yutak"
+            Turn the mouse-based sound control on only
+            when the currently selected menu item is the Volume menu.
+         */
+        this.enableSoundMouseControl = (this.selectMenuItem == volumeMenu);
 
         if(this.selectMenuItem == volumeMenu) {
             if (this.inputCooldown.checkFinished()) {
@@ -310,6 +318,43 @@ public class SettingScreen extends Screen {
                 return;
             }
             this.inputCooldown.reset();
+        }
+
+        /*
+            2025-11-09
+            Choi Yutak
+            - Checks that the Volume menu is active.
+            - Detects mouse clicks on each speark icon.
+            - Toggles the mute state for that sound category.
+         */
+        if (this.selectMenuItem == volumeMenu && this.enableSoundMouseControl) {
+            for (int i = 0; i < SLIDER_TITLES.length; i++) {
+                java.awt.Rectangle iconBox = drawManager.getSpeakerHitbox(this, i);
+                if (clicked && iconBox.contains(mx, my)) {
+                    boolean newMuted = !Core.isMuted(i);
+                    Core.setMute(i, newMuted);
+                    SoundManager.updateVolume();
+                    this.inputCooldown.reset();
+                    break;
+                }
+            }
+        }
+
+        for (int i = 0; i < menuItem.length; i++) {
+            java.awt.Rectangle menuBox = drawManager.getSettingMenuHitbox(this, i);
+            if (clicked && menuBox.contains(mx, my)) {
+                this.selectMenuItem = i;
+                this.selectedSection = 0;
+                this.inputCooldown.reset();
+
+                this.enableSoundMouseControl = (i == volumeMenu);
+
+                if (i == firstplayerMenu || i == secondplayerMenu) {
+                    this.selectedSection = 1;
+                    this.selectedKeyIndex = 0;
+                }
+                break;
+            }
         }
 
         draw();

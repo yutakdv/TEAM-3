@@ -1587,9 +1587,45 @@ public final class DrawManager {
             g.drawArc(cx - r1, cy - r1, 2 * r1, 2 * r1, -60, 120);
             g.drawArc(cx - r3, cy - r3, 2 * r3, 2 * r3, -60, 120);
         }
+    }
 
+    /*
+        2025-11-09 Choi yutak
+        This method creates and returns a clickable rectangular area for each speaker icon
+        drawn in the Volume settings screen.
+     */
+    public Rectangle getSpeakerHitbox(final Screen screen, int index) {
+        final int space = 70;
+        final int baseY = screen.getHeight() * 3 / 10;
+        final int presentY = baseY + (index * space);
 
+        int bar_startWidth = screen.getWidth() / 2 - 10;
+        int iconBoxW = 24;
+        int iconX = bar_startWidth - iconBoxW - 25;
+        int iconY = presentY - 16 / 2;
 
+        int iconSize = 16;
 
+        return new Rectangle(iconX + 10, iconY + 30, iconSize + 10, iconSize);
+    }
+
+    /*
+        2025-11-09 Choi Yutak
+        This method creates and returns a rectangular clickable area for each menu item in the Settings screen.
+        It's mainly used to detect mouse clicks on different setting options such as Volumne, 1P Keyset, 2P Keyset.
+     */
+    public Rectangle getSettingMenuHitbox(final Screen screen, int index) {
+        int screenWidth = screen.getWidth();
+        int screenHeight = screen.getHeight();
+
+        int baseY = screenHeight / 3;
+        int itemGap = 60;
+
+        int x = screenWidth / 2 - 290;
+        int y = baseY + (index * itemGap) - 10;
+        int width = 200;
+        int height = 27;
+
+        return new Rectangle(x, y, width, height);
     }
 }
