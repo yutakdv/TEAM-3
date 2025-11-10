@@ -1411,25 +1411,43 @@ public final class DrawManager {
         return new Rectangle(x, y, textWidth, h);
     }
 
-    public void drawVolumeBar(final Screen screen, final int volumlevel, final boolean dragging){
-        int bar_startWidth = screen.getWidth() / 2;
-        int bar_endWidth = screen.getWidth()-40;
-        int barHeight = screen.getHeight()*3/10;
+    //
+    public void drawVolumeBar(final Screen screen, final int volumelevel, final boolean dragging,final int index, final String title, int selectedSection, int volumetype){
+       final int space = 70;
+       final int baseY = screen.getHeight() * 3 / 10;
+       final int presentY = baseY + (index * space);
 
-        String volumelabel = "Volume";
+        int bar_startWidth = screen.getWidth() / 2 - 10;
+        int bar_endWidth = screen.getWidth() - 50;
+
+        int iconSize = 16;
+        int iconBoxW = 24;
+        int iconX = bar_startWidth - iconBoxW - 25;
+        int iconY = presentY - iconSize / 2;
+
+        boolean mutedVisual = (volumelevel == 0 || Core.isMuted(index));
+        drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
+
+
+        backBufferGraphics.setColor(Color.WHITE);
+        backBufferGraphics.drawLine(bar_startWidth, presentY, bar_endWidth, presentY);
+
+        if (selectedSection == 1 && index == volumetype) {
+            backBufferGraphics.setColor(Color.green);
+        }
+        else {
+            backBufferGraphics.setColor(Color.white);
+        }
         backBufferGraphics.setFont(fontRegular);
-        backBufferGraphics.setColor(Color.WHITE);
-        backBufferGraphics.drawLine(bar_startWidth, barHeight, bar_endWidth, barHeight);
+        backBufferGraphics.drawString(title, bar_startWidth - 60, presentY-20);
 
-        backBufferGraphics.setColor(Color.WHITE);
-        backBufferGraphics.drawString(volumelabel, bar_startWidth-80, barHeight+7);
 
 //		change this line to get indicator center position
         int size = 14;
-        double ratio = volumlevel / 100.0;
+        double ratio = volumelevel / 100.0;
         int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
         int indicatorX = centerX - size / 2 - 3;
-        int indicatorY = barHeight - size / 2 ;
+        int indicatorY = presentY - size / 2 ;
 
         int rawX = Core.getInputManager().getMouseX();
         int rawY = Core.getInputManager().getMouseY();
@@ -1449,8 +1467,8 @@ public final class DrawManager {
         backBufferGraphics.fillRect(indicatorX, indicatorY, size, size);
 
         backBufferGraphics.setColor(Color.WHITE);
-        String volumeText = Integer.toString(volumlevel);
-        backBufferGraphics.drawString(volumeText, bar_endWidth+10, barHeight +7);
+        String volumeText = Integer.toString(volumelevel);
+        backBufferGraphics.drawString(volumeText, bar_endWidth+10, presentY +7);
 
     }
 
@@ -1471,22 +1489,24 @@ public final class DrawManager {
         backBufferGraphics.drawLine(splitPointX, screen.getHeight()/4, splitPointX,(menuY+menuItems.length*60));
     }
 
-    //	int for adjust volume hitbox
-    private int volumeHitBoxOffset = 20;
 
     public Rectangle getVolumeBarHitbox(final Screen screen){
-        int bar_startWidth = screen.getWidth() / 2;
-        int bar_endWidth = screen.getWidth() - 40;
-        int barHeight = screen.getHeight() * 3 / 10;
+        return getVolumeBarHitbox(screen, 0);
+    }
+    public Rectangle getVolumeBarHitbox(final Screen screen, int index){
+        final int space = 70;
+        final int baseY = screen.getHeight() * 3 / 10 + 30;
+        final int presentY = baseY + (index * space);
+
+        int bar_startWidth = screen.getWidth() / 2 - 10;
+        int bar_endWidth   = screen.getWidth() - 50;
 
         int barThickness = 20;
 
-        int centerY = barHeight + volumeHitBoxOffset;
-
         int x = bar_startWidth;
-        int y = centerY - barThickness;
-        int width = bar_endWidth - bar_startWidth;
-        int height = barThickness * 2;
+        int y = presentY - barThickness / 2;
+        int width  = bar_endWidth - bar_startWidth;
+        int height = barThickness;
 
         return new Rectangle(x, y, width, height);
     }
@@ -1498,8 +1518,8 @@ public final class DrawManager {
         g2d.setStroke(new BasicStroke(thickness));
 
         // upper left
-        g2d.drawLine(x, y, x + cornerLength, y);             // 가로
-        g2d.drawLine(x, y, x, y + cornerLength);             // 세로
+        g2d.drawLine(x, y, x + cornerLength, y);
+        g2d.drawLine(x, y, x, y + cornerLength);
 
         // upper right
         g2d.drawLine(x + width - cornerLength, y, x + width, y);
@@ -1523,5 +1543,89 @@ public final class DrawManager {
             boxes[i] = new Rectangle(x - 10, y - 10, s.getWidth() + 20, s.getHeight() + 20);
         }
         return boxes;
+    }
+
+    private void drawSpeakerIcon(int x, int y, int size, boolean muted) {
+        Graphics2D g = (Graphics2D) backBufferGraphics;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int squareW = size;
+        int squareH = size;
+        int squareX = x + 10 ;
+        int squareY = y  ;
+        g.setColor(Color.WHITE);
+        g.fillRect(squareX, squareY, squareW, squareH);
+
+        int x1 = x + squareW;
+        int x2 = x1 + 10;
+        int y1 = squareY + squareH;
+        int y2 = y1 + 5  ;
+        int y4 = squareY  ;
+        int y3 = y4 - 5  ;
+
+        int[] xpoints = {x1, x2, x2, x1};
+        int[] ypoints = {y1, y2, y3, y4};
+        Polygon trapezoid = new Polygon(xpoints, ypoints, 4);
+        g.setColor(Color.WHITE);
+        g.fillPolygon(trapezoid);
+
+        g.setStroke(new BasicStroke(2));
+        if (muted) {
+            g.setColor(Color.RED);
+            g.drawLine(x+10, y, x + size + 10, y + size);
+            g.drawLine(x + 10, y + size, x + size + 10, y);
+        } else {
+            g.setColor(Color.WHITE);
+
+            int cx = x2 + 6;
+            int cy = y + size / 2;
+
+            int r1 = (int)(size * 0.28);
+
+            int r3 = (int)(size * 0.56);
+
+            g.drawArc(cx - r1, cy - r1, 2 * r1, 2 * r1, -60, 120);
+            g.drawArc(cx - r3, cy - r3, 2 * r3, 2 * r3, -60, 120);
+        }
+    }
+
+    /*
+        2025-11-09 Choi yutak
+        This method creates and returns a clickable rectangular area for each speaker icon
+        drawn in the Volume settings screen.
+     */
+    public Rectangle getSpeakerHitbox(final Screen screen, int index) {
+        final int space = 70;
+        final int baseY = screen.getHeight() * 3 / 10;
+        final int presentY = baseY + (index * space);
+
+        int bar_startWidth = screen.getWidth() / 2 - 10;
+        int iconBoxW = 24;
+        int iconX = bar_startWidth - iconBoxW - 25;
+        int iconY = presentY - 16 / 2;
+
+        int iconSize = 16;
+
+        return new Rectangle(iconX + 10, iconY + 30, iconSize + 10, iconSize);
+    }
+
+    /*
+        2025-11-09 Choi Yutak
+        This method creates and returns a rectangular clickable area for each menu item in the Settings screen.
+        It's mainly used to detect mouse clicks on different setting options such as Volumne, 1P Keyset, 2P Keyset.
+     */
+    public Rectangle getSettingMenuHitbox(final Screen screen, int index) {
+        int screenWidth = screen.getWidth();
+        int screenHeight = screen.getHeight();
+
+        int baseY = screenHeight / 3;
+        int itemGap = 60;
+
+        int x = screenWidth / 2 - 290;
+        int y = baseY + (index * itemGap) - 10;
+        int width = 200;
+        int height = 27;
+
+        return new Rectangle(x, y, width, height);
     }
 }
