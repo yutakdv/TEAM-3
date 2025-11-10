@@ -71,19 +71,19 @@ public class TitleScreen extends Screen {
         draw();
 
         if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
-            SoundManager.playOnce("sound/hover.wav");
+            SoundManager.playeffect("sound/hover.wav");
             previousMenuItem();
             this.hoverOption = null;
         }
         if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
-            SoundManager.playOnce("sound/hover.wav");
+            SoundManager.playeffect("sound/hover.wav");
             nextMenuItem();
             this.hoverOption = null;
         }
 
         // Play : Adjust the case so that 1p and 2p can be determined within the play.
         if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
-            SoundManager.playOnce("sound/select.wav");
+            SoundManager.playeffect("sound/select.wav");
             switch (this.menuIndex) {
                 case 0: // "Play"
                     this.returnCode = 5; // go to PlayScreen
