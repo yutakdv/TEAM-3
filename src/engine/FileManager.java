@@ -137,10 +137,21 @@ public final class FileManager {
      * @throws IOException
      *      In case of loading problems
      * */
-    private static String getFilePath(String fileName) throws IOException {
-        String filePath = System.getProperty("user.dir");
-        filePath += File.separator + "res" + File.separator + fileName;
-        return filePath;
+    /* yutak - getFilepath can do both local file path and .jar file path*/
+    private static InputStream getFileStream(String fileName) throws IOException {
+        InputStream inputStream = FileManager.class.getClassLoader()
+                .getResourceAsStream("res/"+fileName);
+
+        if (inputStream != null) {
+            return inputStream;
+        }
+
+        File localFile = new File(System.getProperty("user.dir")+File.separator+"res"+File.separator+fileName);
+        if (localFile.exists()) {
+            return new FileInputStream(localFile);
+        }
+
+        throw new FileNotFoundException("Resource not found: res/" + fileName);
     }
 
     /**
@@ -193,10 +204,7 @@ public final class FileManager {
         BufferedReader bufferedReader = null;
 
         try {
-            String scoresPath = getFilePath(mode+"scores.csv");
-
-            File scoresFile = new File(scoresPath);
-            inputStream = new FileInputStream(scoresFile);
+            inputStream = getFileStream(mode+"scores.csv");
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             logger.info("Loading user high scores.");
             // except first line
@@ -237,9 +245,9 @@ public final class FileManager {
         BufferedWriter bufferedWriter = null;
 
         try {
-            String scoresPath = getFilePath(mode+"scores.csv");
-
-            File scoresFile = new File(scoresPath);
+            File scoresFile = new File(System.getProperty("user.dir")
+                              + File.separator + "res"
+                              + File.separator + mode + "scores.csv");
 
             if (!scoresFile.exists())
                 scoresFile.createNewFile();
@@ -272,10 +280,10 @@ public final class FileManager {
         List<Boolean> achievementList = new ArrayList<>();
 
         try {
-            String achievementPath = getFilePath("achievement.csv");
+            InputStream achievementStream = getFileStream("achievement.csv");
 
             try (BufferedReader bReader = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(achievementPath), StandardCharsets.UTF_8))) {
+                    new InputStreamReader(achievementStream, StandardCharsets.UTF_8))) {
 
                 bReader.readLine(); // Skip header
                 String line;
@@ -331,10 +339,10 @@ public final class FileManager {
         String numericMode = mode.replaceAll("[^0-9]", "");
 
         try {
-            String achievementPath = getFilePath("achievement.csv");
+            InputStream achievementStream = getFileStream("achievement.csv");
 
             try (BufferedReader bReader = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(achievementPath), StandardCharsets.UTF_8))) {
+                    new InputStreamReader(achievementStream, StandardCharsets.UTF_8))) {
 
                 String line;
                 boolean found = false;
@@ -378,9 +386,10 @@ public final class FileManager {
                 }
             }
 
+            File achievementFile = new File(System.getProperty("user.dir") + File.separator + "res" + File.separator + "achievement.csv");
             // Write the updated records back to the CSV file
             try (BufferedWriter bWriter = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(achievementPath), StandardCharsets.UTF_8))) {
+                    new OutputStreamWriter(new FileOutputStream(achievementFile), StandardCharsets.UTF_8))) {
                 for (String[] record : records) {
                     bWriter.write(String.join(",", record));
                     bWriter.newLine();
@@ -406,10 +415,10 @@ public final class FileManager {
     public List<String> getAchievementCompleter(Achievement achievement) {
         List<String> completer = new ArrayList<>();
         try {
-            String achievementPath = getFilePath("achievement.csv");
+            InputStream achievementStream = getFileStream("achievement.csv");
 
             try (BufferedReader bReader = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(achievementPath), StandardCharsets.UTF_8))) {
+                    new InputStreamReader(achievementStream, StandardCharsets.UTF_8))) {
 
                 String line;
                 String[] header = bReader.readLine().split(",");

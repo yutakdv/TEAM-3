@@ -1,5 +1,6 @@
 package screen;
 
+import java.awt.*;
 import java.awt.event.KeyEvent;
 
 import engine.Cooldown;
@@ -46,7 +47,7 @@ public class TitleScreen extends Screen {
 		this.returnCode = 1; // 2P mode: changed to default selection as 1P
 
         // Start menu music loop when the title screen is created
-        SoundManager.playLoop("sound/menu_sound.wav");
+        SoundManager.playBGM("sound/menu_sound.wav");
 	}
 
 	/**

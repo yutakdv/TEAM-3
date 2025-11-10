@@ -73,7 +73,7 @@ public class AchievementManager {
         for (Achievement a : achievements) {
             if (a.getName().equals(name) && !a.isUnlocked()) {
                 a.unlock();
-                SoundManager.playOnce("sound/achievement.wav");
+                SoundManager.playeffect("sound/achievement.wav");
                 logger.info("Achievement unlocked: " + a);
                 toastQueue.offer(new Toast(a, TOAST_DURATION_MS));
             }

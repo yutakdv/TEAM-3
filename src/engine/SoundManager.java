@@ -9,10 +9,7 @@ import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.logging.Logger;
 
 /**
@@ -30,7 +27,7 @@ public final class  SoundManager {
      * Plays a short WAV from resources folder. Example path: "sound/shoot.wav".
      * Uses a new Clip per invocation for simplicity; suitable for very short SFX.
      */
-    public static void playOnce(String resourcePath) {
+    public static void playeffect(String resourcePath) {
         AudioInputStream audioStream = null;
         Clip clip = null;
         try {
@@ -44,13 +41,18 @@ public final class  SoundManager {
             // Set volume based on user settings
             if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                float volumeDb = calculateVolumeDb(Core.getVolumeLevel());
+                int saved = Core.getVolumeLevel(1);
+                boolean muted = Core.isMuted(1) || saved == 0;
+                if (muted) {
+                    clip.close();
+                    return;
+                }
+                float volumeDb = calculateVolumeDb(saved);
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
+                clip.start();
+                logger.info("Started one-shot sound: " + resourcePath);
             }
-
-            clip.start();
-            logger.info("Started one-shot sound: " + resourcePath);
-        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+        }  catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             logger.info("Unable to play sound '" + resourcePath + "': " + e.getMessage());
         } finally {
             // We can't close 'in' immediately because AudioSystem may stream; rely on clip close
@@ -71,7 +73,7 @@ public final class  SoundManager {
     /**
      * Plays a WAV in a loop until {@link #stop()} is called.
      */
-    public static void playLoop(String resourcePath) {
+    public static void playBGM(String resourcePath) {
         stop();
         stopBackgroundMusic();
 
@@ -87,8 +89,10 @@ public final class  SoundManager {
 
             // Set volume based on user settings for loops
             if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                int saved = Core.getVolumeLevel(0);
+                boolean muted = Core.isMuted(0) || saved == 0;
                 FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
-                float volumeDb = calculateVolumeDb(Core.getVolumeLevel());
+                float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
             }
 
@@ -136,7 +140,7 @@ public final class  SoundManager {
     /**
      * starts playing background music that loops during gameplay
      */
-    public static void startBackgroundMusic(String musicResourcePath) {
+    public static void playBackgroundMusic(String musicResourcePath) {
         // stop any currently playing music (both loop and background music)
         stop();
         stopBackgroundMusic();
@@ -161,8 +165,11 @@ public final class  SoundManager {
 
             // set music volume based on user settings
             if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                int saved = Core.getVolumeLevel(0);
+                boolean muted = Core.isMuted(0) || saved == 0;
                 FloatControl gain = (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
-                float volumeDb = calculateVolumeDb(Core.getVolumeLevel());
+
+                float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
             }
 
@@ -202,15 +209,21 @@ public final class  SoundManager {
             throws UnsupportedAudioFileException, IOException {
         InputStream in = SoundManager.class.getClassLoader().getResourceAsStream(resourcePath);
         if (in != null) {
-            return AudioSystem.getAudioInputStream(in);
+            return AudioSystem.getAudioInputStream(new BufferedInputStream(in));
         }
         // Fallback to file system path for developer/local runs
-        try (FileInputStream fis = new FileInputStream(resourcePath)) {
-            return AudioSystem.getAudioInputStream(fis);
-        } catch (FileNotFoundException e) {
-            logger.fine("Audio resource not found: " + resourcePath);
-            return null;
+        File file = new File(System.getProperty("user.dir"), resourcePath);
+        if (file.exists()) {
+            return AudioSystem.getAudioInputStream(file);
         }
+        logger.warning("Audio file not found in resources or local path: " + resourcePath);
+        return null;
+//        try (FileInputStream fis = new FileInputStream(resourcePath)) {
+//            return AudioSystem.getAudioInputStream(fis);
+//        } catch (FileNotFoundException e) {
+//            logger.fine("Audio resource not found: " + resourcePath);
+//            return null;
+//        }
     }
 
     /** Ensures the audio stream is PCM_SIGNED for Clip compatibility on all JVMs. */
@@ -237,10 +250,13 @@ public final class  SoundManager {
      * This should be called when the volume slider is changed.
      */
     public static void updateVolume() {
-        float volumeDb = calculateVolumeDb(Core.getVolumeLevel());
-        
+        int vol0 = Core.getVolumeLevel(0);
+        boolean muted0 = Core.isMuted(0) || vol0 == 0;
+        float volumeDb = muted0 ? -80.0f : calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
+
+
         // Update looped sound volume (menu music)
-        if (loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+        if (Core.getVolumetype() == 0 && loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
             FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
             gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
         }
