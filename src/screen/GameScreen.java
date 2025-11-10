@@ -43,6 +43,8 @@ public class GameScreen extends Screen {
     /** Time from finishing the level to screen change. */
     private static final int SCREEN_CHANGE_INTERVAL = 1500;
     /** Height of the interface separation line. */
+    private static final int PAUSE_COOLDOWN = 300;
+    private static final int RETURN_MENU_COOLDOWN = 300;
     private static final int SEPARATION_LINE_HEIGHT = 68;
       private static final int HIGH_SCORE_NOTICE_DURATION = 2000;
     private static boolean sessionHighScoreNotified = false;
@@ -217,8 +219,8 @@ public class GameScreen extends Screen {
         drawManager.setDeath(false);
 
         this.isPaused = false;
-        this.pauseCooldown = Core.getCooldown(300);
-        this.returnMenuCooldown = Core.getCooldown(300);
+        this.pauseCooldown = Core.getCooldown(PAUSE_COOLDOWN);
+        this.returnMenuCooldown = Core.getCooldown(RETURN_MENU_COOLDOWN);
     }
 
 
@@ -257,7 +259,7 @@ public class GameScreen extends Screen {
         }
 
         checkAchievement();
-        if (this.inputDelay.checkFinished() && inputManager.isKeyDown(KeyEvent.VK_ESCAPE) && this.pauseCooldown.checkFinished()) {
+        if (this.inputDelay.checkFinished() && inputManager.isKeyPressed(KeyEvent.VK_ESCAPE) && this.pauseCooldown.checkFinished()) {
             this.isPaused = !this.isPaused;
             this.pauseCooldown.reset();
 

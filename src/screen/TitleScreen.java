@@ -19,8 +19,6 @@ public class TitleScreen extends Screen {
     private boolean coopSelected = false;
     public boolean isCoopSelected() { return coopSelected; }
 
-	/** Milliseconds between changes in user selection. */
-	private static final int SELECTION_TIME = 200;
 
 	/** Time between changes in user selection. */
 	private Cooldown selectionCooldown;
@@ -47,8 +45,6 @@ public class TitleScreen extends Screen {
 
 		// Defaults to play.
 		this.returnCode = 1; // 2P mode: changed to default selection as 1P
-		this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
-		this.selectionCooldown.reset();
 
         // Start menu music loop when the title screen is created
         SoundManager.playBGM("sound/menu_sound.wav");
@@ -73,64 +69,61 @@ public class TitleScreen extends Screen {
         super.update();
 
         draw();
-        if (this.selectionCooldown.checkFinished() && this.inputDelay.checkFinished()) {
-            if (inputManager.isKeyDown(KeyEvent.VK_UP) || inputManager.isKeyDown(KeyEvent.VK_W)) {
-                SoundManager.playeffect("sound/hover.wav");
-                previousMenuItem();
-                this.selectionCooldown.reset();
-                this.hoverOption = null;
-            }
-            if (inputManager.isKeyDown(KeyEvent.VK_DOWN) || inputManager.isKeyDown(KeyEvent.VK_S)) {
-                SoundManager.playeffect("sound/hover.wav");
-                nextMenuItem();
-                this.selectionCooldown.reset();
-                this.hoverOption = null;
-            }
 
-            // Play : Adjust the case so that 1p and 2p can be determined within the play.
-            if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
-                SoundManager.playeffect("sound/select.wav");
-                switch (this.menuIndex) {
-                    case 0: // "Play"
-                        this.returnCode = 5; // go to PlayScreen
-                        this.isRunning = false;
-                        break;
+        if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
+            SoundManager.playOnce("sound/hover.wav");
+            previousMenuItem();
+            this.hoverOption = null;
+        }
+        if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
+            SoundManager.playOnce("sound/hover.wav");
+            nextMenuItem();
+            this.hoverOption = null;
+        }
 
-                    case 1: // "Achievements"
-                        this.returnCode = 3;
-                        this.isRunning = false;
-                        break;
-                    case 2: // "High scores"
-                        this.returnCode = 8;
-                        this.isRunning = false;
-                        break;
-                    case 3: // "Settings"
-                        this.returnCode = 4;
-                        this.isRunning = false;
-                        break;
+        // Play : Adjust the case so that 1p and 2p can be determined within the play.
+        if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
+            SoundManager.playOnce("sound/select.wav");
+            switch (this.menuIndex) {
+                case 0: // "Play"
+                    this.returnCode = 5; // go to PlayScreen
+                    this.isRunning = false;
+                    break;
 
-                    case 4: // "Quit"
-                        this.returnCode = 0;
-                        this.isRunning = false;
-                        break;
+                case 1: // "Achievements"
+                    this.returnCode = 3;
+                    this.isRunning = false;
+                    break;
+                case 2: // "High scores"
+                    this.returnCode = 8;
+                    this.isRunning = false;
+                    break;
+                case 3: // "Settings"
+                    this.returnCode = 4;
+                    this.isRunning = false;
+                    break;
 
-                    default:
-                        break;
+                case 4: // "Quit"
+                    this.returnCode = 0;
+                    this.isRunning = false;
+                    break;
+
+                default:
+                   break;
                 }
             }
-            if (inputManager.isMouseClicked()) {
-                int temp_x = inputManager.getMouseX();
-                int temp_y = inputManager.getMouseY();
+        if (inputManager.isMouseClicked()) {
+            int temp_x = inputManager.getMouseX();
+            int temp_y = inputManager.getMouseY();
 
-                Rectangle[] boxes = drawManager.getMenuHitboxes(this);
-                int[] pos = {5, 3, 8, 4, 0};
+            java.awt.Rectangle[] boxes = drawManager.getMenuHitboxes(this);
+            int[] pos = {5, 3, 8, 4, 0};
 
-                for (int i = 0; i < boxes.length; i++) {
-                    if (boxes[i].contains(temp_x, temp_y)) {
-                        this.returnCode = pos[i];
-                        this.isRunning = false;
-                        break;
-                    }
+            for (int i = 0; i < boxes.length; i++) {
+                if (boxes[i].contains(temp_x, temp_y)) {
+                    this.returnCode = pos[i];
+                    this.isRunning = false;
+                    break;
                 }
             }
         }
