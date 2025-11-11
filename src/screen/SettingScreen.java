@@ -270,6 +270,7 @@ public class SettingScreen extends Screen {
          // change space to escape
          if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE) && this.inputCooldown.checkFinished()) {
             this.isRunning = false;
+             SoundManager.playeffect("sound/select.wav");
             this.inputCooldown.reset();
         }
 
@@ -284,6 +285,7 @@ public class SettingScreen extends Screen {
 
         if (clicked && backBox.contains(mx, my)) {
             this.returnCode = 1;
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
             return;
         }

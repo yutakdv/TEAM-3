@@ -69,16 +69,17 @@ public class TitleScreen extends Screen {
         super.update();
 
         draw();
-
-        if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
-            SoundManager.playeffect("sound/hover.wav");
-            previousMenuItem();
-            this.hoverOption = null;
-        }
-        if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
-            SoundManager.playeffect("sound/hover.wav");
-            nextMenuItem();
-            this.hoverOption = null;
+        if (this.hoverOption == null) {
+            if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
+                SoundManager.playeffect("sound/hover.wav");
+                previousMenuItem();
+                this.hoverOption = null;
+            }
+            if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
+                SoundManager.playeffect("sound/hover.wav");
+                nextMenuItem();
+                this.hoverOption = null;
+            }
         }
 
         // Play : Adjust the case so that 1p and 2p can be determined within the play.
@@ -115,6 +116,7 @@ public class TitleScreen extends Screen {
         if (inputManager.isMouseClicked()) {
             int temp_x = inputManager.getMouseX();
             int temp_y = inputManager.getMouseY();
+            SoundManager.playeffect("sound/select.wav");
 
             java.awt.Rectangle[] boxes = drawManager.getMenuHitboxes(this);
             int[] pos = {5, 3, 8, 4, 0};
@@ -184,7 +186,10 @@ public class TitleScreen extends Screen {
         // Modify : Update after hover calculation
         if (newHover != null) {
             // Hover Update + Promote to Select Index when mouse is raised (to keep mouse away)
-            if (!newHover.equals(this.hoverOption)) { this.hoverOption = newHover; }
+            if (!newHover.equals(this.hoverOption)) {
+                this.hoverOption = newHover;
+                SoundManager.playeffect("sound/hover.wav");
+            }
         } else {
             // If we had a hover and the mouse left, promote last hover to selection for persistance
             if (this.hoverOption != null) {
