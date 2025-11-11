@@ -108,6 +108,7 @@ public class SettingScreen extends Screen {
             } else {
                 this.selectMenuItem --;
             }
+            SoundManager.playeffect("sound/hover.wav");
             this.inputCooldown.reset();
         }
 
@@ -119,6 +120,7 @@ public class SettingScreen extends Screen {
             }else {
                 this.selectMenuItem ++;
             }
+            SoundManager.playeffect("sound/hover.wav");
             this.inputCooldown.reset();
         }
 
@@ -134,21 +136,25 @@ public class SettingScreen extends Screen {
                 if (inputManager.isKeyDown(KeyEvent.VK_SPACE) && selectedSection == 0) {
                     this.selectedSection = 1;
                     this.volumetype = 0;
+                    SoundManager.playeffect("sound/select.wav");
                     this.inputCooldown.reset();
                 }
             }
             if (inputManager.isKeyDown(KeyEvent.VK_BACK_SPACE) && selectedSection == 1) {
                 this.selectedSection = 0;
+                SoundManager.playeffect("sound/select.wav");
                 this.inputCooldown.reset();
             }
             if (this.selectedSection == 1 && inputManager.isKeyDown(KeyEvent.VK_UP) && this.inputCooldown.checkFinished() && volumetype > 0 && selectedSection == 1) {
                 this.volumetype--;
                 this.volumelevel = volumeLevels[this.volumetype];
+                SoundManager.playeffect("sound/hover.wav");
                 this.inputCooldown.reset();
             }
             if (this.selectedSection == 1 && inputManager.isKeyDown(KeyEvent.VK_DOWN) && this.inputCooldown.checkFinished() && volumetype < SLIDER_TITLES.length - 1 && selectedSection == 1) {
                 this.volumetype++;
                 this.volumelevel = volumeLevels[this.volumetype];
+                SoundManager.playeffect("sound/hover.wav");
                 this.inputCooldown.reset();
             }
             if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && this.inputCooldown.checkFinished() && volumelevel > 0 && selectedSection == 1) {
@@ -181,18 +187,22 @@ public class SettingScreen extends Screen {
              if (inputManager.isKeyDown(KeyEvent.VK_SPACE) && this.inputCooldown.checkFinished() && waitingForNewKey == false && selectedSection == 0) {
                  this.selectedSection= 1;
                  this.selectedKeyIndex = 0;
+                 SoundManager.playeffect("sound/select.wav");
                  this.inputCooldown.reset();
              }
              if (this.selectedSection == 1 && inputManager.isKeyDown(KeyEvent.VK_BACK_SPACE) && this.inputCooldown.checkFinished() && waitingForNewKey == false) {
                  selectedSection = 0;
+                 SoundManager.playeffect("sound/select.wav");
                  this.inputCooldown.reset();
              }
              if (this.selectedSection == 1 && inputManager.isKeyDown(KeyEvent.VK_UP) && this.inputCooldown.checkFinished() && selectedKeyIndex > 0 && waitingForNewKey == false) {
                  selectedKeyIndex--;
+                 SoundManager.playeffect("sound/hover.wav");
                  this.inputCooldown.reset();
              }
              if (this.selectedSection == 1 && inputManager.isKeyDown(KeyEvent.VK_DOWN) && this.inputCooldown.checkFinished() && selectedKeyIndex < keyItems.length - 1 && waitingForNewKey == false) {
                  selectedKeyIndex++;
+                 SoundManager.playeffect("sound/hover.wav");
                  this.inputCooldown.reset();
              }
              // Start waiting for new keystrokes
@@ -204,7 +214,7 @@ public class SettingScreen extends Screen {
                 } else {
                     waitingForNewKey = false;
                 }
-
+                SoundManager.playeffect("sound/select.wav");
                 this.inputCooldown.reset();
             }
             /**
@@ -262,6 +272,7 @@ public class SettingScreen extends Screen {
                     waitingForNewKey = false;
                     Core.getInputManager().saveKeyConfig();
                     System.out.println("New key saved → " + KeyEvent.getKeyText(newKey));
+                    SoundManager.playeffect("sound/select.wav");
                     this.inputCooldown.reset();
                 }
             }
@@ -317,6 +328,7 @@ public class SettingScreen extends Screen {
             if (this.selectMenuItem == back) {
                 this.returnCode = 1;
                 this.isRunning = false;
+                SoundManager.playeffect("sound/select.wav");
                 return;
             }
             this.inputCooldown.reset();
@@ -344,16 +356,18 @@ public class SettingScreen extends Screen {
 
         for (int i = 0; i < menuItem.length; i++) {
             java.awt.Rectangle menuBox = drawManager.getSettingMenuHitbox(this, i);
-            if (clicked && menuBox.contains(mx, my)) {
+            if (clicked && menuBox.contains(mx, my) && selectMenuItem != i) {
                 this.selectMenuItem = i;
                 this.selectedSection = 0;
                 this.inputCooldown.reset();
 
                 this.enableSoundMouseControl = (i == volumeMenu);
+                SoundManager.playeffect("sound/select.wav");
 
                 if (i == firstplayerMenu || i == secondplayerMenu) {
                     this.selectedSection = 1;
                     this.selectedKeyIndex = 0;
+                    SoundManager.playeffect("sound/select.wav");
                 }
                 break;
             }

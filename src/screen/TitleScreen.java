@@ -116,7 +116,6 @@ public class TitleScreen extends Screen {
         if (inputManager.isMouseClicked()) {
             int temp_x = inputManager.getMouseX();
             int temp_y = inputManager.getMouseY();
-            SoundManager.playeffect("sound/select.wav");
 
             java.awt.Rectangle[] boxes = drawManager.getMenuHitboxes(this);
             int[] pos = {5, 3, 8, 4, 0};
@@ -124,6 +123,7 @@ public class TitleScreen extends Screen {
             for (int i = 0; i < boxes.length; i++) {
                 if (boxes[i].contains(temp_x, temp_y)) {
                     this.returnCode = pos[i];
+                    SoundManager.playeffect("sound/select.wav");
                     this.isRunning = false;
                     break;
                 }
