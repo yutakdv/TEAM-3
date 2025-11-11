@@ -13,6 +13,7 @@ public class ShipSelectionScreen extends Screen {
     private Ship[] shipExamples = new Ship[4];
 
     private Integer hovershipIndex = null;
+    private Integer prevHoverIndex = null;
 
     private int player;
     private boolean backSelected = false; // If current state is on the back button, can't select ship
@@ -108,13 +109,17 @@ public class ShipSelectionScreen extends Screen {
         java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
         java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
 
+        prevHoverIndex = hovershipIndex;
         hovershipIndex = null;
+
         for (int i = 0; i < shipBoxes.length; i++) {
             if (shipBoxes[i].contains(mx, my)) {
                 hovershipIndex = i;
                 this.selectedShipIndex = i;
                 break;
             }
+        }
+        if(hovershipIndex != null && !hovershipIndex.equals(prevHoverIndex)){
             SoundManager.playeffect("sound/hover.wav");
         }
 

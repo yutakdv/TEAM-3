@@ -17,6 +17,9 @@ public class PlayScreen extends Screen {
     public boolean isCoopSelected() { return coopSelected; }
     private int menuIndex = 0; // 0 = 1P, 1 = 2P, 2 = Back
 
+    private Integer prevHoverIndex = null;
+    private Integer hoverIndex = null;
+
 /**
  * Constructor, establishes the properties of the screen.
  *
@@ -119,11 +122,18 @@ public class PlayScreen extends Screen {
                 backBox       // Back
         };
 
+        prevHoverIndex = hoverIndex;
+        hoverIndex = null;
+
         for (int i = 0; i < allBoxes.length; i++) {
             if (allBoxes[i].contains(mx, my)) {
+                hoverIndex = i;
                 this.menuIndex = i;
                 break;
             }
+        }
+        if(hoverIndex != null && !hoverIndex.equals(prevHoverIndex) && hoverIndex != 2) {
+            SoundManager.playeffect("sound/hover.wav");
         }
 
         drawManager.drawPlayMenu(this, this.menuIndex==2 ? -1 : this.menuIndex, this.menuIndex);
