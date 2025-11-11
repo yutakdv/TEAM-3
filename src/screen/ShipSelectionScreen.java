@@ -8,9 +8,6 @@ import entity.Entity;
 import entity.Ship;
 
 public class ShipSelectionScreen extends Screen {
-
-    private static final int SELECTION_TIME = 200;
-    private Cooldown selectionCooldown;
     private int selectedShipIndex = 0; // 0: NORMAL, 1: BIG_SHOT, 2: DOUBLE_SHOT, 3: MOVE_FAST
     private Ship[] shipExamples = new Ship[4];
 
@@ -22,8 +19,6 @@ public class ShipSelectionScreen extends Screen {
     public ShipSelectionScreen(final int width, final int height, final int fps, final int player) {
         super(width, height, fps);
         this.player = player;
-        this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
-        this.selectionCooldown.reset();
 
         if (player == 1) {
             shipExamples[0] = new Ship(width / 2 - 100, height / 2, Entity.Team.PLAYER1, Ship.ShipType.NORMAL, null);
@@ -67,74 +62,68 @@ public class ShipSelectionScreen extends Screen {
     protected final void update() {
         super.update();
         draw();
-        if (this.selectionCooldown.checkFinished() && this.inputDelay.checkFinished()) {
+        if(inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)){
+            this.returnCode = (player == 1) ? 5 : 6;
+            this.isRunning = false;
+            return;
+        }
+        if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
+            backSelected = true;
 
-            if(inputManager.isKeyDown(KeyEvent.VK_ESCAPE)){
+        }
+        if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) ||  inputManager.isKeyPressed(KeyEvent.VK_S)) {
+            backSelected = false;
+
+        }
+        if (!backSelected) {
+            if (inputManager.isKeyPressed(KeyEvent.VK_LEFT) || inputManager.isKeyPressed(KeyEvent.VK_A)) {
+                this.selectedShipIndex = this.selectedShipIndex - 1;
+                if (this.selectedShipIndex < 0) {
+                    this.selectedShipIndex += 4;
+                }
+                this.selectedShipIndex = this.selectedShipIndex % 4;
+
+            }
+            if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT) || inputManager.isKeyPressed(KeyEvent.VK_D)) {
+                this.selectedShipIndex = (this.selectedShipIndex + 1) % 4;
+            }
+        }
+        if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
+            switch (player) {
+                case 1 -> this.returnCode = backSelected ? 5 : 6;
+                case 2 -> this.returnCode = backSelected ? 6 : 2;
+            }
+            this.isRunning = false;
+        }
+        int mx = inputManager.getMouseX();
+        int my = inputManager.getMouseY();
+        boolean clicked = inputManager.isMouseClicked();
+
+        java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+        java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
+
+        hovershipIndex = null;
+        for (int i = 0; i < shipBoxes.length; i++) {
+            if (shipBoxes[i].contains(mx, my)) {
+                hovershipIndex = i;
+                this.selectedShipIndex = i;  // ←/→ 누른 것과 동일하게 선택 상태 변경
+                break;
+            }
+        }
+
+        if(clicked){
+            if(backBox.contains(mx, my)){
                 this.returnCode = (player == 1) ? 5 : 6;
                 this.isRunning = false;
                 return;
             }
-            if (inputManager.isKeyDown(KeyEvent.VK_UP) || inputManager.isKeyDown(KeyEvent.VK_W)) {
-                backSelected = true;
-                selectionCooldown.reset();
-            }
-            if (inputManager.isKeyDown(KeyEvent.VK_DOWN) ||  inputManager.isKeyDown(KeyEvent.VK_S)) {
-                backSelected = false;
-                selectionCooldown.reset();
-            }
-            if (!backSelected) {
-                if (inputManager.isKeyDown(KeyEvent.VK_LEFT) || inputManager.isKeyDown(KeyEvent.VK_A)) {
-                    this.selectedShipIndex = this.selectedShipIndex - 1;
-                    if (this.selectedShipIndex < 0) {
-                        this.selectedShipIndex += 4;
-                    }
-                    this.selectedShipIndex = this.selectedShipIndex % 4;
-                    this.selectionCooldown.reset();
-                }
-                if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) || inputManager.isKeyDown(KeyEvent.VK_D)) {
-                    this.selectedShipIndex = (this.selectedShipIndex + 1) % 4;
-                    this.selectionCooldown.reset();
-                }
-            }
-            if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
+            if(hovershipIndex != null){
                 switch (player) {
-                    case 1 -> this.returnCode = backSelected ? 5 : 6;
-                    case 2 -> this.returnCode = backSelected ? 6 : 2;
+                    case 1 -> this.returnCode = 6;
+                    case 2 -> this.returnCode = 2;
                 }
                 this.isRunning = false;
             }
-            int mx = inputManager.getMouseX();
-            int my = inputManager.getMouseY();
-            boolean clicked = inputManager.isMouseClicked();
-
-            java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-            java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
-
-            hovershipIndex = null;
-            for (int i = 0; i < shipBoxes.length; i++) {
-                if (shipBoxes[i].contains(mx, my)) {
-                    hovershipIndex = i;
-                    this.selectedShipIndex = i;  // ←/→ 누른 것과 동일하게 선택 상태 변경
-                    break;
-                }
-            }
-
-            if(clicked){
-                if(backBox.contains(mx, my)){
-                    this.returnCode = (player == 1) ? 5 : 6;
-                    this.isRunning = false;
-                    return;
-                }
-                if(hovershipIndex != null){
-                    switch (player) {
-                        case 1 -> this.returnCode = 6;
-                        case 2 -> this.returnCode = 2;
-                    }
-                    this.isRunning = false;
-                }
-            }
-
-
         }
     }
 

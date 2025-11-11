@@ -127,7 +127,7 @@ public class ScoreScreen extends Screen {
 		if (this.inputDelay.checkFinished()) {
 			if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {
                 // Return to main menu.
-                SoundManager.playOnce("sound/select.wav");
+                SoundManager.playeffect("sound/select.wav");
 				this.returnCode = 1;
 				this.isRunning = false;
 				if (this.isNewRecord) {
@@ -138,7 +138,7 @@ public class ScoreScreen extends Screen {
                 // name too short -> return
                 if (this.name.length() < 3) return;
 				// Play again.
-                SoundManager.playOnce("sound/select.wav");
+                SoundManager.playeffect("sound/select.wav");
 				this.returnCode = 2;
 				this.isRunning = false;
 				if (this.isNewRecord) {

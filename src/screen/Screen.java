@@ -86,6 +86,8 @@ public class Screen {
 
 			update();
 
+			InputManager.updatekeystatus();
+
 			time = (1000 / this.fps) - (System.currentTimeMillis() - time);
 			if (time > 0) {
 				try {
