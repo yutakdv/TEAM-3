@@ -79,6 +79,20 @@ public class ShipSelectionScreen extends Screen {
             backSelected = false;
 
         }
+
+        int mx = inputManager.getMouseX();
+        int my = inputManager.getMouseY();
+
+        java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+        java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
+
+        boolean mouseHovering = backBox.contains(mx, my);
+        if (!mouseHovering) {
+            for (java.awt.Rectangle r : shipBoxes) {
+                if (r.contains(mx, my)) { mouseHovering = true; break; }
+            }
+        }
+
         if (!backSelected) {
             if (inputManager.isKeyPressed(KeyEvent.VK_LEFT) || inputManager.isKeyPressed(KeyEvent.VK_A)) {
                 this.selectedShipIndex = this.selectedShipIndex - 1;
@@ -86,12 +100,16 @@ public class ShipSelectionScreen extends Screen {
                     this.selectedShipIndex += 4;
                 }
                 this.selectedShipIndex = this.selectedShipIndex % 4;
-                SoundManager.playeffect("sound/hover.wav");
+                if(!mouseHovering) {
+                    SoundManager.playeffect("sound/hover.wav");
+                }
 
             }
             if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT) || inputManager.isKeyPressed(KeyEvent.VK_D)) {
                 this.selectedShipIndex = (this.selectedShipIndex + 1) % 4;
-                SoundManager.playeffect("sound/hover.wav");
+                if(!mouseHovering) {
+                    SoundManager.playeffect("sound/hover.wav");
+                }
             }
         }
         if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
@@ -102,12 +120,9 @@ public class ShipSelectionScreen extends Screen {
             SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
         }
-        int mx = inputManager.getMouseX();
-        int my = inputManager.getMouseY();
+
         boolean clicked = inputManager.isMouseClicked();
 
-        java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-        java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
 
         prevHoverIndex = hovershipIndex;
         hovershipIndex = null;

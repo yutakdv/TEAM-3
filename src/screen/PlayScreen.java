@@ -50,13 +50,25 @@ public class PlayScreen extends Screen {
             return;
         }
 
+        int mx = inputManager.getMouseX();
+        int my = inputManager.getMouseY();
+        java.awt.Rectangle[] modeBoxesForKey = drawManager.getPlayMenuHitboxes(this);
+        java.awt.Rectangle backBoxForKey = drawManager.getBackButtonHitbox(this);
+        boolean mouseHovering = modeBoxesForKey[0].contains(mx, my)
+                || modeBoxesForKey[1].contains(mx, my)
+                || backBoxForKey.contains(mx, my);
+
         if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
             this.menuIndex = (this.menuIndex + 2) % 3;
-            SoundManager.playeffect("sound/hover.wav");// UP
+            if(!mouseHovering && this.menuIndex != 2) {
+                SoundManager.playeffect("sound/hover.wav");// UP
+            }
         }
         if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
             this.menuIndex = (this.menuIndex + 1) % 3;
-            SoundManager.playeffect("sound/hover.wav");// DOWN
+            if(!mouseHovering && this.menuIndex != 2) {
+                SoundManager.playeffect("sound/hover.wav");// DOWN
+            }
         }
 
         // back button click event & 1P, 2P button click event
@@ -80,9 +92,6 @@ public class PlayScreen extends Screen {
             this.isRunning = false;
         }
         if (inputManager.isMouseClicked()) {
-            int mx = inputManager.getMouseX();
-            int my = inputManager.getMouseY();
-            SoundManager.playeffect("sound/select.wav");
             java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
             java.awt.Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
             java.awt.Rectangle[] allBoxes = {
@@ -99,6 +108,7 @@ public class PlayScreen extends Screen {
                         this.coopSelected = (i == 1); // Mode Select
                         this.returnCode = 2;
                     }
+                    SoundManager.playeffect("sound/select.wav");
                     this.isRunning = false;
                     return;
                 }
