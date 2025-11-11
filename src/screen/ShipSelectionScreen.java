@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import engine.Cooldown;
 import engine.Core;
+import engine.SoundManager;
 import entity.Entity;
 import entity.Ship;
 
@@ -19,6 +20,7 @@ public class ShipSelectionScreen extends Screen {
     public ShipSelectionScreen(final int width, final int height, final int fps, final int player) {
         super(width, height, fps);
         this.player = player;
+        SoundManager.playBGM("sound/menu_sound.wav");
 
         if (player == 1) {
             shipExamples[0] = new Ship(width / 2 - 100, height / 2, Entity.Team.PLAYER1, Ship.ShipType.NORMAL, null);
@@ -64,6 +66,7 @@ public class ShipSelectionScreen extends Screen {
         draw();
         if(inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)){
             this.returnCode = (player == 1) ? 5 : 6;
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
             return;
         }
@@ -82,10 +85,12 @@ public class ShipSelectionScreen extends Screen {
                     this.selectedShipIndex += 4;
                 }
                 this.selectedShipIndex = this.selectedShipIndex % 4;
+                SoundManager.playeffect("sound/hover.wav");
 
             }
             if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT) || inputManager.isKeyPressed(KeyEvent.VK_D)) {
                 this.selectedShipIndex = (this.selectedShipIndex + 1) % 4;
+                SoundManager.playeffect("sound/hover.wav");
             }
         }
         if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
@@ -93,6 +98,7 @@ public class ShipSelectionScreen extends Screen {
                 case 1 -> this.returnCode = backSelected ? 5 : 6;
                 case 2 -> this.returnCode = backSelected ? 6 : 2;
             }
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
         }
         int mx = inputManager.getMouseX();
@@ -106,14 +112,16 @@ public class ShipSelectionScreen extends Screen {
         for (int i = 0; i < shipBoxes.length; i++) {
             if (shipBoxes[i].contains(mx, my)) {
                 hovershipIndex = i;
-                this.selectedShipIndex = i;  // ←/→ 누른 것과 동일하게 선택 상태 변경
+                this.selectedShipIndex = i;
                 break;
             }
+            SoundManager.playeffect("sound/hover.wav");
         }
 
         if(clicked){
             if(backBox.contains(mx, my)){
                 this.returnCode = (player == 1) ? 5 : 6;
+                SoundManager.playeffect("sound/select.wav");
                 this.isRunning = false;
                 return;
             }
@@ -122,6 +130,7 @@ public class ShipSelectionScreen extends Screen {
                     case 1 -> this.returnCode = 6;
                     case 2 -> this.returnCode = 2;
                 }
+                SoundManager.playeffect("sound/select.wav");
                 this.isRunning = false;
             }
         }

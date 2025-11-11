@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import engine.Cooldown;
 import engine.Core;
+import engine.SoundManager;
 
 /**
  *
@@ -26,6 +27,7 @@ public class PlayScreen extends Screen {
 
     public PlayScreen(final int width, final int height, final int fps) {
         super(width, height, fps);
+        SoundManager.playBGM("sound/menu_sound.wav");
         this.returnCode = 2; // default 1P
     }
 
@@ -40,15 +42,18 @@ public class PlayScreen extends Screen {
 
         if(inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
             this.returnCode = 1;
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
             return;
         }
 
         if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
-            this.menuIndex = (this.menuIndex + 2) % 3; // UP
+            this.menuIndex = (this.menuIndex + 2) % 3;
+            SoundManager.playeffect("sound/hover.wav");// UP
         }
         if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
-            this.menuIndex = (this.menuIndex + 1) % 3; // DOWN
+            this.menuIndex = (this.menuIndex + 1) % 3;
+            SoundManager.playeffect("sound/hover.wav");// DOWN
         }
 
         // back button click event & 1P, 2P button click event
@@ -68,12 +73,13 @@ public class PlayScreen extends Screen {
                     this.returnCode = 1; // go back to TitleScreen
                     break;
             }
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
         }
         if (inputManager.isMouseClicked()) {
             int mx = inputManager.getMouseX();
             int my = inputManager.getMouseY();
-
+            SoundManager.playeffect("sound/select.wav");
             java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
             java.awt.Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
             java.awt.Rectangle[] allBoxes = {
