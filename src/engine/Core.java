@@ -320,7 +320,7 @@ public final class Core {
   }
 
   private static int volumetype = 0;
-  private static int[] volumearray = {50, 50};
+  private static int[] volumearray = {50, 50, 50};
 
   public static int getVolumeLevel(int w) {
     return volumearray[w];
@@ -335,7 +335,7 @@ public final class Core {
     volumetype = w;
   }
 
-  private static boolean[] Mute = {false, false};
+  private static boolean[] Mute = {false, false, false};
 
   public static boolean isMuted(int index) {
     return Mute[index];

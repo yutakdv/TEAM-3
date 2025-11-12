@@ -38,8 +38,8 @@ public final class SoundManager {
       // Set volume based on user settings
       if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
         FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        int saved = Core.getVolumeLevel(1);
-        boolean muted = Core.isMuted(1) || saved == 0;
+        int saved = Core.getVolumeLevel(2);
+        boolean muted = Core.isMuted(2) || saved == 0;
         if (muted) {
           clip.close();
           return;
@@ -86,8 +86,8 @@ public final class SoundManager {
 
       // Set volume based on user settings for loops
       if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = Core.getVolumeLevel(0);
-        boolean muted = Core.isMuted(0) || saved == 0;
+        int saved = Core.getVolumeLevel(1);
+        boolean muted = Core.isMuted(1) || saved == 0;
         FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
         float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
         gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
@@ -162,8 +162,8 @@ public final class SoundManager {
 
       // set music volume based on user settings
       if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = Core.getVolumeLevel(0);
-        boolean muted = Core.isMuted(0) || saved == 0;
+        int saved = Core.getVolumeLevel(1);
+        boolean muted = Core.isMuted(1) || saved == 0;
         FloatControl gain =
             (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
@@ -247,12 +247,12 @@ public final class SoundManager {
    * changed.
    */
   public static void updateVolume() {
-    int vol0 = Core.getVolumeLevel(0);
-    boolean muted0 = Core.isMuted(0) || vol0 == 0;
+    int vol0 = Core.getVolumeLevel(1);
+    boolean muted0 = Core.isMuted(1) || vol0 == 0;
     float volumeDb = muted0 ? -80.0f : calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
 
     // Update looped sound volume (menu music)
-    if (Core.getVolumetype() == 0
+    if (Core.getVolumetype() == 1
         && loopClip != null
         && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
       FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
