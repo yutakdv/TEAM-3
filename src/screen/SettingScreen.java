@@ -15,7 +15,6 @@ public class SettingScreen extends Screen {
     private Cooldown inputCooldown;
     private int volumelevel;
     private int volumetype;
-    private boolean draggingVolume = false;
     private int selectedSection = 0;
     private int selectedKeyIndex = 0;
     private String[] keyItems = {"MOVE LEFT", "MOVE RIGHT", "ATTACK"};
@@ -79,7 +78,6 @@ public class SettingScreen extends Screen {
         this.inputCooldown.reset();
         this.selectMenuItem = volumeMenu;
 
-        int master = Core.getVolumeLevel(Core.getVolumetype());
         volumeLevels[0] = Core.getVolumeLevel(0);
         volumeLevels[1] = Core.getVolumeLevel(1);
 
@@ -292,7 +290,6 @@ public class SettingScreen extends Screen {
         boolean clicked = inputManager.isMouseClicked();
 
         java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-        java.awt.Rectangle barBox  = drawManager.getVolumeBarHitbox(this);
 
         if (clicked && backBox.contains(mx, my)) {
             this.returnCode = 1;

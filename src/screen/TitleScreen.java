@@ -15,11 +15,6 @@ import engine.SoundManager;
  */
 public class TitleScreen extends Screen {
 
-    // 2P mode: user picks mode, where false = 1P, true = 2P
-    private boolean coopSelected = false;
-    public boolean isCoopSelected() { return coopSelected; }
-
-
 	/** Time between changes in user selection. */
 	private Cooldown selectionCooldown;
 
