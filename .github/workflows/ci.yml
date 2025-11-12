@@ -1,7 +1,7 @@
 name: Title Check + CI - Build & Test + Slack Notify
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - development
     types: [opened, edited, synchronize, reopened]
