@@ -89,6 +89,13 @@ public class Item extends Entity {
             case "BULLETSPEEDUP":
                 this.changeColor(Color.BLUE);
                 break;
+
+            default:
+                this.changeColor(Color.BLACK);
+                if(this.logger != null){
+                    this.logger.warning("[Item]: Unknown item type in setSprite(): " + this.type + " (fallback color BLACK)");
+                }
+                break;
         }
     }
 
