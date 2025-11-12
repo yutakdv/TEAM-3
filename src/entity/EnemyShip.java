@@ -7,266 +7,254 @@ import engine.Core;
 import engine.DrawManager.SpriteType;
 import engine.GameSettings;
 
-
 /**
  * Implements an enemy ship, to be destroyed by the player.
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
- *
  */
 public class EnemyShip extends Entity {
 
-    /** Point value of a type A enemy. */
-    private static final int A_TYPE_POINTS = 10;
-    /** Point value of a type B enemy. */
-    private static final int B_TYPE_POINTS = 20;
-    /** Point value of a type C enemy. */
-    private static final int C_TYPE_POINTS = 30;
-    /** Point value of a bonus enemy. */
-    private static final int BONUS_TYPE_POINTS = 100;
+  /** Point value of a type A enemy. */
+  private static final int A_TYPE_POINTS = 10;
 
-    private static final int A_TYPE_COINS = 2;
-    private static final int B_TYPE_COINS = 3;
-    private static final int C_TYPE_COINS = 5;
-    private static final int BONUS_TYPE_COINS = 10;
+  /** Point value of a type B enemy. */
+  private static final int B_TYPE_POINTS = 20;
 
-    /** Cooldown between sprite changes. */
-    private Cooldown animationCooldown;
-    /** Checks if the ship has been hit by a bullet. */
-    private boolean isDestroyed;
-    /** Values of the ship, in points, when destroyed. */
-    private int pointValue;
+  /** Point value of a type C enemy. */
+  private static final int C_TYPE_POINTS = 30;
 
-    private int coinValue;
+  /** Point value of a bonus enemy. */
+  private static final int BONUS_TYPE_POINTS = 100;
 
-    /** Current health of the enemy ship */
-    private int health;
-    private int initialHealth;
+  private static final int A_TYPE_COINS = 2;
+  private static final int B_TYPE_COINS = 3;
+  private static final int C_TYPE_COINS = 5;
+  private static final int BONUS_TYPE_COINS = 10;
 
-    /**
-     * Constructor, establishes the ship's properties.
-     *
-     * @param positionX
-     *            Initial position of the ship in the X axis.
-     * @param positionY
-     *            Initial position of the ship in the Y axis.
-     * @param spriteType
-     *            Sprite type, image corresponding to the ship.
-     */
-    public EnemyShip(final int positionX, final int positionY,
-                     final SpriteType spriteType) {
-        super(positionX, positionY, 12 * 2, 8 * 2, Color.WHITE);
+  /** Cooldown between sprite changes. */
+  private Cooldown animationCooldown;
 
-        this.spriteType = spriteType;
-        this.animationCooldown = Core.getCooldown(500);
-        this.isDestroyed = false;
+  /** Checks if the ship has been hit by a bullet. */
+  private boolean isDestroyed;
 
-        switch (this.spriteType) {
-            case EnemyShipA1:
-            case EnemyShipA2:
-                this.pointValue = A_TYPE_POINTS;
-                this.coinValue = A_TYPE_COINS;
-                this.health = 2;
-                break;
-            case EnemyShipB1:
-            case EnemyShipB2:
-                this.pointValue = B_TYPE_POINTS;
-                this.coinValue = B_TYPE_COINS;
-                this.health = 1;
-                break;
-            case EnemyShipC1:
-            case EnemyShipC2:
-                this.pointValue = C_TYPE_POINTS;
-                this.coinValue = C_TYPE_COINS;
-                this.health = 1;
-                break;
-            default:
-                this.pointValue = 0;
-                this.coinValue = 0;
-                this.health = 1;
-                break;
-        }
+  /** Values of the ship, in points, when destroyed. */
+  private int pointValue;
 
-        this.initialHealth = this.health;
-    }
+  private int coinValue;
 
-    public void changeShip(GameSettings.ChangeData changeData) {
-        this.health *= changeData.hp;
-        this.initialHealth = this.health;
+  /** Current health of the enemy ship */
+  private int health;
 
-        this.changeColor(changeData.color);
+  private int initialHealth;
 
-        this.pointValue *= changeData.multiplier;
-        this.coinValue *= changeData.multiplier;
-    }
+  /**
+   * Constructor, establishes the ship's properties.
+   *
+   * @param positionX Initial position of the ship in the X axis.
+   * @param positionY Initial position of the ship in the Y axis.
+   * @param spriteType Sprite type, image corresponding to the ship.
+   */
+  public EnemyShip(final int positionX, final int positionY, final SpriteType spriteType) {
+    super(positionX, positionY, 12 * 2, 8 * 2, Color.WHITE);
 
-    /**
-     * Constructor, establishes the ship's properties for a special ship, with
-     * known starting properties.
-     */
-    public EnemyShip() {
-        super(-32, 80, 16 * 2, 7 * 2, Color.RED);
+    this.spriteType = spriteType;
+    this.animationCooldown = Core.getCooldown(500);
+    this.isDestroyed = false;
 
-        this.spriteType = SpriteType.EnemyShipSpecial;
-        this.isDestroyed = false;
-        this.pointValue = BONUS_TYPE_POINTS;
-        this.coinValue = BONUS_TYPE_COINS;
+    switch (this.spriteType) {
+      case EnemyShipA1:
+      case EnemyShipA2:
+        this.pointValue = A_TYPE_POINTS;
+        this.coinValue = A_TYPE_COINS;
+        this.health = 2;
+        break;
+      case EnemyShipB1:
+      case EnemyShipB2:
+        this.pointValue = B_TYPE_POINTS;
+        this.coinValue = B_TYPE_COINS;
         this.health = 1;
+        break;
+      case EnemyShipC1:
+      case EnemyShipC2:
+        this.pointValue = C_TYPE_POINTS;
+        this.coinValue = C_TYPE_COINS;
+        this.health = 1;
+        break;
+      default:
+        this.pointValue = 0;
+        this.coinValue = 0;
+        this.health = 1;
+        break;
     }
 
-    /**
-     * Getter for the score bonus if this ship is destroyed.
-     *
-     * @return Value of the ship.
-     */
-    public final int getPointValue() {
-        return this.pointValue;
+    this.initialHealth = this.health;
+  }
+
+  public void changeShip(GameSettings.ChangeData changeData) {
+    this.health *= changeData.hp;
+    this.initialHealth = this.health;
+
+    this.changeColor(changeData.color);
+
+    this.pointValue *= changeData.multiplier;
+    this.coinValue *= changeData.multiplier;
+  }
+
+  /**
+   * Constructor, establishes the ship's properties for a special ship, with known starting
+   * properties.
+   */
+  public EnemyShip() {
+    super(-32, 80, 16 * 2, 7 * 2, Color.RED);
+
+    this.spriteType = SpriteType.EnemyShipSpecial;
+    this.isDestroyed = false;
+    this.pointValue = BONUS_TYPE_POINTS;
+    this.coinValue = BONUS_TYPE_COINS;
+    this.health = 1;
+  }
+
+  /**
+   * Getter for the score bonus if this ship is destroyed.
+   *
+   * @return Value of the ship.
+   */
+  public final int getPointValue() {
+    return this.pointValue;
+  }
+
+  /**
+   * Moves the ship the specified distance.
+   *
+   * @param distanceX Distance to move in the X axis.
+   * @param distanceY Distance to move in the Y axis.
+   */
+  public final void move(final int distanceX, final int distanceY) {
+    this.positionX += distanceX;
+    this.positionY += distanceY;
+  }
+
+  /** Updates attributes, mainly used for animation purposes. */
+  public final void update() {
+    if (this.animationCooldown.checkFinished()) {
+      this.animationCooldown.reset();
+
+      switch (this.spriteType) {
+        case EnemyShipA1:
+          this.spriteType = SpriteType.EnemyShipA2;
+          break;
+        case EnemyShipA2:
+          this.spriteType = SpriteType.EnemyShipA1;
+          break;
+        case EnemyShipB1:
+          this.spriteType = SpriteType.EnemyShipB2;
+          break;
+        case EnemyShipB2:
+          this.spriteType = SpriteType.EnemyShipB1;
+          break;
+        case EnemyShipC1:
+          this.spriteType = SpriteType.EnemyShipC2;
+          break;
+        case EnemyShipC2:
+          this.spriteType = SpriteType.EnemyShipC1;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  /** Returns the current health of the enemy ship */
+  public int getHealth() {
+    return this.health;
+  }
+
+  /** Reduces enemy health by 1 and handles destruction or damage animation if health drops to 0 */
+  public final void hit() {
+    this.health--;
+    if (this.health <= 0) {
+      this.isDestroyed = true;
+      this.spriteType = SpriteType.Explosion;
+      Color color = this.getColor();
+      color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 255);
+      changeColor(color);
+    } else {
+      switch (this.spriteType) {
+        case EnemyShipA1:
+        case EnemyShipA2:
+          this.spriteType = SpriteType.EnemyShipA2;
+          break;
+        case EnemyShipB1:
+        case EnemyShipB2:
+          this.spriteType = SpriteType.EnemyShipB2;
+          break;
+        case EnemyShipC1:
+        case EnemyShipC2:
+          this.spriteType = SpriteType.EnemyShipC2;
+          break;
+        default:
+          break;
+      }
+
+      this.refreshAlpha();
+    }
+  }
+
+  /** Destroys the ship, causing an explosion. */
+  public final void destroy() {
+    this.isDestroyed = true;
+    this.spriteType = SpriteType.Explosion;
+  }
+
+  /**
+   * Checks if the ship has been destroyed.
+   *
+   * @return True if the ship has been destroyed.
+   */
+  public final boolean isDestroyed() {
+    return this.isDestroyed;
+  }
+
+  public int getCoinValue() {
+    return this.coinValue;
+  }
+
+  // make alpha value always in 0~255 value
+  private static int clamp(int v, int lo, int hi) {
+    return Math.max(lo, Math.min(hi, v));
+  }
+
+  private void refreshAlpha() {
+    float t = (initialHealth > 0) ? (this.health / (float) initialHealth) : 1f;
+
+    final int Min_Alpha = 100;
+    final int One_Hp_Alpha = 100;
+
+    int alpha = clamp(Min_Alpha + (int) Math.round((255 - Min_Alpha) * t), Min_Alpha, 255);
+
+    if (this.health == 1 && this.initialHealth > 1) {
+      alpha = Math.max(alpha, One_Hp_Alpha);
     }
 
-    /**
-     * Moves the ship the specified distance.
-     *
-     * @param distanceX
-     *            Distance to move in the X axis.
-     * @param distanceY
-     *            Distance to move in the Y axis.
-     */
-    public final void move(final int distanceX, final int distanceY) {
-        this.positionX += distanceX;
-        this.positionY += distanceY;
+    Color c = this.getColor();
+    if (c == null) c = Color.WHITE;
+    Color withAlpha = new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
+    this.changeColor(withAlpha);
+  }
+
+  // fixed getDamage() for new alpha
+  public final int getDamage(int dmg) {
+    this.health -= dmg;
+
+    if (this.health <= 0) {
+      this.isDestroyed = true;
+      this.spriteType = SpriteType.Explosion;
+      Color c = this.getColor();
+      if (c == null) c = Color.WHITE;
+      this.changeColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 255));
+    } else {
+      this.refreshAlpha();
     }
-
-    /**
-     * Updates attributes, mainly used for animation purposes.
-     */
-    public final void update() {
-        if (this.animationCooldown.checkFinished()) {
-            this.animationCooldown.reset();
-
-            switch (this.spriteType) {
-                case EnemyShipA1:
-                    this.spriteType = SpriteType.EnemyShipA2;
-                    break;
-                case EnemyShipA2:
-                    this.spriteType = SpriteType.EnemyShipA1;
-                    break;
-                case EnemyShipB1:
-                    this.spriteType = SpriteType.EnemyShipB2;
-                    break;
-                case EnemyShipB2:
-                    this.spriteType = SpriteType.EnemyShipB1;
-                    break;
-                case EnemyShipC1:
-                    this.spriteType = SpriteType.EnemyShipC2;
-                    break;
-                case EnemyShipC2:
-                    this.spriteType = SpriteType.EnemyShipC1;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    /** Returns the current health of the enemy ship */
-    public int getHealth() {
-        return this.health;
-    }
-
-    /** Reduces enemy health by 1 and handles destruction or damage animation if health drops to 0 */
-
-    public final void hit() {
-        this.health--;
-        if (this.health <= 0) {
-            this.isDestroyed = true;
-            this.spriteType = SpriteType.Explosion;
-            Color color = this.getColor();
-            color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 255);
-            changeColor(color);
-        }
-
-        else {
-            switch (this.spriteType) {
-                case EnemyShipA1:
-                case EnemyShipA2:
-                    this.spriteType = SpriteType.EnemyShipA2;
-                    break;
-                case EnemyShipB1:
-                case EnemyShipB2:
-                    this.spriteType = SpriteType.EnemyShipB2;
-                    break;
-                case EnemyShipC1:
-                case EnemyShipC2:
-                    this.spriteType = SpriteType.EnemyShipC2;
-                    break;
-                default:
-                    break;
-            }
-
-            this.refreshAlpha();
-        }
-    }
-
-
-    /**
-     * Destroys the ship, causing an explosion.
-     */
-    public final void destroy() {
-        this.isDestroyed = true;
-        this.spriteType = SpriteType.Explosion;
-    }
-
-    /**
-     * Checks if the ship has been destroyed.
-     *
-     * @return True if the ship has been destroyed.
-     */
-    public final boolean isDestroyed() {
-        return this.isDestroyed;
-    }
-
-    public int getCoinValue() { return this.coinValue; }
-
-    // make alpha value always in 0~255 value
-    private static int clamp(int v, int lo, int hi) {
-        return Math.max(lo, Math.min(hi, v));
-    }
-
-    private void refreshAlpha(){
-        float t = (initialHealth > 0) ? (this.health / (float) initialHealth) : 1f;
-
-        final int Min_Alpha = 100;
-        final int One_Hp_Alpha = 100;
-
-        int alpha = clamp(
-                Min_Alpha + (int)Math.round((255 - Min_Alpha) * t),
-                Min_Alpha, 255
-        );
-
-        if(this.health == 1 && this.initialHealth > 1) {
-            alpha = Math.max(alpha, One_Hp_Alpha);
-        }
-
-        Color c = this.getColor();
-        if(c == null) c = Color.WHITE;
-        Color withAlpha = new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
-        this.changeColor(withAlpha);
-
-    }
-
-    //fixed getDamage() for new alpha
-    public final int getDamage(int dmg) {
-        this.health -= dmg;
-
-        if(this.health <= 0) {
-            this.isDestroyed = true;
-            this.spriteType = SpriteType.Explosion;
-            Color c = this.getColor();
-            if(c == null) c = Color.WHITE;
-            this.changeColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 255));
-        }else{
-            this.refreshAlpha();
-        }
-        return this.health;
-    }
+    return this.health;
+  }
 }
