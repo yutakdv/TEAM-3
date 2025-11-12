@@ -16,7 +16,7 @@ import engine.SoundManager;
 public class TitleScreen extends Screen {
 
 	/** Time between changes in user selection. */
-	private Cooldown selectionCooldown;
+//	private Cooldown selectionCooldown;
 
     // menu index added for user mode selection
     private int menuIndex = 0;

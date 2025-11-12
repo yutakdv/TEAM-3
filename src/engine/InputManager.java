@@ -27,7 +27,7 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
 
     // add this line
     /** Check the status of the previous frame key */
-    private static boolean[] prestatuskeys;
+    private static boolean[] prestatuskeys = new boolean[NUM_KEYS];
 
     /** Mouse pressed state. */
     private static  boolean mousePressed; // add this line
@@ -74,7 +74,7 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
 	 */
 	private InputManager() {
 		keys = new boolean[NUM_KEYS];
-        prestatuskeys = new boolean[NUM_KEYS];
+//        prestatuskeys = new boolean[NUM_KEYS];
         lastCharTyped = '\0';
         charTyped = false;
 	}
