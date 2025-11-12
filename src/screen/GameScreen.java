@@ -501,6 +501,18 @@ public class GameScreen extends Screen {
             : java.util.Collections.emptyList());
     if (this.isPaused) {
       drawManager.drawPauseOverlay(this);
+      String[] PAUSE_SLIDER_TITLES = {"Game BGM", "Game Effect"};
+      int numPauseSliders = PAUSE_SLIDER_TITLES.length;
+      for (int i = 0; i < numPauseSliders; i++) {
+        drawManager.drawpauseVolumeBar(
+            this,
+            Core.getIngameVolumeLevel(i),
+            false,
+            i,
+            PAUSE_SLIDER_TITLES[i],
+            1,
+            Core.getIngameVolumetype());
+      }
     }
 
     drawManager.completeDrawing(this);

@@ -768,7 +768,7 @@ public final class DrawManager {
     String pauseString = "PAUSED";
     backBufferGraphics.setFont(fontBig);
     backBufferGraphics.setColor(Color.WHITE);
-    drawCenteredBigString(screen, pauseString, screen.getHeight() / 2);
+    drawCenteredBigString(screen, pauseString, screen.getHeight() - 400);
 
     String returnMenu = "PRESS BACKSPACE TO RETURN TO TITLE";
     backBufferGraphics.setFont(fontRegular);
@@ -1579,5 +1579,71 @@ public final class DrawManager {
     int height = 27;
 
     return new Rectangle(x, y, width, height);
+  }
+
+  public void drawpauseVolumeBar(
+      final Screen screen,
+      final int ingamevolumelevel,
+      final boolean dragging,
+      final int index,
+      final String title,
+      int selectedSection,
+      int ingamevolumetype) {
+    final int space = 100;
+    final int baseY = screen.getHeight() * 3 / 10 + 50;
+    final int presentY = baseY + (index * space);
+
+    int bar_startWidth = screen.getWidth() / 2 - 85;
+    int bar_endWidth = screen.getWidth() - 125;
+
+    int iconSize = 16;
+    int iconBoxW = 24;
+    int iconX = bar_startWidth - iconBoxW - 25;
+    int iconY = presentY - iconSize / 2;
+
+    boolean mutedVisual = (ingamevolumelevel == 0 || Core.isMuted(index));
+    drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
+
+    backBufferGraphics.setColor(Color.WHITE);
+    backBufferGraphics.drawLine(bar_startWidth, presentY, bar_endWidth, presentY);
+
+    if (selectedSection == 1 && index == ingamevolumetype) {
+      backBufferGraphics.setColor(Color.green);
+    } else {
+      backBufferGraphics.setColor(Color.white);
+    }
+    backBufferGraphics.setFont(fontRegular);
+    drawCenteredRegularString(screen, title, presentY - 30);
+
+    //		change this line to get indicator center position
+    int size = 14;
+    double ratio = ingamevolumelevel / 100.0;
+    int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
+    int indicatorX = centerX - size / 2 - 3;
+    int indicatorY = presentY - size / 2;
+
+    int rawX = Core.getInputManager().getMouseX();
+    int rawY = Core.getInputManager().getMouseY();
+    Insets insets = frame.getInsets();
+    int mouseX = rawX - insets.left;
+    int mouseY = rawY - insets.top;
+
+    boolean hoverIndicator =
+        mouseX >= indicatorX
+            && mouseX <= indicatorX + size
+            && mouseY >= indicatorY
+            && mouseY <= indicatorY + size;
+
+    if (hoverIndicator || dragging) {
+      backBufferGraphics.setColor(Color.GREEN);
+    } else {
+      backBufferGraphics.setColor(Color.WHITE);
+    }
+
+    backBufferGraphics.fillRect(indicatorX, indicatorY, size, size);
+
+    backBufferGraphics.setColor(Color.WHITE);
+    String volumeText = Integer.toString(ingamevolumelevel);
+    backBufferGraphics.drawString(volumeText, bar_endWidth + 10, presentY + 7);
   }
 }
