@@ -62,6 +62,9 @@ public class GameScreen extends Screen {
   private int pauseSelectedSection = 1;
   private Cooldown pauseInputCooldown;
 
+  private boolean pauseDragging = false;
+  private int pauseDraggingIndex = -1;
+
   /** For Check Achievement 2015-10-02 add new */
   private AchievementManager achievementManager;
 
@@ -264,6 +267,8 @@ public class GameScreen extends Screen {
     for (int i = 0; i < numPauseSliders; i++) {
       pauseVolumeLevels[i] = Core.getIngameVolumeLevel(i);
     }
+
+    this.pauseDraggingIndex = -1;
   }
 
   /**
@@ -324,7 +329,7 @@ public class GameScreen extends Screen {
     }
 
     if (this.isPaused) {
-
+      //    keyboard function on in-game pause Volume bar
       if (pauseSelectedSection == 1
           && inputManager.isKeyDown(KeyEvent.VK_UP)
           && this.pauseInputCooldown.checkFinished()) {
@@ -380,6 +385,44 @@ public class GameScreen extends Screen {
         Core.setIngameMute(pauseVolumetype, newMuted);
         SoundManager.updateVolume();
         this.pauseInputCooldown.reset();
+      }
+      // mouse function on in-game pause Volume bar
+      int mx = inputManager.getMouseX();
+      int my = inputManager.getMouseY();
+      boolean pressed = inputManager.isMousePressed();
+      boolean clicked = inputManager.isMouseClicked();
+
+      if (pauseSelectedSection == 1 && clicked) {
+        for (int i = 0; i < numPauseSliders; i++) {
+          java.awt.Rectangle iconBox = drawManager.getPauseSpeakerHitbox(this, i);
+          if (iconBox.contains(mx, my)) {
+            pauseVolumetype = i;
+            boolean newMuted = !Core.isIngameMuted(i);
+            Core.setIngameMute(i, newMuted);
+            SoundManager.updateVolume();
+
+            break;
+          }
+        }
+      }
+
+      if (pauseSelectedSection == 1) {
+        if (pauseDraggingIndex == -1 && pressed) {
+          for (int i = 0; i < numPauseSliders; i++) {
+            java.awt.Rectangle box = drawManager.getpauseVolumeBarHitbox(this, i);
+            if (box.contains(mx, my)) {
+              pauseVolumetype = i;
+              pauseDraggingIndex = i;
+              setPauseVolumeFromX(box, mx, i);
+              break;
+            }
+          }
+        } else if (pauseDraggingIndex != -1 && pressed) {
+          java.awt.Rectangle box = drawManager.getpauseVolumeBarHitbox(this, pauseDraggingIndex);
+          setPauseVolumeFromX(box, mx, pauseDraggingIndex);
+        } else if (!pressed) {
+          pauseDraggingIndex = -1;
+        }
       }
     }
 
@@ -584,7 +627,7 @@ public class GameScreen extends Screen {
         drawManager.drawpauseVolumeBar(
             this,
             Core.getIngameVolumeLevel(i),
-            false,
+            pauseDragging,
             i,
             PAUSE_SLIDER_TITLES[i],
             pauseSelectedSection,
@@ -593,6 +636,17 @@ public class GameScreen extends Screen {
     }
 
     drawManager.completeDrawing(this);
+  }
+
+  private void setPauseVolumeFromX(java.awt.Rectangle barBox, int mouseX, int index) {
+    double ratio = (double) (mouseX - barBox.x) / (double) barBox.width;
+    ratio = Math.max(0.0, Math.min(1.0, ratio));
+    int val = (int) Math.round(ratio * 100.0);
+
+    pauseVolumeLevels[index] = val;
+    Core.setIngameVolumeLevel(index, val);
+    Core.setIngameMute(index, false);
+    SoundManager.updateVolume();
   }
 
   /** Cleans bullets that go off screen. */

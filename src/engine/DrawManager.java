@@ -771,9 +771,11 @@ public final class DrawManager {
     drawCenteredBigString(screen, pauseString, screen.getHeight() - 400);
 
     String returnMenu = "PRESS BACKSPACE TO RETURN TO TITLE";
+    String Mute = "press space to mute";
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.WHITE);
     drawCenteredRegularString(screen, returnMenu, screen.getHeight() - 50);
+    drawCenteredRegularString(screen, Mute, screen.getHeight() - 70);
   } // ADD This Screen
 
   /**
@@ -965,13 +967,15 @@ public final class DrawManager {
 
   public void drawSettingMenu(final Screen screen) {
     String settingsString = "Settings";
-    String instructionsString = "Press ESC to return";
+    String instructionsString = "Press ESC to return, Space to select";
+    String instructionsString2 = "Backspace to unselect";
 
     backBufferGraphics.setColor(Color.GREEN);
     drawCenteredBigString(screen, settingsString, screen.getHeight() / 8);
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.GRAY);
     drawCenteredRegularString(screen, instructionsString, screen.getHeight() / 6);
+    drawCenteredRegularString(screen, instructionsString2, screen.getHeight() / 4 - 18);
   }
 
   public void drawKeysettings(
@@ -1645,5 +1649,38 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.WHITE);
     String volumeText = Integer.toString(ingamevolumelevel);
     backBufferGraphics.drawString(volumeText, bar_endWidth + 10, presentY + 7);
+  }
+
+  public Rectangle getpauseVolumeBarHitbox(final Screen screen, int index) {
+    final int space = 100;
+    final int baseY = screen.getHeight() * 3 / 10 + 80;
+    final int presentY = baseY + (index * space);
+
+    int bar_startWidth = screen.getWidth() / 2 - 85;
+    int bar_endWidth = screen.getWidth() - 125;
+
+    int barThickness = 20;
+
+    int x = bar_startWidth;
+    int y = presentY - barThickness / 2;
+    int width = bar_endWidth - bar_startWidth;
+    int height = barThickness;
+
+    return new Rectangle(x, y, width, height);
+  }
+
+  public Rectangle getPauseSpeakerHitbox(final Screen screen, int index) {
+    final int space = 100;
+    final int baseY = screen.getHeight() * 3 / 10 + 80;
+    final int presentY = baseY + (index * space);
+
+    int bar_startWidth = screen.getWidth() / 2 - 85;
+
+    int iconSize = 16;
+    int iconBoxW = 24;
+    int iconX = bar_startWidth - iconBoxW - 15;
+    int iconY = presentY - iconSize / 2;
+
+    return new Rectangle(iconX, iconY, iconBoxW, iconSize);
   }
 }
