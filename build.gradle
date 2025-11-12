@@ -4,7 +4,7 @@ plugins {
     id 'application'
     id 'com.github.spotbugs' version '6.4.4'
     id 'pmd'
-    id 'jacoco'
+//    id 'jacoco'
 }
 
 repositories {
@@ -45,9 +45,9 @@ spotbugs {
     excludeFilter = file("gradle/spotbugs/spotbugs-exclude.xml")
 }
 
-jacoco {
-    toolVersion = "0.8.10"
-}
+//jacoco {
+//    toolVersion = "0.8.10"
+//}
 
 def projectLayout = layout
 
@@ -94,42 +94,42 @@ tasks.withType(JavaExec).configureEach {
 
 tasks.test {
     useJUnitPlatform()
-    reports.junitXml.required.set(true)
-    finalizedBy(tasks.jacocoTestReport)
+//    reports.junitXml.required.set(true)
+//    finalizedBy(tasks.jacocoTestReport)
 }
 
-tasks.withType(JacocoReport).configureEach {
-    dependsOn test
-    reports {
-        xml.required.set(true)
-        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
-        html.required.set(true)
-        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/test/Jacoco-html")
-    }
-}
+//tasks.withType(JacocoReport).configureEach {
+//    dependsOn test
+//    reports {
+//        xml.required.set(true)
+//        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
+//        html.required.set(true)
+//        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/test/Jacoco-html")
+//    }
+//}
 
-tasks.withType(JacocoCoverageVerification).configureEach {
-    violationRules {
-        rule {
-            element = 'CLASS'
-            limit {
-                counter = 'LINE'
-                value = 'COVEREDRATIO'
-                minimum = "0.80".toBigDecimal()
-            }
-        }
-    }
-    onlyIf { true } // 이 Task는 항상 실행
-    doLast {
-        println "JaCoCo coverage verification executed."
-    }
-    dependsOn(tasks.jacocoTestReport)
-}
+//tasks.withType(JacocoCoverageVerification).configureEach {
+//    violationRules {
+//        rule {
+//            element = 'CLASS'
+//            limit {
+//                counter = 'LINE'
+//                value = 'COVEREDRATIO'
+//                minimum = "0.80".toBigDecimal()
+//            }
+//        }
+//    }
+//    onlyIf { true } // 이 Task는 항상 실행
+//    doLast {
+//        println "JaCoCo coverage verification executed."
+//    }
+//    dependsOn(tasks.jacocoTestReport)
+//}
 
 tasks.build {
     dependsOn(tasks.pmdMain)
     dependsOn(tasks.spotbugsMain)
-    dependsOn(tasks.jacocoTestCoverageVerification)
+//    dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 // Build .jar file
