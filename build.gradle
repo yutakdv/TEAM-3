@@ -4,6 +4,7 @@ plugins {
     id 'application'
     id 'com.github.spotbugs' version '6.4.4'
     id 'pmd'
+    id 'jacoco'
 }
 
 repositories {
@@ -44,9 +45,14 @@ spotbugs {
     excludeFilter = file("gradle/spotbugs/spotbugs-exclude.xml")
 }
 
+jacoco {
+    toolVersion = "0.8.10"
+}
+
 def projectLayout = layout
 
 tasks.withType(SpotBugsTask).configureEach {
+    dependsOn(tasks.classes)
     reports {
         xml.required.set(true)
         html.required.set(true)
@@ -74,12 +80,56 @@ sourceSets {
     }
 }
 
+tasks.processResources {
+    from('res') {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        include '**/*'
+        into 'res'
+    }
+}
+
 tasks.withType(JavaExec).configureEach {
     systemProperty "file.encoding", "UTF-8"
 }
 
 tasks.test {
     useJUnitPlatform()
+    reports.junitXml.required.set(true)
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.withType(JacocoReport).configureEach {
+    dependsOn test
+    reports {
+        xml.required.set(true)
+        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
+        html.required.set(true)
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/test/Jacoco-html")
+    }
+}
+
+tasks.withType(JacocoCoverageVerification).configureEach {
+    violationRules {
+        rule {
+            element = 'CLASS'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+    onlyIf { true } // 이 Task는 항상 실행
+    doLast {
+        println "JaCoCo coverage verification executed."
+    }
+    dependsOn(tasks.jacocoTestReport)
+}
+
+tasks.build {
+    dependsOn(tasks.pmdMain)
+    dependsOn(tasks.spotbugsMain)
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 // Build .jar file
@@ -88,24 +138,5 @@ jar {
         attributes(
                 'Main-Class': 'engine.Core'
         )
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src'] // Java 코드 경로
-        }
-        resources {
-            srcDirs = ['res']
-        }
-    }
-}
-
-tasks.processResources {
-    from('res') {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        include '**/*'
-        into 'res'
     }
 }

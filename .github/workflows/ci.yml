@@ -9,6 +9,8 @@ on:
 permissions:
   actions: read
   contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   title-check:
@@ -63,24 +65,28 @@ jobs:
           java-version: '21'
 
       # Build + Unit Test 실행
-      - name: Build and Run Tests
-        run: ./gradlew clean build test --stacktrace --no-build-cache
+      - name: Build, Test, and Analyze (Coverage + Static Analysis)
+        run: ./gradlew clean build --stacktrace --no-build-cache
 
-      # PMD 실행 (불필요한 코드 체크)
-      - name: Run PMD Analysis (Build Gate)
-        run: ./gradlew pmdMain --stacktrace
+      - name: Publish Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: T Unit Test Results
+          path: '**/build/test-results/test/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: true
 
-      # PMD Report Upload
+      - name: JaCoCo Coverage Report
+        if: always()
+        run: ./gradlew jacocoTestReport
+
       - name: Upload PMD Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PMD-Report
           path: build/reports/pmd/pmd-report.html
-
-      # Spotbugs 실행 (품질 게이트)
-      - name: Run SpotBugs (Build Gate)
-        run: ./gradlew spotbugsMain --stacktrace --rerun-tasks
 
       - name: Upload SpotBugs Report
         if: always()
@@ -89,7 +95,13 @@ jobs:
           name: SpotBugs-Report
           path: build/reports/spotbugs/spotbugs-report.html
 
-      # Slack 알림 전송 (빌드 검사))
+      - name: Upload JaCoCo Report (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JaCoCo-Report-HTML
+          path: build/reports/jacoco/test/html
+
       - name: Send Slack Notification (Detailed)
         if: always()
         uses: 8398a7/action-slack@v3
@@ -106,7 +118,8 @@ jobs:
             Title: `${{ github.event.pull_request.title }}`
             Source Branch: `${{ github.event.pull_request.head.ref }}`
 
-            • Pmd Reports & SpotBugs Reports available in Artifacts.
+            • Test/Coverage Reports posted on PR comments.
+            • Full Reports (PMD, SpotBugs, JaCoCo) available in Artifacts.
             • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
