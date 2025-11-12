@@ -1601,7 +1601,7 @@ public final class DrawManager {
     int iconX = bar_startWidth - iconBoxW - 25;
     int iconY = presentY - iconSize / 2;
 
-    boolean mutedVisual = (ingamevolumelevel == 0 || Core.isMuted(index));
+    boolean mutedVisual = (ingamevolumelevel == 0 || Core.isIngameMuted(index));
     drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
 
     backBufferGraphics.setColor(Color.WHITE);

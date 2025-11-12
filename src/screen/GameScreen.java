@@ -54,6 +54,14 @@ public class GameScreen extends Screen {
   private static final int HIGH_SCORE_NOTICE_DURATION = 2000;
   private static boolean sessionHighScoreNotified = false;
 
+  private final String[] PAUSE_SLIDER_TITLES = {"Game BGM", "Game Effect"};
+  private final int numPauseSliders = PAUSE_SLIDER_TITLES.length;
+
+  private int[] pauseVolumeLevels = new int[numPauseSliders];
+  private int pauseVolumetype = 0;
+  private int pauseSelectedSection = 1;
+  private Cooldown pauseInputCooldown;
+
   /** For Check Achievement 2015-10-02 add new */
   private AchievementManager achievementManager;
 
@@ -247,6 +255,15 @@ public class GameScreen extends Screen {
     this.isPaused = false;
     this.pauseCooldown = Core.getCooldown(PAUSE_COOLDOWN);
     this.returnMenuCooldown = Core.getCooldown(RETURN_MENU_COOLDOWN);
+
+    this.pauseInputCooldown = Core.getCooldown(200);
+    this.pauseInputCooldown.reset();
+
+    this.pauseSelectedSection = 1;
+    this.pauseVolumetype = Core.getIngameVolumetype();
+    for (int i = 0; i < numPauseSliders; i++) {
+      pauseVolumeLevels[i] = Core.getIngameVolumeLevel(i);
+    }
   }
 
   /**
@@ -302,6 +319,66 @@ public class GameScreen extends Screen {
       SoundManager.stopAllMusic(); // Stop all music before returning to menu
       returnCode = 1;
       this.isRunning = false;
+    }
+
+    if (this.isPaused) {
+
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_UP)
+          && this.pauseInputCooldown.checkFinished()) {
+        if (pauseVolumetype > 0) {
+          pauseVolumetype--;
+          Core.setIngameVolumetype(pauseVolumetype);
+          SoundManager.playeffect("sound/hover.wav");
+          this.pauseInputCooldown.reset();
+        }
+      }
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_DOWN)
+          && this.pauseInputCooldown.checkFinished()) {
+        if (pauseVolumetype < numPauseSliders - 1) {
+          pauseVolumetype++;
+          Core.setIngameVolumetype(pauseVolumetype);
+          SoundManager.playeffect("sound/hover.wav");
+          this.pauseInputCooldown.reset();
+        }
+      }
+
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_LEFT)
+          && this.pauseInputCooldown.checkFinished()) {
+        int v = Core.getIngameVolumeLevel(pauseVolumetype);
+        if (v > 0) {
+          v--;
+          Core.setIngameVolumeLevel(pauseVolumetype, v);
+          Core.setIngameMute(pauseVolumetype, false);
+          pauseVolumeLevels[pauseVolumetype] = v;
+          SoundManager.updateVolume();
+          this.pauseInputCooldown.reset();
+        }
+      }
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_RIGHT)
+          && this.pauseInputCooldown.checkFinished()) {
+        int v = Core.getIngameVolumeLevel(pauseVolumetype);
+        if (v < 100) {
+          v++;
+          Core.setIngameVolumeLevel(pauseVolumetype, v);
+          Core.setIngameMute(pauseVolumetype, false);
+          pauseVolumeLevels[pauseVolumetype] = v;
+          SoundManager.updateVolume();
+          this.pauseInputCooldown.reset();
+        }
+      }
+
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_SPACE)
+          && this.pauseInputCooldown.checkFinished()) {
+        boolean newMuted = !Core.isIngameMuted(pauseVolumetype);
+        Core.setIngameMute(pauseVolumetype, newMuted);
+        SoundManager.updateVolume();
+        this.pauseInputCooldown.reset();
+      }
     }
 
     if (!this.isPaused) {
@@ -501,8 +578,6 @@ public class GameScreen extends Screen {
             : java.util.Collections.emptyList());
     if (this.isPaused) {
       drawManager.drawPauseOverlay(this);
-      String[] PAUSE_SLIDER_TITLES = {"Game BGM", "Game Effect"};
-      int numPauseSliders = PAUSE_SLIDER_TITLES.length;
       for (int i = 0; i < numPauseSliders; i++) {
         drawManager.drawpauseVolumeBar(
             this,
@@ -510,7 +585,7 @@ public class GameScreen extends Screen {
             false,
             i,
             PAUSE_SLIDER_TITLES[i],
-            1,
+            pauseSelectedSection,
             Core.getIngameVolumetype());
       }
     }
