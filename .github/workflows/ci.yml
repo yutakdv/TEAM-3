@@ -102,6 +102,7 @@ jobs:
 #          name: JaCoCo-Report-HTML
 #          path: build/reports/jacoco/test/html
 
+      # Slack 알림 전송 (빌드 검사))
       - name: Send Slack Notification (Detailed)
         if: always()
         uses: 8398a7/action-slack@v3
@@ -113,14 +114,12 @@ jobs:
             Status: `${{ job.status }}`
             Author: `${{ github.actor }}`
             Branch: `${{ github.ref_name }}`
-            
+
             *Pull Request Info*
             Title: `${{ github.event.pull_request.title }}`
             Source Branch: `${{ github.event.pull_request.head.ref }}`
 
-#            • Test/Coverage Reports posted on PR comments.
-#            • Full Reports (PMD, SpotBugs, JaCoCo) available in Artifacts.
-            • Full Reports (PMD, SpotBugs) available in Artifacts.
+            • Pmd Reports & SpotBugs Reports available in Artifacts.
             • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
