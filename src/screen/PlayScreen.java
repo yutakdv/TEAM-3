@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import engine.Cooldown;
 import engine.Core;
+import engine.SoundManager;
 
 /**
  *
@@ -16,6 +17,9 @@ public class PlayScreen extends Screen {
     public boolean isCoopSelected() { return coopSelected; }
     private int menuIndex = 0; // 0 = 1P, 1 = 2P, 2 = Back
 
+    private Integer prevHoverIndex = null;
+    private Integer hoverIndex = null;
+
 /**
  * Constructor, establishes the properties of the screen.
  *
@@ -26,6 +30,7 @@ public class PlayScreen extends Screen {
 
     public PlayScreen(final int width, final int height, final int fps) {
         super(width, height, fps);
+        SoundManager.playBGM("sound/menu_sound.wav");
         this.returnCode = 2; // default 1P
     }
 
@@ -40,15 +45,30 @@ public class PlayScreen extends Screen {
 
         if(inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
             this.returnCode = 1;
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
             return;
         }
 
+        int mx = inputManager.getMouseX();
+        int my = inputManager.getMouseY();
+        java.awt.Rectangle[] modeBoxesForKey = drawManager.getPlayMenuHitboxes(this);
+        java.awt.Rectangle backBoxForKey = drawManager.getBackButtonHitbox(this);
+        boolean mouseHovering = modeBoxesForKey[0].contains(mx, my)
+                || modeBoxesForKey[1].contains(mx, my)
+                || backBoxForKey.contains(mx, my);
+
         if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
-            this.menuIndex = (this.menuIndex + 2) % 3; // UP
+            this.menuIndex = (this.menuIndex + 2) % 3;
+            if(!mouseHovering && this.menuIndex != 2) {
+                SoundManager.playeffect("sound/hover.wav");// UP
+            }
         }
         if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
-            this.menuIndex = (this.menuIndex + 1) % 3; // DOWN
+            this.menuIndex = (this.menuIndex + 1) % 3;
+            if(!mouseHovering && this.menuIndex != 2) {
+                SoundManager.playeffect("sound/hover.wav");// DOWN
+            }
         }
 
         // back button click event & 1P, 2P button click event
@@ -68,12 +88,10 @@ public class PlayScreen extends Screen {
                     this.returnCode = 1; // go back to TitleScreen
                     break;
             }
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
         }
         if (inputManager.isMouseClicked()) {
-            int mx = inputManager.getMouseX();
-            int my = inputManager.getMouseY();
-
             java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
             java.awt.Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
             java.awt.Rectangle[] allBoxes = {
@@ -90,6 +108,7 @@ public class PlayScreen extends Screen {
                         this.coopSelected = (i == 1); // Mode Select
                         this.returnCode = 2;
                     }
+                    SoundManager.playeffect("sound/select.wav");
                     this.isRunning = false;
                     return;
                 }
@@ -113,11 +132,18 @@ public class PlayScreen extends Screen {
                 backBox       // Back
         };
 
+        prevHoverIndex = hoverIndex;
+        hoverIndex = null;
+
         for (int i = 0; i < allBoxes.length; i++) {
             if (allBoxes[i].contains(mx, my)) {
+                hoverIndex = i;
                 this.menuIndex = i;
                 break;
             }
+        }
+        if(hoverIndex != null && !hoverIndex.equals(prevHoverIndex) && hoverIndex != 2) {
+            SoundManager.playeffect("sound/hover.wav");
         }
 
         drawManager.drawPlayMenu(this, this.menuIndex==2 ? -1 : this.menuIndex, this.menuIndex);

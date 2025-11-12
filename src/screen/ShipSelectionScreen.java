@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import engine.Cooldown;
 import engine.Core;
+import engine.SoundManager;
 import entity.Entity;
 import entity.Ship;
 
@@ -12,6 +13,7 @@ public class ShipSelectionScreen extends Screen {
     private Ship[] shipExamples = new Ship[4];
 
     private Integer hovershipIndex = null;
+    private Integer prevHoverIndex = null;
 
     private int player;
     private boolean backSelected = false; // If current state is on the back button, can't select ship
@@ -19,6 +21,7 @@ public class ShipSelectionScreen extends Screen {
     public ShipSelectionScreen(final int width, final int height, final int fps, final int player) {
         super(width, height, fps);
         this.player = player;
+        SoundManager.playBGM("sound/menu_sound.wav");
 
         if (player == 1) {
             shipExamples[0] = new Ship(width / 2 - 100, height / 2, Entity.Team.PLAYER1, Ship.ShipType.NORMAL, null);
@@ -64,6 +67,7 @@ public class ShipSelectionScreen extends Screen {
         draw();
         if(inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)){
             this.returnCode = (player == 1) ? 5 : 6;
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
             return;
         }
@@ -75,6 +79,20 @@ public class ShipSelectionScreen extends Screen {
             backSelected = false;
 
         }
+
+        int mx = inputManager.getMouseX();
+        int my = inputManager.getMouseY();
+
+        java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+        java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
+
+        boolean mouseHovering = backBox.contains(mx, my);
+        if (!mouseHovering) {
+            for (java.awt.Rectangle r : shipBoxes) {
+                if (r.contains(mx, my)) { mouseHovering = true; break; }
+            }
+        }
+
         if (!backSelected) {
             if (inputManager.isKeyPressed(KeyEvent.VK_LEFT) || inputManager.isKeyPressed(KeyEvent.VK_A)) {
                 this.selectedShipIndex = this.selectedShipIndex - 1;
@@ -82,10 +100,16 @@ public class ShipSelectionScreen extends Screen {
                     this.selectedShipIndex += 4;
                 }
                 this.selectedShipIndex = this.selectedShipIndex % 4;
+                if(!mouseHovering) {
+                    SoundManager.playeffect("sound/hover.wav");
+                }
 
             }
             if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT) || inputManager.isKeyPressed(KeyEvent.VK_D)) {
                 this.selectedShipIndex = (this.selectedShipIndex + 1) % 4;
+                if(!mouseHovering) {
+                    SoundManager.playeffect("sound/hover.wav");
+                }
             }
         }
         if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
@@ -93,27 +117,31 @@ public class ShipSelectionScreen extends Screen {
                 case 1 -> this.returnCode = backSelected ? 5 : 6;
                 case 2 -> this.returnCode = backSelected ? 6 : 2;
             }
+            SoundManager.playeffect("sound/select.wav");
             this.isRunning = false;
         }
-        int mx = inputManager.getMouseX();
-        int my = inputManager.getMouseY();
+
         boolean clicked = inputManager.isMouseClicked();
 
-        java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-        java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
 
+        prevHoverIndex = hovershipIndex;
         hovershipIndex = null;
+
         for (int i = 0; i < shipBoxes.length; i++) {
             if (shipBoxes[i].contains(mx, my)) {
                 hovershipIndex = i;
-                this.selectedShipIndex = i;  // ←/→ 누른 것과 동일하게 선택 상태 변경
+                this.selectedShipIndex = i;
                 break;
             }
+        }
+        if(hovershipIndex != null && !hovershipIndex.equals(prevHoverIndex)){
+            SoundManager.playeffect("sound/hover.wav");
         }
 
         if(clicked){
             if(backBox.contains(mx, my)){
                 this.returnCode = (player == 1) ? 5 : 6;
+                SoundManager.playeffect("sound/select.wav");
                 this.isRunning = false;
                 return;
             }
@@ -122,6 +150,7 @@ public class ShipSelectionScreen extends Screen {
                     case 1 -> this.returnCode = 6;
                     case 2 -> this.returnCode = 2;
                 }
+                SoundManager.playeffect("sound/select.wav");
                 this.isRunning = false;
             }
         }

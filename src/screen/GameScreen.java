@@ -331,12 +331,13 @@ public class GameScreen extends Screen {
                 if (this.enemyShipSpecial == null && this.enemyShipSpecialCooldown.checkFinished()) {
                     this.enemyShipSpecial = new EnemyShip();
                     this.enemyShipSpecialCooldown.reset();
-                    SoundManager.playBGM("sound/special_ship_sound.wav");
+                    SoundManager.playeffect("sound/special_ship_sound.wav");
                     this.logger.info("A special ship appears");
                 }
                 if (this.enemyShipSpecial != null && this.enemyShipSpecial.getPositionX() > this.width) {
                     this.enemyShipSpecial = null;
                     SoundManager.stop();
+//                    SoundManager.playBackgroundMusic("sound/SpaceInvader-GameTheme.wav");
                     this.logger.info("The special ship has escaped");
                 }
 

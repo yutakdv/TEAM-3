@@ -15,13 +15,8 @@ import engine.SoundManager;
  */
 public class TitleScreen extends Screen {
 
-    // 2P mode: user picks mode, where false = 1P, true = 2P
-    private boolean coopSelected = false;
-    public boolean isCoopSelected() { return coopSelected; }
-
-
 	/** Time between changes in user selection. */
-	private Cooldown selectionCooldown;
+//	private Cooldown selectionCooldown;
 
     // menu index added for user mode selection
     private int menuIndex = 0;
@@ -69,16 +64,17 @@ public class TitleScreen extends Screen {
         super.update();
 
         draw();
-
-        if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
-            SoundManager.playeffect("sound/hover.wav");
-            previousMenuItem();
-            this.hoverOption = null;
-        }
-        if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
-            SoundManager.playeffect("sound/hover.wav");
-            nextMenuItem();
-            this.hoverOption = null;
+        if (this.hoverOption == null) {
+            if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
+                SoundManager.playeffect("sound/hover.wav");
+                previousMenuItem();
+                this.hoverOption = null;
+            }
+            if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
+                SoundManager.playeffect("sound/hover.wav");
+                nextMenuItem();
+                this.hoverOption = null;
+            }
         }
 
         // Play : Adjust the case so that 1p and 2p can be determined within the play.
@@ -122,6 +118,7 @@ public class TitleScreen extends Screen {
             for (int i = 0; i < boxes.length; i++) {
                 if (boxes[i].contains(temp_x, temp_y)) {
                     this.returnCode = pos[i];
+                    SoundManager.playeffect("sound/select.wav");
                     this.isRunning = false;
                     break;
                 }
@@ -184,7 +181,10 @@ public class TitleScreen extends Screen {
         // Modify : Update after hover calculation
         if (newHover != null) {
             // Hover Update + Promote to Select Index when mouse is raised (to keep mouse away)
-            if (!newHover.equals(this.hoverOption)) { this.hoverOption = newHover; }
+            if (!newHover.equals(this.hoverOption)) {
+                this.hoverOption = newHover;
+                SoundManager.playeffect("sound/hover.wav");
+            }
         } else {
             // If we had a hover and the mouse left, promote last hover to selection for persistance
             if (this.hoverOption != null) {
