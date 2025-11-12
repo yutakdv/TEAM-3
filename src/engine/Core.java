@@ -319,8 +319,9 @@ public final class Core {
     return new Cooldown(milliseconds, variance);
   }
 
-  private static int volumetype = 0;
   private static int[] volumearray = {50, 50, 50};
+    private static boolean[] Mute = {false, false, false};
+    private static int volumetype = 0;
 
   public static int getVolumeLevel(int w) {
     return volumearray[w];
@@ -334,8 +335,6 @@ public final class Core {
     volumearray[w] = Math.max(0, Math.min(100, v));
     volumetype = w;
   }
-
-  private static boolean[] Mute = {false, false, false};
 
   public static boolean isMuted(int index) {
     return Mute[index];
@@ -353,8 +352,13 @@ public final class Core {
     return ingameVolume[idx];
   }
 
+    public static int getIngameVolumetype() {
+        return ingameVolumetype;
+    }
+
   public static void setIngameVolumeLevel(int idx, int v) {
     ingameVolume[idx] = Math.max(0, Math.min(100, v));
+    ingameVolumetype = idx;
   }
 
   public static boolean isIngameMuted(int idx) {
@@ -363,10 +367,6 @@ public final class Core {
 
   public static void setIngameMute(int idx, boolean m) {
     ingameMute[idx] = m;
-  }
-
-  public static int getIngameVolumetype() {
-    return ingameVolumetype;
   }
 
   public static void setIngameVolumetype(int idx) {

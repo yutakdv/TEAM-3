@@ -69,6 +69,51 @@ public final class SoundManager {
     }
   }
 
+    public static void Ingameeffect(String resourcePath) {
+        AudioInputStream audioStream = null;
+        Clip clip = null;
+        try {
+            audioStream = openAudioStream(resourcePath);
+            if (audioStream == null) return;
+            audioStream = toPcmSigned(audioStream);
+            DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+            clip = (Clip) AudioSystem.getLine(info);
+            clip.open(audioStream);
+
+            // Set volume based on user settings
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                int saved = Core.getIngameVolumeLevel(1);
+                boolean muted = Core.isIngameMuted(1) || saved == 0;
+                if (muted) {
+                    clip.close();
+                    return;
+                }
+                float volumeDb = calculateVolumeDb(saved);
+                gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
+                clip.start();
+                logger.info("Started one-shot sound: " + resourcePath);
+            }
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            logger.info("Unable to play sound '" + resourcePath + "': " + e.getMessage());
+        } finally {
+            // We can't close 'in' immediately because AudioSystem may stream; rely on clip close
+            if (clip != null) {
+                final Clip c = clip;
+                c.addLineListener(
+                        event -> {
+                            LineEvent.Type type = event.getType();
+                            if (type == LineEvent.Type.STOP || type == LineEvent.Type.CLOSE) {
+                                try {
+                                    c.close();
+                                } catch (Exception ignored) {
+                                }
+                            }
+                        });
+            }
+        }
+    }
+
   /** Plays a WAV in a loop until {@link #stop()} is called. */
   public static void playBGM(String resourcePath) {
     stop();
@@ -137,7 +182,7 @@ public final class SoundManager {
   private static float musicVolumeDb = -10.0f; // Default music volume
 
   /** starts playing background music that loops during gameplay */
-  public static void playBackgroundMusic(String musicResourcePath) {
+  public static void IngameBGM(String musicResourcePath) {
     // stop any currently playing music (both loop and background music)
     stop();
     stopBackgroundMusic();
@@ -162,8 +207,8 @@ public final class SoundManager {
 
       // set music volume based on user settings
       if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = Core.getVolumeLevel(1);
-        boolean muted = Core.isMuted(1) || saved == 0;
+        int saved = Core.getIngameVolumeLevel(0);
+        boolean muted = Core.isIngameMuted(0) || saved == 0;
         FloatControl gain =
             (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
