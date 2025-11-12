@@ -320,8 +320,8 @@ public final class Core {
   }
 
   private static int[] volumearray = {50, 50, 50};
-    private static boolean[] Mute = {false, false, false};
-    private static int volumetype = 0;
+  private static boolean[] Mute = {false, false, false};
+  private static int volumetype = 0;
 
   public static int getVolumeLevel(int w) {
     return volumearray[w];
@@ -352,9 +352,9 @@ public final class Core {
     return ingameVolume[idx];
   }
 
-    public static int getIngameVolumetype() {
-        return ingameVolumetype;
-    }
+  public static int getIngameVolumetype() {
+    return ingameVolumetype;
+  }
 
   public static void setIngameVolumeLevel(int idx, int v) {
     ingameVolume[idx] = Math.max(0, Math.min(100, v));
