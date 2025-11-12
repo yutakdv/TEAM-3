@@ -260,7 +260,7 @@ public final class  SoundManager {
             FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
             gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
         }
-        
+
         // Update background music volume (game music)
         if (backgroundMusicClip != null && backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
             FloatControl gain = (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
@@ -271,7 +271,7 @@ public final class  SoundManager {
     /**
      * Calculates the volume in decibels based on the volume level (0-100).
      * Volume level 100 = 0dB (full volume), Volume level 0 = -80dB (silent)
-     * 
+     *
      * @param volumeLevel Volume level from 0 to 100
      * @return Volume in decibels
      */
@@ -282,7 +282,7 @@ public final class  SoundManager {
         if (volumeLevel >= 100) {
             return 0.0f; // Full volume
         }
-        
+
         // Convert percentage to decibels
         // Using logarithmic scale: dB = 20 * log10(volumeLevel/100)
         // But we'll use a simpler linear mapping for better user experience
@@ -290,5 +290,3 @@ public final class  SoundManager {
         return (float) (20.0 * Math.log10(ratio));
     }
 }
-
-

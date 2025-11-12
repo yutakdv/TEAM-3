@@ -4,7 +4,7 @@ plugins {
     id 'application'
     id 'com.github.spotbugs' version '6.4.4'
     id 'pmd'
-//    id 'jacoco'
+    id 'jacoco'
 }
 
 repositories {
@@ -14,6 +14,7 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.9.3'
 }
 
 application {
@@ -45,9 +46,9 @@ spotbugs {
     excludeFilter = file("gradle/spotbugs/spotbugs-exclude.xml")
 }
 
-//jacoco {
-//    toolVersion = "0.8.10"
-//}
+jacoco {
+    toolVersion = "0.8.10"
+}
 
 def projectLayout = layout
 
@@ -73,9 +74,15 @@ sourceSets {
     main {
         java {
             srcDirs = ['src'] // 기존 src 디렉터리 사용
+            exclude '**/test/**'
         }
         resources {
             srcDirs = ['res'] // 리소스 폴더 지정
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src/test']
         }
     }
 }
@@ -94,42 +101,42 @@ tasks.withType(JavaExec).configureEach {
 
 tasks.test {
     useJUnitPlatform()
-//    reports.junitXml.required.set(true)
-//    finalizedBy(tasks.jacocoTestReport)
+    reports.junitXml.required.set(true)
+    finalizedBy(tasks.jacocoTestReport)
 }
 
-//tasks.withType(JacocoReport).configureEach {
-//    dependsOn test
-//    reports {
-//        xml.required.set(true)
-//        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
-//        html.required.set(true)
-//        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/test/Jacoco-html")
-//    }
-//}
+tasks.withType(JacocoReport).configureEach {
+    dependsOn test
+    reports {
+        xml.required.set(true)
+        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
+        html.required.set(true)
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/test/coverage-report")
+    }
+}
 
-//tasks.withType(JacocoCoverageVerification).configureEach {
-//    violationRules {
-//        rule {
-//            element = 'CLASS'
-//            limit {
-//                counter = 'LINE'
-//                value = 'COVEREDRATIO'
-//                minimum = "0.80".toBigDecimal()
-//            }
-//        }
-//    }
-//    onlyIf { true } // 이 Task는 항상 실행
-//    doLast {
-//        println "JaCoCo coverage verification executed."
-//    }
-//    dependsOn(tasks.jacocoTestReport)
-//}
+tasks.withType(JacocoCoverageVerification).configureEach {
+    violationRules {
+        rule {
+            element = 'CLASS'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+    onlyIf { true } // 이 Task는 항상 실행
+    doLast {
+        println "JaCoCo coverage verification executed."
+    }
+    dependsOn(tasks.jacocoTestReport)
+}
 
 tasks.build {
     dependsOn(tasks.pmdMain)
     dependsOn(tasks.spotbugsMain)
-//    dependsOn(tasks.jacocoTestCoverageVerification)
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 // Build .jar file
