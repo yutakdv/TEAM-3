@@ -302,6 +302,8 @@ public class GameScreen extends Screen {
         && inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)
         && this.pauseCooldown.checkFinished()) {
       this.isPaused = !this.isPaused;
+      this.pauseVolumetype = 0;
+      Core.setIngameVolumetype(0);
       this.pauseCooldown.reset();
 
       if (this.isPaused) {
