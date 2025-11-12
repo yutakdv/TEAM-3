@@ -252,9 +252,7 @@ public final class SoundManager {
     float volumeDb = muted0 ? -80.0f : calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
 
     // Update looped sound volume (menu music)
-    if (Core.getVolumetype() == 1
-        && loopClip != null
-        && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+    if (loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
       FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
       gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
     }
@@ -276,17 +274,19 @@ public final class SoundManager {
    * @return Volume in decibels
    */
   private static float calculateVolumeDb(int volumeLevel) {
-    if (volumeLevel <= 0) {
+    boolean muted = Core.isMuted(0);
+
+    if (muted || volumeLevel <= 0) {
       return -80.0f; // Silent
     }
-    if (volumeLevel >= 100) {
+    if (Core.getVolumeLevel(0) >= 100 && volumeLevel >= 100) {
       return 0.0f; // Full volume
     }
 
     // Convert percentage to decibels
     // Using logarithmic scale: dB = 20 * log10(volumeLevel/100)
     // But we'll use a simpler linear mapping for better user experience
-    float ratio = volumeLevel / 100.0f;
+    float ratio = (((float) Core.getVolumeLevel(0) / 100) * volumeLevel) / 100.0f;
     return (float) (20.0 * Math.log10(ratio));
   }
 }
