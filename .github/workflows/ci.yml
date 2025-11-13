@@ -19,9 +19,9 @@ jobs:
       - uses: actions/checkout@v4
 
       # google-java-format JDK 21 대응 버전 직접 다운로드
-      - name: Download google-java-format 1.22 (JDK 21 compatible)
+      - name: Download google-java-format 1.23.0 (JDK 21 compatible)
         run: |
-          wget https://github.com/google/google-java-format/releases/download/v1.22/google-java-format-1.22-all-deps.jar -O gformat.jar
+          wget https://github.com/google/google-java-format/releases/download/v1.23.0/google-java-format-1.23.0-all-deps.jar -O gformat.jar
 
       # JDK 21로 실행해도 정상 동작함
       - name: Set up Java 21
