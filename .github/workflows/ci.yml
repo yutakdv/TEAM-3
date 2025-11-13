@@ -25,7 +25,7 @@ jobs:
           java-version: '17'
 
       - name: Run Google Java Format
-      - uses: axel-op/googlejavaformat-action@v3
+        uses: axel-op/googlejavaformat-action@v3
         with:
           args: "--replace"
           commit-message: "style: google-java-format"
