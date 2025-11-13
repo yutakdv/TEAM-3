@@ -147,6 +147,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # If stable release (v2.x.x or above), auto-merge development → main
+      - name: Auto merge development into main for stable releases
+        if: ${{ fromJson(steps.version.outputs.tag[1]) >= 2 }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Fetch latest branches
+          git fetch origin main
+          git fetch origin development
+
+          # Checkout main
+          git checkout main
+
+          # Merge development → main
+          git merge origin/development --no-ff -m "Auto-merge stable release ${{ steps.version.outputs.tag }}"
+
+          # Push to main
+          git push origin main
+
       # Slack 알림 (릴리스 완료 후에만)
       - name: Notify Slack of Release
         if: success()
