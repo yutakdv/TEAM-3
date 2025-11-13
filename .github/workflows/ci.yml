@@ -1,4 +1,4 @@
-name: Title Check + CI - Build & Test + Slack Notify
+name: CI - Title Check + Build & Test + Slack Notify
 
 on:
   pull_request:
@@ -9,8 +9,8 @@ on:
 permissions:
   actions: read
   contents: read
-#  checks: write
-#  pull-requests: write
+  checks: write
+  pull-requests: write
 
 jobs:
   title-check:
@@ -68,18 +68,18 @@ jobs:
       - name: Build, Test, and Analyze (Coverage + Static Analysis)
         run: ./gradlew clean build --stacktrace --no-build-cache
 
-#      - name: Publish Test Results
-#        if: always()
-#        uses: dorny/test-reporter@v1
-#        with:
-#          name: T Unit Test Results
-#          path: '**/build/test-results/test/TEST-*.xml'
-#          reporter: java-junit
-#          fail-on-error: true
+      - name: Publish Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: T Unit Test Results
+          path: '**/build/test-results/test/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: true
 
-#      - name: JaCoCo Coverage Report
-#        if: always()
-#        run: ./gradlew jacocoTestReport
+      - name: JaCoCo Coverage Report
+        if: always()
+        run: ./gradlew jacocoTestReport
 
       - name: Upload PMD Report
         if: always()
@@ -95,12 +95,12 @@ jobs:
           name: SpotBugs-Report
           path: build/reports/spotbugs/spotbugs-report.html
 
-#      - name: Upload JaCoCo Report (HTML)
-#        if: always()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: JaCoCo-Report-HTML
-#          path: build/reports/jacoco/test/html
+      - name: Upload JaCoCo Report (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JaCoCo-Report
+          path: build/reports/jacoco/test/coverage-report
 
       # Slack 알림 전송 (빌드 검사))
       - name: Send Slack Notification (Detailed)
@@ -113,13 +113,13 @@ jobs:
             *TEAM-3 CI Results*
             Status: `${{ job.status }}`
             Author: `${{ github.actor }}`
-            Branch: `${{ github.ref_name }}`
+            Branch: `${{ github.event.pull_request.base.ref }}`
 
             *Pull Request Info*
             Title: `${{ github.event.pull_request.title }}`
             Source Branch: `${{ github.event.pull_request.head.ref }}`
 
-            • Pmd Reports & SpotBugs Reports available in Artifacts.
+            • JaCoCo Reports& Pmd Reports & SpotBugs Reports available in Artifacts.
             • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
