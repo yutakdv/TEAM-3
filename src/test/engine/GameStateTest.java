@@ -9,7 +9,6 @@ public class GameStateTest {
 
   /** Dummy Cooldown to replace Core.getCooldown() */
   static class DummyCooldown extends Cooldown {
-    private boolean finished = false;
 
     public DummyCooldown() {
       super(1000);

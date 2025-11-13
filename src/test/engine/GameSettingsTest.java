@@ -6,6 +6,7 @@ import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -83,7 +84,7 @@ public class GameSettingsTest {
             "50,60,70,80\n"
             + "5,6,7,8,#00FF00\n";
 
-    InputStream in = new ByteArrayInputStream(fakeLevel.getBytes());
+    InputStream in = new ByteArrayInputStream(fakeLevel.getBytes(StandardCharsets.UTF_8));
     List<GameSettings.StageData> stages = GameSettings.parseStages(in);
 
     assertEquals(2, stages.size());
@@ -110,7 +111,7 @@ public class GameSettingsTest {
             + "1,2,3,4,#ABCDEF\n"
             + "&";
 
-    InputStream in = new ByteArrayInputStream(fake.getBytes());
+    InputStream in = new ByteArrayInputStream(fake.getBytes(StandardCharsets.UTF_8));
     List<GameSettings.StageData> stages = GameSettings.parseStages(in);
 
     assertEquals(1, stages.size());
@@ -123,7 +124,7 @@ public class GameSettingsTest {
   void testParseStages_multipleChangeData() throws Exception {
     String fake = "10,20,30,40\n" + "1,1,1,1,#111111\n" + "2,2,2,2,#222222\n" + "&";
 
-    InputStream in = new ByteArrayInputStream(fake.getBytes());
+    InputStream in = new ByteArrayInputStream(fake.getBytes(StandardCharsets.UTF_8));
     List<GameSettings.StageData> stages = GameSettings.parseStages(in);
 
     assertEquals(1, stages.size());
@@ -134,7 +135,7 @@ public class GameSettingsTest {
   @DisplayName("parseStages returns empty list when only comments exist")
   void testParseStages_onlyComments() throws Exception {
     String fake = "// comment\n// comment 2\n&";
-    InputStream in = new ByteArrayInputStream(fake.getBytes());
+    InputStream in = new ByteArrayInputStream(fake.getBytes(StandardCharsets.UTF_8));
 
     List<GameSettings.StageData> stages = GameSettings.parseStages(in);
     assertEquals(0, stages.size());
