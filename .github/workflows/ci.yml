@@ -1,8 +1,9 @@
-name: CI - Title Check + Build & Test + Slack Notify
+name: CI - PR Validation & Build Pipeline
 
 on:
   pull_request:
     branches:
+      - development
       - release/*
     types: [opened, edited, synchronize, reopened]
 
@@ -13,6 +14,9 @@ permissions:
   pull-requests: write
 
 jobs:
+  # -----------------------------------------------------
+  # 1) 공통 Title Check
+  # -----------------------------------------------------
   title-check:
     name: Validate PR Title
     runs-on: ubuntu-latest
@@ -31,95 +35,146 @@ jobs:
               Expected format:
                 :gitmoji: type: description
                 :gitmoji:type: description
-            
+
               Allowed types:
-                hotfix | fix | feature | feat | major | release
-            
-              Examples:
-                :sparkles: feat: add hover effect
-                :bug: fix: prevent null pointer exception
-                :ambulance: hotfix: resolve crash when paused
-                :rocket: release: v1.0.0 stable build
-                :boom: major: refactor game engine
-                :tada: feature: achievement system added`);
+                hotfix | fix | feature | feat | major | release`);
             }
 
-  build-test:
-    name: Build, Test, and Notify
+  # -----------------------------------------------------
+  # 2) FULL CI — feature → release/*
+  # -----------------------------------------------------
+  full-ci:
+    name: FULL CI (Build + Test + Coverage + PMD + SpotBugs)
     needs: title-check
-    if: success()
     runs-on: ubuntu-latest
 
-    steps:
-      # 코드 체크아웃
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+    if: |
+      startsWith(github.event.pull_request.head.ref, 'feature/') &&
+      startsWith(github.event.pull_request.base.ref, 'release/')
 
-      # JDK 환경 세팅
-      - name: Set up Java
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      # Build + Unit Test 실행
-      - name: Build, Test, and Analyze (Coverage + Static Analysis)
+      - name: Build & Test (FULL)
         run: ./gradlew clean build --stacktrace --no-build-cache
 
-      - name: Publish Test Results
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: T Unit Test Results
-          path: '**/build/test-results/test/TEST-*.xml'
-          reporter: java-junit
-          fail-on-error: true
-
-      - name: JaCoCo Coverage Report
-        if: always()
+      - name: Generate Coverage
         run: ./gradlew jacocoTestReport
 
       - name: Upload PMD Report
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PMD-Report
           path: build/reports/pmd/pmd-report.html
 
       - name: Upload SpotBugs Report
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: SpotBugs-Report
           path: build/reports/spotbugs/spotbugs-report.html
 
-      - name: Upload JaCoCo Report (HTML)
-        if: always()
+      - name: Upload JaCoCo HTML Report
         uses: actions/upload-artifact@v4
         with:
           name: JaCoCo-Report
-          path: build/reports/jacoco/test/coverage-report
+          path: build/reports/jacoco/test/
 
-      # Slack 알림 전송 (빌드 검사))
-      - name: Send Slack Notification (Detailed)
+      - name: Slack Notify (FULL)
         if: always()
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          fields: repo,commit,author,ref,workflow
+          fields: repo,commit,author,ref
           text: |
-            *TEAM-3 CI Results*
+            *TEAM-3 FULL CI Results*
             Status: `${{ job.status }}`
-            Author: `${{ github.actor }}`
-            Branch: `${{ github.event.pull_request.base.ref }}`
-
-            *Pull Request Info*
-            Title: `${{ github.event.pull_request.title }}`
             Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+            Title: `${{ github.event.pull_request.title }}`
+            Coverage, PMD, SpotBugs artifacts uploaded.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-            • JaCoCo Reports& Pmd Reports & SpotBugs Reports available in Artifacts.
-            • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  # -----------------------------------------------------
+  # 3) LIGHT CI — release/* → development
+  # -----------------------------------------------------
+  light-ci:
+    name: LIGHT CI (Build Only)
+    needs: title-check
+    runs-on: ubuntu-latest
+
+    if: |
+      startsWith(github.event.pull_request.head.ref, 'release/') &&
+      github.event.pull_request.base.ref == 'development'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build Only
+        run: ./gradlew clean assemble --stacktrace
+
+      - name: Slack Notify (Light)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,commit,author,ref
+          text: |
+            *TEAM-3 LIGHT CI Results*
+            Status: `${{ job.status }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+            Build-only pipeline completed.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -----------------------------------------------------
+  # 4) MEDIUM CI — hotfix → development
+  # -----------------------------------------------------
+  medium-ci:
+    name: MEDIUM CI (Build + Test)
+    needs: title-check
+    runs-on: ubuntu-latest
+
+    if: |
+      startsWith(github.event.pull_request.head.ref, 'hotfix/') &&
+      github.event.pull_request.base.ref == 'development'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build & Test (Medium Level)
+        run: ./gradlew clean test --stacktrace
+
+      - name: Slack Notify (Medium)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,commit,author,ref
+          text: |
+            *TEAM-3 MEDIUM CI Results*
+            Status: `${{ job.status }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+            Test-only pipeline completed.
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
