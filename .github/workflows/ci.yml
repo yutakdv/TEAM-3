@@ -49,7 +49,6 @@ jobs:
     runs-on: ubuntu-latest
 
     if: |
-      startsWith(github.event.pull_request.head.ref, 'feature/') &&
       startsWith(github.event.pull_request.base.ref, 'release/')
 
     steps:
@@ -64,22 +63,33 @@ jobs:
       - name: Build & Test (FULL)
         run: ./gradlew clean build --stacktrace --no-build-cache
 
-      - name: Generate Coverage
+      - name: Generate Jacoco
         run: ./gradlew jacocoTestReport
 
+      - name: Run PMD
+        run: ./gradlew pmdMain --stacktrace
+
+      - name: Run SpotBugs
+        id: spotbugs
+        continue-on-error: true
+        run: ./gradlew spotbugsMain
+
       - name: Upload PMD Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PMD-Report
           path: build/reports/pmd/pmd-report.html
 
       - name: Upload SpotBugs Report
+        if: steps.spotbugs.conclusion == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: SpotBugs-Report
           path: build/reports/spotbugs/spotbugs-report.html
 
       - name: Upload JaCoCo HTML Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: JaCoCo-Report
@@ -94,10 +104,14 @@ jobs:
           text: |
             *TEAM-3 FULL CI Results*
             Status: `${{ job.status }}`
-            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Author: `${{ github.actor }}`
             Target Branch: `${{ github.event.pull_request.base.ref }}`
+            
+            *Pull Request Info*
             Title: `${{ github.event.pull_request.title }}`
-            Coverage, PMD, SpotBugs artifacts uploaded.
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            • Coverage, PMD, SpotBugs artifacts uploaded.
+            • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
@@ -125,7 +139,7 @@ jobs:
       - name: Build Only
         run: ./gradlew clean assemble --stacktrace
 
-      - name: Slack Notify (Light)
+      - name: Slack Notify (LIGHT)
         if: always()
         uses: 8398a7/action-slack@v3
         with:
@@ -134,14 +148,20 @@ jobs:
           text: |
             *TEAM-3 LIGHT CI Results*
             Status: `${{ job.status }}`
-            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Author: `${{ github.actor }}`
             Target Branch: `${{ github.event.pull_request.base.ref }}`
-            Build-only pipeline completed.
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            This run only performed: `clean assemble`
+            (No PMD, No SpotBugs, No Jacoco)
+            👉 테스트 없이 “빌드만 성공하면 OK” 👈
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # -----------------------------------------------------
-  # 4) MEDIUM CI — hotfix → development
+  # 4) MEDIUM CI — hotfix/ or fix/ → development
   # -----------------------------------------------------
   medium-ci:
     name: MEDIUM CI (Build + Test)
@@ -149,8 +169,11 @@ jobs:
     runs-on: ubuntu-latest
 
     if: |
-      startsWith(github.event.pull_request.head.ref, 'hotfix/') &&
-      github.event.pull_request.base.ref == 'development'
+      github.event.pull_request.base.ref == 'development' &&
+      (
+        startsWith(github.event.pull_request.head.ref, 'hotfix/') ||
+        startsWith(github.event.pull_request.head.ref, 'fix/')
+      )
 
     steps:
       - uses: actions/checkout@v4
@@ -164,7 +187,7 @@ jobs:
       - name: Build & Test (Medium Level)
         run: ./gradlew clean test --stacktrace
 
-      - name: Slack Notify (Medium)
+      - name: Slack Notify (MEDIUM)
         if: always()
         uses: 8398a7/action-slack@v3
         with:
@@ -173,8 +196,63 @@ jobs:
           text: |
             *TEAM-3 MEDIUM CI Results*
             Status: `${{ job.status }}`
+            Author: `${{ github.actor }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            This run performed: `clean test`
+            (No PMD, No SpotBugs, No Jacoco)
+            👉 테스트 진행, PMD/SpotBugs는 필요 없음 👈
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -----------------------------------------------------
+  # 5) INVALID PR — FULL / LIGHT / MEDIUM 조건 불충족 시 강제 실패
+  # -----------------------------------------------------
+  invalid-pr:
+    name: INVALID PR (Reject Merge)
+    needs: [ title-check, full-ci, light-ci, medium-ci ]
+    runs-on: ubuntu-latest
+
+    if: |
+      always() &&
+      needs.full-ci.result == 'skipped' &&
+      needs.light-ci.result == 'skipped' &&
+      needs.medium-ci.result == 'skipped'
+
+    steps:
+      - run: |
+          echo "❌ Invalid PR routing."
+          echo "Allowed combinations:"
+          echo " • feature/* → release/* (FULL CI)"
+          echo " • release/* → development (LIGHT CI)"
+          echo " • hotfix/* or fix/* → development (MEDIUM CI)"
+          echo ""
+          echo "Your PR does not match \"feature/*\" allowed rule → merge blocked."
+          exit 1
+
+      - name: Slack Notify (INVALID)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          fields: repo,commit,author,ref
+          text: |
+            *❌ TEAM-3 INVALID PR Detected*
+            Your PR does not match any allowed routing rule.
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
             Source Branch: `${{ github.event.pull_request.head.ref }}`
             Target Branch: `${{ github.event.pull_request.base.ref }}`
-            Test-only pipeline completed.
+
+            Allowed:
+            • feature/* → release/* (FULL CI)
+            • release/* → development (LIGHT CI)
+            • hotfix/* or fix/* → development (MEDIUM CI)
+
+            👉 Merge blocked. Fix the branch routing and retry.
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
