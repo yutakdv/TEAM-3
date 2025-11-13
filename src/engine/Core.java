@@ -181,7 +181,7 @@ public final class Core {
           frame.addKeyListener(
               InputManager
                   .getInstance()); // Remove and re-register the input manager, forcing the key
-                                   // setting of the frame to be updated
+          // setting of the frame to be updated
           break;
 
         case 5:
@@ -345,4 +345,7 @@ public final class Core {
   public static void setMute(int index, boolean m) {
     Mute[index] = m;
   }
+
+  public void testing() {}
+  ;
 }
