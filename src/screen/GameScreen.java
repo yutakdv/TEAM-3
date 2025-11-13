@@ -397,6 +397,7 @@ public class GameScreen extends Screen {
           java.awt.Rectangle iconBox = drawManager.getPauseSpeakerHitbox(this, i);
           if (iconBox.contains(mx, my)) {
             pauseVolumetype = i;
+            Core.setIngameVolumetype(i);
             boolean newMuted = !Core.isIngameMuted(i);
             Core.setIngameMute(i, newMuted);
             SoundManager.updateVolume();
