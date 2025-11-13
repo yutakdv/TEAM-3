@@ -49,7 +49,6 @@ jobs:
     runs-on: ubuntu-latest
 
     if: |
-      startsWith(github.event.pull_request.head.ref, 'feature/') &&
       startsWith(github.event.pull_request.base.ref, 'release/')
 
     steps:
@@ -83,7 +82,7 @@ jobs:
           path: build/reports/pmd/pmd-report.html
 
       - name: Upload SpotBugs Report
-        if: failure() && steps.spotbugs.outcome == 'failure'
+        if: steps.spotbugs.conclusion == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: SpotBugs-Report
@@ -162,7 +161,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # -----------------------------------------------------
-  # 4) MEDIUM CI — hotfix → development
+  # 4) MEDIUM CI — hotfix/ or fix/ → development
   # -----------------------------------------------------
   medium-ci:
     name: MEDIUM CI (Build + Test)
@@ -170,8 +169,11 @@ jobs:
     runs-on: ubuntu-latest
 
     if: |
-      startsWith(github.event.pull_request.head.ref, 'hotfix/') &&
-      github.event.pull_request.base.ref == 'development'
+      github.event.pull_request.base.ref == 'development' &&
+      (
+        startsWith(github.event.pull_request.head.ref, 'hotfix/') ||
+        startsWith(github.event.pull_request.head.ref, 'fix/')
+      )
 
     steps:
       - uses: actions/checkout@v4
@@ -203,5 +205,54 @@ jobs:
             This run performed: `clean test`
             (No PMD, No SpotBugs, No Jacoco)
             👉 테스트 진행, PMD/SpotBugs는 필요 없음 👈
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -----------------------------------------------------
+  # 5) INVALID PR — FULL / LIGHT / MEDIUM 조건 불충족 시 강제 실패
+  # -----------------------------------------------------
+  invalid-pr:
+    name: INVALID PR (Reject Merge)
+    needs: [ title-check, full-ci, light-ci, medium-ci ]
+    runs-on: ubuntu-latest
+
+    if: |
+      always() &&
+      needs.full-ci.result == 'skipped' &&
+      needs.light-ci.result == 'skipped' &&
+      needs.medium-ci.result == 'skipped'
+
+    steps:
+      - run: |
+          echo "❌ Invalid PR routing."
+          echo "Allowed combinations:"
+          echo " • feature/* → release/* (FULL CI)"
+          echo " • release/* → development (LIGHT CI)"
+          echo " • hotfix/* or fix/* → development (MEDIUM CI)"
+          echo ""
+          echo "Your PR does not match \"feature/*\" allowed rule → merge blocked."
+          exit 1
+
+      - name: Slack Notify (INVALID)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          fields: repo,commit,author,ref
+          text: |
+            *❌ TEAM-3 INVALID PR Detected*
+            Your PR does not match any allowed routing rule.
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+
+            Allowed:
+            • feature/* → release/* (FULL CI)
+            • release/* → development (LIGHT CI)
+            • hotfix/* or fix/* → development (MEDIUM CI)
+
+            👉 Merge blocked. Fix the branch routing and retry.
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
