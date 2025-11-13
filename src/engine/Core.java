@@ -44,6 +44,7 @@ public final class Core {
    *
    * @param args Program args, ignored.
    */
+  @Generated
   public static void main(final String[] args) throws IOException {
     try {
       LOGGER.setUseParentHandlers(false);
