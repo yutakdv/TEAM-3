@@ -3,7 +3,7 @@ name: CI - Title Check + Build & Test + Slack Notify
 on:
   pull_request:
     branches:
-      - development
+      - release/*
     types: [opened, edited, synchronize, reopened]
 
 permissions:
