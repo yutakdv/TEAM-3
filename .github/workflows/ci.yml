@@ -18,17 +18,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java 17 for google-java-format
+      # google-java-format JDK 21 대응 버전 직접 다운로드
+      - name: Download google-java-format 1.22 (JDK 21 compatible)
+        run: |
+          wget https://github.com/google/google-java-format/releases/download/v1.22/google-java-format-1.22-all-deps.jar -O gformat.jar
+
+      # JDK 21로 실행해도 정상 동작함
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 21
 
+      # 실제 포매팅 실행
       - name: Run Google Java Format
-        uses: axel-op/googlejavaformat-action@v4
-        with:
-          args: "--replace"
-          commit-message: "style: google-java-format"
+        run: |
+          java -jar gformat.jar --replace $(git ls-files "*.java")
 
   title-check:
     name: Validate PR Title
