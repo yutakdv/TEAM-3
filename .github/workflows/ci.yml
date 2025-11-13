@@ -1,4 +1,4 @@
-name: Title Check + CI - Build & Test + Slack Notify
+name: CI - Google Java Format + Title Check + Build & Test + Slack Notify
 
 on:
   pull_request:
