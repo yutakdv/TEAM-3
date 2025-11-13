@@ -13,6 +13,15 @@ permissions:
   pull-requests: write
 
 jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: axel-op/googlejavaformat-action@v3
+        with:
+          args: "--replace"
+          commit-message: "style: google-java-format"
+
   title-check:
     name: Validate PR Title
     runs-on: ubuntu-latest
