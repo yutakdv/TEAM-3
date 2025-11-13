@@ -108,8 +108,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: JaCoCo-Report-HTML
-          path: build/reports/jacoco/test/html
+          name: JaCoCo-Report
+          path: build/reports/jacoco/test/coverage-report
 
       # Slack 알림 전송 (빌드 검사))
       - name: Send Slack Notification (Detailed)
@@ -122,7 +122,7 @@ jobs:
             *TEAM-3 CI Results*
             Status: `${{ job.status }}`
             Author: `${{ github.actor }}`
-            Branch: `${{ github.ref_name }}`
+            Branch: `${{ github.event.pull_request.base.ref }}`
 
             *Pull Request Info*
             Title: `${{ github.event.pull_request.title }}`
