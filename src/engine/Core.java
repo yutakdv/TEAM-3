@@ -345,4 +345,5 @@ public final class Core {
   public static void setMute(int index, boolean m) {
     Mute[index] = m;
   }
+        public void testing() {};
 }
