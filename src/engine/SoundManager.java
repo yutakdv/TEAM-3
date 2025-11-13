@@ -69,7 +69,7 @@ public final class SoundManager {
     }
   }
 
-  public static void Ingameeffect(String resourcePath) {
+  public static void ingameeffect(String resourcePath) {
     AudioInputStream audioStream = null;
     Clip clip = null;
     try {
@@ -182,7 +182,7 @@ public final class SoundManager {
   private static float musicVolumeDb = -10.0f; // Default music volume
 
   /** starts playing background music that loops during gameplay */
-  public static void IngameBGM(String musicResourcePath) {
+  public static void ingameBGM(String musicResourcePath) {
     // stop any currently playing music (both loop and background music)
     stop();
     stopBackgroundMusic();

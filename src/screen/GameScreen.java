@@ -209,7 +209,7 @@ public class GameScreen extends Screen {
     state.clearAllEffects();
 
     // Start background music for gameplay
-    SoundManager.IngameBGM("sound/SpaceInvader-GameTheme.wav");
+    SoundManager.ingameBGM("sound/SpaceInvader-GameTheme.wav");
 
     enemyShipFormation = new EnemyShipFormation(this.gameSettings);
     enemyShipFormation.attach(this);
@@ -297,7 +297,7 @@ public class GameScreen extends Screen {
     if (!this.inputDelay.checkFinished() && !countdownSoundPlayed) {
       long elapsed = System.currentTimeMillis() - this.gameStartTime;
       if (elapsed > 1750) {
-        SoundManager.Ingameeffect("sound/CountDownSound.wav");
+        SoundManager.ingameeffect("sound/CountDownSound.wav");
         countdownSoundPlayed = true;
       }
     }
@@ -316,13 +316,13 @@ public class GameScreen extends Screen {
         SoundManager.stopBackgroundMusic();
       } else {
         // Resume game music when unpausing
-        SoundManager.IngameBGM("sound/SpaceInvader-GameTheme.wav");
+        SoundManager.ingameBGM("sound/SpaceInvader-GameTheme.wav");
       }
     }
     if (this.isPaused
         && inputManager.isKeyDown(KeyEvent.VK_BACK_SPACE)
         && this.returnMenuCooldown.checkFinished()) {
-      SoundManager.Ingameeffect("sound/select.wav");
+      SoundManager.ingameeffect("sound/select.wav");
       SoundManager.stopAllMusic(); // Stop all music before returning to menu
       returnCode = 1;
       this.isRunning = false;
@@ -336,7 +336,7 @@ public class GameScreen extends Screen {
         if (pauseVolumetype > 0) {
           pauseVolumetype--;
           Core.setIngameVolumetype(pauseVolumetype);
-          SoundManager.Ingameeffect("sound/hover.wav");
+          SoundManager.ingameeffect("sound/hover.wav");
           this.pauseInputCooldown.reset();
         }
       }
@@ -346,7 +346,7 @@ public class GameScreen extends Screen {
         if (pauseVolumetype < numPauseSliders - 1) {
           pauseVolumetype++;
           Core.setIngameVolumetype(pauseVolumetype);
-          SoundManager.Ingameeffect("sound/hover.wav");
+          SoundManager.ingameeffect("sound/hover.wav");
           this.pauseInputCooldown.reset();
         }
       }
@@ -462,7 +462,7 @@ public class GameScreen extends Screen {
                   : inputManager.isKeyDown(KeyEvent.VK_ENTER);
 
           if (fire && ship.shoot(this.bullets)) {
-            SoundManager.Ingameeffect("sound/shoot.wav");
+            SoundManager.ingameeffect("sound/shoot.wav");
 
             state.incBulletsShot(p); // 2P mode: increments per-player bullet shots
           }
@@ -477,7 +477,7 @@ public class GameScreen extends Screen {
         if (this.enemyShipSpecial == null && this.enemyShipSpecialCooldown.checkFinished()) {
           this.enemyShipSpecial = new EnemyShip();
           this.enemyShipSpecialCooldown.reset();
-          SoundManager.Ingameeffect("sound/special_ship_sound.wav");
+          SoundManager.ingameeffect("sound/special_ship_sound.wav");
           this.logger.info("A special ship appears");
         }
         if (this.enemyShipSpecial != null && this.enemyShipSpecial.getPositionX() > this.width) {
@@ -496,7 +496,7 @@ public class GameScreen extends Screen {
         this.enemyShipFormation.shoot(this.bullets);
         if (this.bullets.size() > bulletsBefore) {
           // At least one enemy bullet added
-          SoundManager.Ingameeffect("sound/shoot_enemies.wav");
+          SoundManager.ingameeffect("sound/shoot_enemies.wav");
         }
       }
 
@@ -683,7 +683,7 @@ public class GameScreen extends Screen {
         if (checkCollision(item, ship) && !collected.contains(item)) {
           collected.add(item);
           this.logger.info("Player " + ship.getPlayerId() + " picked up item: " + item.getType());
-          SoundManager.Ingameeffect("sound/hover.wav");
+          SoundManager.ingameeffect("sound/hover.wav");
           item.applyEffect(getGameState(), ship.getPlayerId());
         }
       }
@@ -712,7 +712,7 @@ public class GameScreen extends Screen {
             ship.addHit();
 
             ship.destroy(); // explosion/respawn handled by Ship.update()
-            SoundManager.Ingameeffect("sound/explosion.wav");
+            SoundManager.ingameeffect("sound/explosion.wav");
             state.decLife(p); // decrement shared/team lives by 1
 
             // Record damage for Survivor achievement check
@@ -764,7 +764,7 @@ public class GameScreen extends Screen {
               }
 
               this.enemyShipFormation.destroy(enemyShip);
-              SoundManager.Ingameeffect("sound/invaderkilled.wav");
+              SoundManager.ingameeffect("sound/invaderkilled.wav");
               this.logger.info("Hit on enemy ship.");
 
               checkAchievement();
@@ -786,7 +786,7 @@ public class GameScreen extends Screen {
 
           this.enemyShipSpecial.destroy();
           SoundManager.stop();
-          SoundManager.Ingameeffect("sound/explosion.wav");
+          SoundManager.ingameeffect("sound/explosion.wav");
           drawManager.triggerExplosion(
               this.enemyShipSpecial.getPositionX(),
               this.enemyShipSpecial.getPositionY(),
