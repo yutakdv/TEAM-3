@@ -217,7 +217,6 @@ jobs:
     runs-on: ubuntu-latest
 
     if: |
-      always() &&
       needs.full-ci.result == 'skipped' &&
       needs.light-ci.result == 'skipped' &&
       needs.medium-ci.result == 'skipped'
