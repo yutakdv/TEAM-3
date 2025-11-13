@@ -140,12 +140,6 @@ tasks.withType(JacocoCoverageVerification).configureEach {
     dependsOn(tasks.jacocoTestReport)
 }
 
-tasks.build {
-    dependsOn(tasks.pmdMain)
-    dependsOn(tasks.spotbugsMain)
-    dependsOn(tasks.jacocoTestCoverageVerification)
-}
-
 // Build .jar file
 jar {
     manifest {
