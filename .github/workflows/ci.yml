@@ -64,22 +64,33 @@ jobs:
       - name: Build & Test (FULL)
         run: ./gradlew clean build --stacktrace --no-build-cache
 
-      - name: Generate Coverage
+      - name: Generate Jacoco
         run: ./gradlew jacocoTestReport
 
+      - name: Run PMD
+        run: ./gradlew pmdMain --stacktrace
+
+      - name: Run SpotBugs
+        id: spotbugs
+        continue-on-error: true
+        run: ./gradlew spotbugsMain
+
       - name: Upload PMD Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PMD-Report
           path: build/reports/pmd/pmd-report.html
 
       - name: Upload SpotBugs Report
+        if: failure() && steps.spotbugs.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: SpotBugs-Report
           path: build/reports/spotbugs/spotbugs-report.html
 
       - name: Upload JaCoCo HTML Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: JaCoCo-Report
@@ -94,10 +105,14 @@ jobs:
           text: |
             *TEAM-3 FULL CI Results*
             Status: `${{ job.status }}`
-            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Author: `${{ github.actor }}`
             Target Branch: `${{ github.event.pull_request.base.ref }}`
+            
+            *Pull Request Info*
             Title: `${{ github.event.pull_request.title }}`
-            Coverage, PMD, SpotBugs artifacts uploaded.
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            • Coverage, PMD, SpotBugs artifacts uploaded.
+            • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
@@ -125,7 +140,7 @@ jobs:
       - name: Build Only
         run: ./gradlew clean assemble --stacktrace
 
-      - name: Slack Notify (Light)
+      - name: Slack Notify (LIGHT)
         if: always()
         uses: 8398a7/action-slack@v3
         with:
@@ -134,9 +149,15 @@ jobs:
           text: |
             *TEAM-3 LIGHT CI Results*
             Status: `${{ job.status }}`
-            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Author: `${{ github.actor }}`
             Target Branch: `${{ github.event.pull_request.base.ref }}`
-            Build-only pipeline completed.
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            This run only performed: `clean assemble`
+            (No PMD, No SpotBugs, No Jacoco)
+            👉 테스트 없이 “빌드만 성공하면 OK” 👈
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
@@ -164,7 +185,7 @@ jobs:
       - name: Build & Test (Medium Level)
         run: ./gradlew clean test --stacktrace
 
-      - name: Slack Notify (Medium)
+      - name: Slack Notify (MEDIUM)
         if: always()
         uses: 8398a7/action-slack@v3
         with:
@@ -173,8 +194,14 @@ jobs:
           text: |
             *TEAM-3 MEDIUM CI Results*
             Status: `${{ job.status }}`
-            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Author: `${{ github.actor }}`
             Target Branch: `${{ github.event.pull_request.base.ref }}`
-            Test-only pipeline completed.
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            This run performed: `clean test`
+            (No PMD, No SpotBugs, No Jacoco)
+            👉 테스트 진행, PMD/SpotBugs는 필요 없음 👈
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
