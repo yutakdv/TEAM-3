@@ -16,7 +16,15 @@ jobs:
   formatting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17 for google-java-format
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run Google Java Format
       - uses: axel-op/googlejavaformat-action@v3
         with:
           args: "--replace"
