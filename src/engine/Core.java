@@ -181,7 +181,7 @@ public final class Core {
           frame.addKeyListener(
               InputManager
                   .getInstance()); // Remove and re-register the input manager, forcing the key
-                                   // setting of the frame to be updated
+          // setting of the frame to be updated
           break;
 
         case 5:
@@ -320,8 +320,9 @@ public final class Core {
     return new Cooldown(milliseconds, variance);
   }
 
+  private static int[] volumearray = {50, 50, 50};
+  private static boolean[] Mute = {false, false, false};
   private static int volumetype = 0;
-  private static int[] volumearray = {50, 50};
 
   public static int getVolumeLevel(int w) {
     return volumearray[w];
@@ -336,13 +337,40 @@ public final class Core {
     volumetype = w;
   }
 
-  private static boolean[] Mute = {false, false};
-
   public static boolean isMuted(int index) {
     return Mute[index];
   }
 
   public static void setMute(int index, boolean m) {
     Mute[index] = m;
+  }
+
+  private static int[] ingameVolume = {50, 50};
+  private static boolean[] ingameMute = {false, false};
+  private static int ingameVolumetype = 0;
+
+  public static int getIngameVolumeLevel(int idx) {
+    return ingameVolume[idx];
+  }
+
+  public static int getIngameVolumetype() {
+    return ingameVolumetype;
+  }
+
+  public static void setIngameVolumeLevel(int idx, int v) {
+    ingameVolume[idx] = Math.max(0, Math.min(100, v));
+    ingameVolumetype = idx;
+  }
+
+  public static boolean isIngameMuted(int idx) {
+    return ingameMute[idx];
+  }
+
+  public static void setIngameMute(int idx, boolean m) {
+    ingameMute[idx] = m;
+  }
+
+  public static void setIngameVolumetype(int idx) {
+    ingameVolumetype = idx;
   }
 }

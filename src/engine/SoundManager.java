@@ -38,8 +38,53 @@ public final class SoundManager {
       // Set volume based on user settings
       if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
         FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        int saved = Core.getVolumeLevel(1);
-        boolean muted = Core.isMuted(1) || saved == 0;
+        int saved = Core.getVolumeLevel(2);
+        boolean muted = Core.isMuted(2) || saved == 0;
+        if (muted) {
+          clip.close();
+          return;
+        }
+        float volumeDb = calculateVolumeDb(saved);
+        gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
+        clip.start();
+        logger.info("Started one-shot sound: " + resourcePath);
+      }
+    } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+      logger.info("Unable to play sound '" + resourcePath + "': " + e.getMessage());
+    } finally {
+      // We can't close 'in' immediately because AudioSystem may stream; rely on clip close
+      if (clip != null) {
+        final Clip c = clip;
+        c.addLineListener(
+            event -> {
+              LineEvent.Type type = event.getType();
+              if (type == LineEvent.Type.STOP || type == LineEvent.Type.CLOSE) {
+                try {
+                  c.close();
+                } catch (Exception ignored) {
+                }
+              }
+            });
+      }
+    }
+  }
+
+  public static void ingameeffect(String resourcePath) {
+    AudioInputStream audioStream = null;
+    Clip clip = null;
+    try {
+      audioStream = openAudioStream(resourcePath);
+      if (audioStream == null) return;
+      audioStream = toPcmSigned(audioStream);
+      DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+      clip = (Clip) AudioSystem.getLine(info);
+      clip.open(audioStream);
+
+      // Set volume based on user settings
+      if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+        FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+        int saved = Core.getIngameVolumeLevel(1);
+        boolean muted = Core.isIngameMuted(1) || saved == 0;
         if (muted) {
           clip.close();
           return;
@@ -86,8 +131,8 @@ public final class SoundManager {
 
       // Set volume based on user settings for loops
       if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = Core.getVolumeLevel(0);
-        boolean muted = Core.isMuted(0) || saved == 0;
+        int saved = Core.getVolumeLevel(1);
+        boolean muted = Core.isMuted(1) || saved == 0;
         FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
         float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
         gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
@@ -137,7 +182,7 @@ public final class SoundManager {
   private static float musicVolumeDb = -10.0f; // Default music volume
 
   /** starts playing background music that loops during gameplay */
-  public static void playBackgroundMusic(String musicResourcePath) {
+  public static void ingameBGM(String musicResourcePath) {
     // stop any currently playing music (both loop and background music)
     stop();
     stopBackgroundMusic();
@@ -162,8 +207,8 @@ public final class SoundManager {
 
       // set music volume based on user settings
       if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = Core.getVolumeLevel(0);
-        boolean muted = Core.isMuted(0) || saved == 0;
+        int saved = Core.getIngameVolumeLevel(0);
+        boolean muted = Core.isIngameMuted(0) || saved == 0;
         FloatControl gain =
             (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
@@ -247,14 +292,12 @@ public final class SoundManager {
    * changed.
    */
   public static void updateVolume() {
-    int vol0 = Core.getVolumeLevel(0);
-    boolean muted0 = Core.isMuted(0) || vol0 == 0;
+    int vol0 = Core.getVolumeLevel(1);
+    boolean muted0 = Core.isMuted(1) || vol0 == 0;
     float volumeDb = muted0 ? -80.0f : calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
 
     // Update looped sound volume (menu music)
-    if (Core.getVolumetype() == 0
-        && loopClip != null
-        && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+    if (loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
       FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
       gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
     }
@@ -276,17 +319,19 @@ public final class SoundManager {
    * @return Volume in decibels
    */
   private static float calculateVolumeDb(int volumeLevel) {
-    if (volumeLevel <= 0) {
+    boolean muted = Core.isMuted(0);
+
+    if (muted || volumeLevel <= 0) {
       return -80.0f; // Silent
     }
-    if (volumeLevel >= 100) {
+    if (Core.getVolumeLevel(0) >= 100 && volumeLevel >= 100) {
       return 0.0f; // Full volume
     }
 
     // Convert percentage to decibels
     // Using logarithmic scale: dB = 20 * log10(volumeLevel/100)
     // But we'll use a simpler linear mapping for better user experience
-    float ratio = volumeLevel / 100.0f;
+    float ratio = (((float) Core.getVolumeLevel(0) / 100) * volumeLevel) / 100.0f;
     return (float) (20.0 * Math.log10(ratio));
   }
 }

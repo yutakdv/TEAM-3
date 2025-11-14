@@ -54,6 +54,17 @@ public class GameScreen extends Screen {
   private static final int HIGH_SCORE_NOTICE_DURATION = 2000;
   private static boolean sessionHighScoreNotified = false;
 
+  private final String[] PAUSE_SLIDER_TITLES = {"Game BGM", "Game Effect"};
+  private final int numPauseSliders = PAUSE_SLIDER_TITLES.length;
+
+  private int[] pauseVolumeLevels = new int[numPauseSliders];
+  private int pauseVolumetype = 0;
+  private int pauseSelectedSection = 1;
+  private Cooldown pauseInputCooldown;
+
+  private boolean pauseDragging = false;
+  private int pauseDraggingIndex = -1;
+
   /** For Check Achievement 2015-10-02 add new */
   private AchievementManager achievementManager;
 
@@ -198,7 +209,7 @@ public class GameScreen extends Screen {
     state.clearAllEffects();
 
     // Start background music for gameplay
-    SoundManager.playBackgroundMusic("sound/SpaceInvader-GameTheme.wav");
+    SoundManager.ingameBGM("sound/SpaceInvader-GameTheme.wav");
 
     enemyShipFormation = new EnemyShipFormation(this.gameSettings);
     enemyShipFormation.attach(this);
@@ -247,6 +258,17 @@ public class GameScreen extends Screen {
     this.isPaused = false;
     this.pauseCooldown = Core.getCooldown(PAUSE_COOLDOWN);
     this.returnMenuCooldown = Core.getCooldown(RETURN_MENU_COOLDOWN);
+
+    this.pauseInputCooldown = Core.getCooldown(200);
+    this.pauseInputCooldown.reset();
+
+    this.pauseSelectedSection = 1;
+    this.pauseVolumetype = Core.getIngameVolumetype();
+    for (int i = 0; i < numPauseSliders; i++) {
+      pauseVolumeLevels[i] = Core.getIngameVolumeLevel(i);
+    }
+
+    this.pauseDraggingIndex = -1;
   }
 
   /**
@@ -275,7 +297,7 @@ public class GameScreen extends Screen {
     if (!this.inputDelay.checkFinished() && !countdownSoundPlayed) {
       long elapsed = System.currentTimeMillis() - this.gameStartTime;
       if (elapsed > 1750) {
-        SoundManager.playeffect("sound/CountDownSound.wav");
+        SoundManager.ingameeffect("sound/CountDownSound.wav");
         countdownSoundPlayed = true;
       }
     }
@@ -285,6 +307,8 @@ public class GameScreen extends Screen {
         && inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)
         && this.pauseCooldown.checkFinished()) {
       this.isPaused = !this.isPaused;
+      this.pauseVolumetype = 0;
+      Core.setIngameVolumetype(0);
       this.pauseCooldown.reset();
 
       if (this.isPaused) {
@@ -292,16 +316,115 @@ public class GameScreen extends Screen {
         SoundManager.stopBackgroundMusic();
       } else {
         // Resume game music when unpausing
-        SoundManager.playBackgroundMusic("sound/SpaceInvader-GameTheme.wav");
+        SoundManager.ingameBGM("sound/SpaceInvader-GameTheme.wav");
       }
     }
     if (this.isPaused
         && inputManager.isKeyDown(KeyEvent.VK_BACK_SPACE)
         && this.returnMenuCooldown.checkFinished()) {
-      SoundManager.playeffect("sound/select.wav");
+      SoundManager.ingameeffect("sound/select.wav");
       SoundManager.stopAllMusic(); // Stop all music before returning to menu
       returnCode = 1;
       this.isRunning = false;
+    }
+
+    if (this.isPaused) {
+      //    keyboard function on in-game pause Volume bar
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_UP)
+          && this.pauseInputCooldown.checkFinished()) {
+        if (pauseVolumetype > 0) {
+          pauseVolumetype--;
+          Core.setIngameVolumetype(pauseVolumetype);
+          SoundManager.ingameeffect("sound/hover.wav");
+          this.pauseInputCooldown.reset();
+        }
+      }
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_DOWN)
+          && this.pauseInputCooldown.checkFinished()) {
+        if (pauseVolumetype < numPauseSliders - 1) {
+          pauseVolumetype++;
+          Core.setIngameVolumetype(pauseVolumetype);
+          SoundManager.ingameeffect("sound/hover.wav");
+          this.pauseInputCooldown.reset();
+        }
+      }
+
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_LEFT)
+          && this.pauseInputCooldown.checkFinished()) {
+        int v = Core.getIngameVolumeLevel(pauseVolumetype);
+        if (v > 0) {
+          v--;
+          Core.setIngameVolumeLevel(pauseVolumetype, v);
+          Core.setIngameMute(pauseVolumetype, false);
+          pauseVolumeLevels[pauseVolumetype] = v;
+          SoundManager.updateVolume();
+          this.pauseInputCooldown.reset();
+        }
+      }
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_RIGHT)
+          && this.pauseInputCooldown.checkFinished()) {
+        int v = Core.getIngameVolumeLevel(pauseVolumetype);
+        if (v < 100) {
+          v++;
+          Core.setIngameVolumeLevel(pauseVolumetype, v);
+          Core.setIngameMute(pauseVolumetype, false);
+          pauseVolumeLevels[pauseVolumetype] = v;
+          SoundManager.updateVolume();
+          this.pauseInputCooldown.reset();
+        }
+      }
+
+      if (pauseSelectedSection == 1
+          && inputManager.isKeyDown(KeyEvent.VK_SPACE)
+          && this.pauseInputCooldown.checkFinished()) {
+        boolean newMuted = !Core.isIngameMuted(pauseVolumetype);
+        Core.setIngameMute(pauseVolumetype, newMuted);
+        SoundManager.updateVolume();
+        this.pauseInputCooldown.reset();
+      }
+      // mouse function on in-game pause Volume bar
+      int mx = inputManager.getMouseX();
+      int my = inputManager.getMouseY();
+      boolean pressed = inputManager.isMousePressed();
+      boolean clicked = inputManager.isMouseClicked();
+
+      if (pauseSelectedSection == 1 && clicked) {
+        for (int i = 0; i < numPauseSliders; i++) {
+          java.awt.Rectangle iconBox = drawManager.getPauseSpeakerHitbox(this, i);
+          if (iconBox.contains(mx, my)) {
+            pauseVolumetype = i;
+            Core.setIngameVolumetype(i);
+            boolean newMuted = !Core.isIngameMuted(i);
+            Core.setIngameMute(i, newMuted);
+            SoundManager.updateVolume();
+
+            break;
+          }
+        }
+      }
+
+      if (pauseSelectedSection == 1) {
+        if (pauseDraggingIndex == -1 && pressed) {
+          for (int i = 0; i < numPauseSliders; i++) {
+            java.awt.Rectangle box = drawManager.getpauseVolumeBarHitbox(this, i);
+            if (box.contains(mx, my)) {
+              pauseVolumetype = i;
+              pauseDraggingIndex = i;
+              setPauseVolumeFromX(box, mx, i);
+              break;
+            }
+          }
+        } else if (pauseDraggingIndex != -1 && pressed) {
+          java.awt.Rectangle box = drawManager.getpauseVolumeBarHitbox(this, pauseDraggingIndex);
+          setPauseVolumeFromX(box, mx, pauseDraggingIndex);
+        } else if (!pressed) {
+          pauseDraggingIndex = -1;
+        }
+      }
     }
 
     if (!this.isPaused) {
@@ -339,7 +462,7 @@ public class GameScreen extends Screen {
                   : inputManager.isKeyDown(KeyEvent.VK_ENTER);
 
           if (fire && ship.shoot(this.bullets)) {
-            SoundManager.playeffect("sound/shoot.wav");
+            SoundManager.ingameeffect("sound/shoot.wav");
 
             state.incBulletsShot(p); // 2P mode: increments per-player bullet shots
           }
@@ -354,7 +477,7 @@ public class GameScreen extends Screen {
         if (this.enemyShipSpecial == null && this.enemyShipSpecialCooldown.checkFinished()) {
           this.enemyShipSpecial = new EnemyShip();
           this.enemyShipSpecialCooldown.reset();
-          SoundManager.playeffect("sound/special_ship_sound.wav");
+          SoundManager.ingameeffect("sound/special_ship_sound.wav");
           this.logger.info("A special ship appears");
         }
         if (this.enemyShipSpecial != null && this.enemyShipSpecial.getPositionX() > this.width) {
@@ -373,7 +496,7 @@ public class GameScreen extends Screen {
         this.enemyShipFormation.shoot(this.bullets);
         if (this.bullets.size() > bulletsBefore) {
           // At least one enemy bullet added
-          SoundManager.playeffect("sound/shoot_enemies.wav");
+          SoundManager.ingameeffect("sound/shoot_enemies.wav");
         }
       }
 
@@ -501,9 +624,30 @@ public class GameScreen extends Screen {
             : java.util.Collections.emptyList());
     if (this.isPaused) {
       drawManager.drawPauseOverlay(this);
+      for (int i = 0; i < numPauseSliders; i++) {
+        drawManager.drawpauseVolumeBar(
+            this,
+            Core.getIngameVolumeLevel(i),
+            pauseDragging,
+            i,
+            PAUSE_SLIDER_TITLES[i],
+            pauseSelectedSection,
+            Core.getIngameVolumetype());
+      }
     }
 
     drawManager.completeDrawing(this);
+  }
+
+  private void setPauseVolumeFromX(java.awt.Rectangle barBox, int mouseX, int index) {
+    double ratio = (double) (mouseX - barBox.x) / (double) barBox.width;
+    ratio = Math.max(0.0, Math.min(1.0, ratio));
+    int val = (int) Math.round(ratio * 100.0);
+
+    pauseVolumeLevels[index] = val;
+    Core.setIngameVolumeLevel(index, val);
+    Core.setIngameMute(index, false);
+    SoundManager.updateVolume();
   }
 
   /** Cleans bullets that go off screen. */
@@ -539,7 +683,7 @@ public class GameScreen extends Screen {
         if (checkCollision(item, ship) && !collected.contains(item)) {
           collected.add(item);
           this.logger.info("Player " + ship.getPlayerId() + " picked up item: " + item.getType());
-          SoundManager.playeffect("sound/hover.wav");
+          SoundManager.ingameeffect("sound/hover.wav");
           item.applyEffect(getGameState(), ship.getPlayerId());
         }
       }
@@ -568,7 +712,7 @@ public class GameScreen extends Screen {
             ship.addHit();
 
             ship.destroy(); // explosion/respawn handled by Ship.update()
-            SoundManager.playeffect("sound/explosion.wav");
+            SoundManager.ingameeffect("sound/explosion.wav");
             state.decLife(p); // decrement shared/team lives by 1
 
             // Record damage for Survivor achievement check
@@ -620,7 +764,7 @@ public class GameScreen extends Screen {
               }
 
               this.enemyShipFormation.destroy(enemyShip);
-              SoundManager.playeffect("sound/invaderkilled.wav");
+              SoundManager.ingameeffect("sound/invaderkilled.wav");
               this.logger.info("Hit on enemy ship.");
 
               checkAchievement();
@@ -642,7 +786,7 @@ public class GameScreen extends Screen {
 
           this.enemyShipSpecial.destroy();
           SoundManager.stop();
-          SoundManager.playeffect("sound/explosion.wav");
+          SoundManager.ingameeffect("sound/explosion.wav");
           drawManager.triggerExplosion(
               this.enemyShipSpecial.getPositionX(),
               this.enemyShipSpecial.getPositionY(),
