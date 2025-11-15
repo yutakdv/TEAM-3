@@ -137,7 +137,7 @@ public final class Core {
               gameState.nextLevel();
             }
 
-          } while (gameState.teamAlive() && gameState.getLevel() <= gameSettings.size());
+          } while (gameState.teamAlive());
           if (returnCode == 1) {
             break;
           }
@@ -181,7 +181,7 @@ public final class Core {
           frame.addKeyListener(
               InputManager
                   .getInstance()); // Remove and re-register the input manager, forcing the key
-                                   // setting of the frame to be updated
+          // setting of the frame to be updated
           break;
 
         case 5:
