@@ -137,7 +137,7 @@ public final class Core {
               gameState.nextLevel();
             }
 
-          } while (gameState.teamAlive() && gameState.getLevel() <= gameSettings.size());
+          } while (gameState.teamAlive());
           if (returnCode == 1) {
             break;
           }

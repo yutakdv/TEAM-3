@@ -64,7 +64,7 @@ public class GameSettingsTest {
     assertEquals(11, gs.getFormationWidth());
     assertEquals(22, gs.getFormationHeight());
     assertEquals(33, gs.getBaseSpeed());
-    assertEquals(44, gs.getShootingFrecuency());
+    assertEquals(44, gs.getShootingFrequency());
     assertNotNull(gs.getChangeDataList());
   }
 

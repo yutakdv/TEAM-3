@@ -146,8 +146,8 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
     this.movementInterval = 0;
     this.nShipsWide = gameSettings.getFormationWidth();
     this.nShipsHigh = gameSettings.getFormationHeight();
-    this.shootingInterval = gameSettings.getShootingFrecuency();
-    this.shootingVariance = (int) (gameSettings.getShootingFrecuency() * SHOOTING_VARIANCE);
+    this.shootingInterval = gameSettings.getShootingFrequency();
+    this.shootingVariance = (int) (gameSettings.getShootingFrequency() * SHOOTING_VARIANCE);
     this.baseSpeed = gameSettings.getBaseSpeed();
     this.movementSpeed = this.baseSpeed;
     this.positionX = INIT_POS_X;

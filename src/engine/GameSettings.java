@@ -31,7 +31,7 @@ public class GameSettings {
   private int baseSpeed;
 
   /** Frequency of enemy shootings, +/- 30%. */
-  private int shootingFrecuency;
+  private int shootingFrequency;
 
   // 추가 사항
   public static class ChangeData {
@@ -183,7 +183,33 @@ public class GameSettings {
       System.exit(1);
       return Collections.emptyList();
     }
-
+    GameSettings base = result.get(GameState.FINITE_LEVEL - 1);
+    final int BASE_SPEED = base.getBaseSpeed();
+    final int BASE_SHOOTING_FREQUENCY = base.getShootingFrequency();
+    final int INCREASE_AMOUNT_SHOOTING_FREQUENCY = 30;
+    final int INCREASE_AMOUNT_SPEED = 3;
+    final int MAX_INCREASE = 100;
+    for (int level = GameState.FINITE_LEVEL + 1; level < MAX_INCREASE; level++) {
+      int increase_shooting_frequency =
+          (level - GameState.FINITE_LEVEL) * INCREASE_AMOUNT_SHOOTING_FREQUENCY;
+      int increase_speed = (level - GameState.FINITE_LEVEL) * INCREASE_AMOUNT_SPEED;
+      int new_shooting_frequency = BASE_SHOOTING_FREQUENCY - increase_shooting_frequency;
+      int new_speed = BASE_SPEED - increase_speed;
+      if (new_speed <= 0) {
+        new_speed = 1;
+      }
+      if (new_shooting_frequency <= 0) {
+        new_shooting_frequency = 1;
+      }
+      GameSettings infinity_setting =
+          new GameSettings(
+              base.getFormationWidth(),
+              base.getFormationHeight(),
+              new_speed,
+              new_shooting_frequency);
+      infinity_setting.changeDataList.addAll(base.getChangeDataList());
+      result.add(infinity_setting);
+    }
     return result;
   }
 
@@ -193,17 +219,17 @@ public class GameSettings {
    * @param formationWidth Width of the level's enemy formation.
    * @param formationHeight Height of the level's enemy formation.
    * @param baseSpeed Speed of the enemies.
-   * @param shootingFrecuency Frecuency of enemy shootings, +/- 30%.
+   * @param shootingFrequency Frequency of enemy shootings, +/- 30%.
    */
   public GameSettings(
       final int formationWidth,
       final int formationHeight,
       final int baseSpeed,
-      final int shootingFrecuency) {
+      final int shootingFrequency) {
     this.formationWidth = formationWidth;
     this.formationHeight = formationHeight;
     this.baseSpeed = baseSpeed;
-    this.shootingFrecuency = shootingFrecuency;
+    this.shootingFrequency = shootingFrequency;
     this.changeDataList = new ArrayList<>();
   }
 
@@ -229,9 +255,9 @@ public class GameSettings {
   }
 
   /**
-   * @return the shootingFrecuency
+   * @return the shootingFrequency
    */
-  public final int getShootingFrecuency() {
-    return shootingFrecuency;
+  public final int getShootingFrequency() {
+    return shootingFrequency;
   }
 }
