@@ -576,7 +576,13 @@ public final class DrawManager {
 
   public void drawLevel(final Screen screen, final int level) {
     backBufferGraphics.setColor(Color.WHITE);
-    String levelString = "Level " + level;
+    String levelString;
+    if (level > GameState.FINITE_LEVEL) {
+      int infinity_level = level - GameState.FINITE_LEVEL;
+      levelString = "Infinity Stage " + infinity_level;
+    } else {
+      levelString = "Stage " + level;
+    }
     backBufferGraphics.drawString(levelString, screen.getWidth() - 250, 25);
   }
 
@@ -1071,15 +1077,29 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.BLACK);
     backBufferGraphics.fillRect(0, screen.getHeight() / 2 - rectHeight / 2, rectWidth, rectHeight);
     backBufferGraphics.setColor(Color.GREEN);
+    String levelString;
+    if (level > GameState.FINITE_LEVEL) {
+      int infinity_level = level - GameState.FINITE_LEVEL;
+      levelString = "Infinity Stage " + infinity_level;
+    } else {
+      levelString = "Stage " + level;
+    }
     if (number >= 4)
       if (!bonusLife) {
         drawCenteredBigString(
-            screen, "Level " + level, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+            screen, levelString, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
       } else {
-        drawCenteredBigString(
-            screen,
-            "Level " + level + " - Bonus life!",
-            screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+        if (level > GameState.FINITE_LEVEL) {
+          drawCenteredRegularString(
+              screen,
+              levelString + " - Bonus life!",
+              screen.getHeight() / 2 + fontRegularMetrics.getHeight() / 3);
+        } else {
+          drawCenteredBigString(
+              screen,
+              levelString + " - Bonus life!",
+              screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+        }
       }
     else if (number != 0)
       drawCenteredBigString(

@@ -135,9 +135,11 @@ public final class Core {
 
             if (gameState.teamAlive()) {
               gameState.nextLevel();
+              if (gameState.getLevel() >= GameState.INFINITE_LEVEL) {
+                break;
+              }
             }
-
-          } while (gameState.teamAlive() && gameState.getLevel() <= gameSettings.size());
+          } while (gameState.teamAlive());
           if (returnCode == 1) {
             break;
           }
