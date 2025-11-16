@@ -149,7 +149,7 @@ jobs:
 
       # If stable release (v2.x.x or above), auto-merge development → main
       - name: Auto merge development into main for stable releases
-        if: ${{ fromJson(steps.version.outputs.tag[1]) >= 2 }}
+        if: ${{ startsWith(steps.version.outputs.tag, 'v2.') }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

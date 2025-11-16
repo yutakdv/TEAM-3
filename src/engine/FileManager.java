@@ -2,17 +2,7 @@ package engine;
 
 import java.awt.Font;
 import java.awt.FontFormatException;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +28,9 @@ public final class FileManager {
   private FileManager() {
     logger = Core.getLogger();
   }
+
+  // Test only override directory
+  private static String testDirectory = null;
 
   /**
    * Returns shared instance of FileManager.
@@ -111,23 +104,24 @@ public final class FileManager {
    * @throws IOException In case of loading problems
    */
   /* yutak - getFilepath can do both local file path and .jar file path*/
-  private static InputStream getFileStream(String fileName) throws IOException {
-    InputStream inputStream =
-        FileManager.class.getClassLoader().getResourceAsStream("res/" + fileName);
-
-    if (inputStream != null) {
-      return inputStream;
-    }
-
-    File localFile =
-        new File(
-            System.getProperty("user.dir") + File.separator + "res" + File.separator + fileName);
-    if (localFile.exists()) {
-      return new FileInputStream(localFile);
-    }
-
-    throw new FileNotFoundException("Resource not found: res/" + fileName);
-  }
+  //  private static InputStream getFileStream(String fileName) throws IOException {
+  //    InputStream inputStream =
+  //        FileManager.class.getClassLoader().getResourceAsStream("res/" + fileName);
+  //
+  //    if (inputStream != null) {
+  //      return inputStream;
+  //    }
+  //
+  //    File localFile =
+  //        new File(
+  //            System.getProperty("user.dir") + File.separator + "res" + File.separator +
+  // fileName);
+  //    if (localFile.exists()) {
+  //      return new FileInputStream(localFile);
+  //    }
+  //
+  //    throw new FileNotFoundException("Resource not found: res/" + fileName);
+  //  }
 
   /**
    * Returns the application default scores if there is no user high scores file.
@@ -174,9 +168,11 @@ public final class FileManager {
     BufferedReader bufferedReader = null;
 
     try {
-      inputStream = getFileStream(mode + "scores.csv");
+      File file = new File(getSaveDirectory() + mode + "scores.csv");
+
       bufferedReader =
-          new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+          new BufferedReader(
+              new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
       logger.info("Loading user high scores.");
       // except first line
       bufferedReader.readLine();
@@ -211,14 +207,7 @@ public final class FileManager {
     BufferedWriter bufferedWriter = null;
 
     try {
-      File scoresFile =
-          new File(
-              System.getProperty("user.dir")
-                  + File.separator
-                  + "res"
-                  + File.separator
-                  + mode
-                  + "scores.csv");
+      File scoresFile = new File(getSaveDirectory() + mode + "scores.csv");
 
       if (!scoresFile.exists()) scoresFile.createNewFile();
 
@@ -250,10 +239,11 @@ public final class FileManager {
     List<Boolean> achievementList = new ArrayList<>();
 
     try {
-      InputStream achievementStream = getFileStream("achievement.csv");
+      File achFile = new File(getSaveDirectory() + "achievement.csv");
 
       try (BufferedReader bReader =
-          new BufferedReader(new InputStreamReader(achievementStream, StandardCharsets.UTF_8))) {
+          new BufferedReader(
+              new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
 
         bReader.readLine(); // Skip header
         String line;
@@ -310,10 +300,10 @@ public final class FileManager {
     String numericMode = mode.replaceAll("[^0-9]", "");
 
     try {
-      InputStream achievementStream = getFileStream("achievement.csv");
-
+      File achFile = new File(getSaveDirectory() + "achievement.csv");
       try (BufferedReader bReader =
-          new BufferedReader(new InputStreamReader(achievementStream, StandardCharsets.UTF_8))) {
+          new BufferedReader(
+              new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
 
         String line;
         boolean found = false;
@@ -330,7 +320,7 @@ public final class FileManager {
           String currentMode = playRecord[0].trim();
           String name = playRecord[1].trim();
 
-          // ✅ Match both user name and mode to consider it the same record
+          // ✅ Match both username and mode to consider it the same record
           if (name.equals(userName) && currentMode.equals(numericMode)) {
             found = true;
             Logger.getLogger(getClass().getName()).info("Achievement has been updated.");
@@ -357,13 +347,8 @@ public final class FileManager {
         }
       }
 
-      File achievementFile =
-          new File(
-              System.getProperty("user.dir")
-                  + File.separator
-                  + "res"
-                  + File.separator
-                  + "achievement.csv");
+      File achievementFile = new File(getSaveDirectory() + "achievement.csv");
+
       // Write the updated records back to the CSV file
       try (BufferedWriter bWriter =
           new BufferedWriter(
@@ -391,10 +376,11 @@ public final class FileManager {
   public List<String> getAchievementCompleter(Achievement achievement) {
     List<String> completer = new ArrayList<>();
     try {
-      InputStream achievementStream = getFileStream("achievement.csv");
+      File achFile = new File(getSaveDirectory() + "achievement.csv");
 
       try (BufferedReader bReader =
-          new BufferedReader(new InputStreamReader(achievementStream, StandardCharsets.UTF_8))) {
+          new BufferedReader(
+              new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
 
         String line;
         String[] header = bReader.readLine().split(",");
@@ -430,10 +416,50 @@ public final class FileManager {
 
     } catch (IOException e) {
       logger.warning("Error reading achievement file. Returning default users...");
-      completer.add("1:ABC");
-      completer.add("2:DEF");
     }
 
     return completer;
+  }
+
+  private boolean isRunningFromJarOrExe() {
+    String protocol = FileManager.class.getResource("").getProtocol();
+    return !protocol.equals("file");
+  }
+
+  private String getSaveDirectory() {
+    if (testDirectory != null) return testDirectory;
+
+    String dir;
+    if (isRunningFromJarOrExe()) {
+      dir = System.getProperty("user.home") + File.separator + "TEAM3" + File.separator;
+    } else {
+      dir = System.getProperty("user.dir") + File.separator + "res" + File.separator;
+    }
+
+    File d = new File(dir);
+    if (!d.exists()) {
+      if (!d.mkdirs()) {
+        logger.warning("Failed to create directory: " + d.getAbsolutePath());
+      }
+    }
+
+    File achFile = new File(d, "achievement.csv");
+    if (!achFile.exists()) {
+      try (BufferedWriter w =
+          new BufferedWriter(
+              new OutputStreamWriter(new FileOutputStream(achFile), StandardCharsets.UTF_8))) {
+        w.write("mode,player,First Blood,Survivor,Clear,Sharpshooter,50 Bullets,Get 3000 Score");
+        w.newLine();
+      } catch (IOException e) {
+        logger.warning("Failed to create achievement.csv: " + achFile.getAbsolutePath());
+      }
+    }
+
+    return dir;
+  }
+
+  /** JUnit test code can force FileManager to use a specific directory */
+  public static void setTestDirectory(String path) {
+    testDirectory = path;
   }
 }
