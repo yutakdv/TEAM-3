@@ -130,7 +130,7 @@ public class TitleScreen extends Screen {
     this.menuIndex =
         (this.menuIndex + 4)
             % 5; // Fix : an issue where only the down arrow keys on the keyboard are entered and
-                 // not up
+    // not up
     drawManager.menuHover(this.menuIndex);
   }
 

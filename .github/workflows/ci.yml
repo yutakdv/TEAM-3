@@ -5,7 +5,7 @@ on:
     branches:
       - development
       - release/*
-    types: [opened, edited, synchronize, reopened]
+    types: [ opened, edited, synchronize, reopened ]
 
 permissions:
   actions: read
