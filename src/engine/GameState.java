@@ -26,6 +26,7 @@ public class GameState {
 
   public static final int FINITE_LEVEL = 5;
 
+  public static final int INFINITE_LEVEL = 100;
   // 2P mode: if true, lives are shared in a team pool; else per-player lives
   private final boolean sharedLives;
 
