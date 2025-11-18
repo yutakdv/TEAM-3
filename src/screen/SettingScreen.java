@@ -23,7 +23,7 @@ public class SettingScreen extends Screen {
   private int[] player1Keys;
   private int[] player2Keys;
 
-  private final String[] SLIDER_TITLES = {"BGM", "Effect Sound"};
+  private final String[] SLIDER_TITLES = {"Master", "BGM", "Effect Sound"};
   private final int NUM_SLIDERS = SLIDER_TITLES.length;
   private int[] volumeLevels = new int[NUM_SLIDERS];
   private int draggingIndex = -1;
@@ -59,7 +59,12 @@ public class SettingScreen extends Screen {
       this.volumelevel = val;
       Core.setVolumeLevel(index, val);
     }
+
     if (index == 1) {
+      this.volumelevel = val;
+      Core.setVolumeLevel(index, val);
+    }
+    if (index == 2) {
       this.volumelevel = val;
       Core.setVolumeLevel(index, val);
     }
@@ -79,6 +84,7 @@ public class SettingScreen extends Screen {
 
     volumeLevels[0] = Core.getVolumeLevel(0);
     volumeLevels[1] = Core.getVolumeLevel(1);
+    volumeLevels[2] = Core.getVolumeLevel(2);
 
     this.volumetype = 0;
     this.volumelevel = volumeLevels[this.volumetype];

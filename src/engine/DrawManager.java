@@ -576,7 +576,13 @@ public final class DrawManager {
 
   public void drawLevel(final Screen screen, final int level) {
     backBufferGraphics.setColor(Color.WHITE);
-    String levelString = "Level " + level;
+    String levelString;
+    if (level > GameState.FINITE_LEVEL) {
+      int infinity_level = level - GameState.FINITE_LEVEL;
+      levelString = "Infinity Stage " + infinity_level;
+    } else {
+      levelString = "Stage " + level;
+    }
     backBufferGraphics.drawString(levelString, screen.getWidth() - 250, 25);
   }
 
@@ -768,12 +774,14 @@ public final class DrawManager {
     String pauseString = "PAUSED";
     backBufferGraphics.setFont(fontBig);
     backBufferGraphics.setColor(Color.WHITE);
-    drawCenteredBigString(screen, pauseString, screen.getHeight() / 2);
+    drawCenteredBigString(screen, pauseString, screen.getHeight() - 400);
 
     String returnMenu = "PRESS BACKSPACE TO RETURN TO TITLE";
+    String Mute = "press space to mute";
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.WHITE);
     drawCenteredRegularString(screen, returnMenu, screen.getHeight() - 50);
+    drawCenteredRegularString(screen, Mute, screen.getHeight() - 70);
   } // ADD This Screen
 
   /**
@@ -965,13 +973,15 @@ public final class DrawManager {
 
   public void drawSettingMenu(final Screen screen) {
     String settingsString = "Settings";
-    String instructionsString = "Press ESC to return";
+    String instructionsString = "Press ESC to return, Space to select";
+    String instructionsString2 = "Backspace to unselect";
 
     backBufferGraphics.setColor(Color.GREEN);
     drawCenteredBigString(screen, settingsString, screen.getHeight() / 8);
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.GRAY);
     drawCenteredRegularString(screen, instructionsString, screen.getHeight() / 6);
+    drawCenteredRegularString(screen, instructionsString2, screen.getHeight() / 4 - 18);
   }
 
   public void drawKeysettings(
@@ -1067,15 +1077,29 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.BLACK);
     backBufferGraphics.fillRect(0, screen.getHeight() / 2 - rectHeight / 2, rectWidth, rectHeight);
     backBufferGraphics.setColor(Color.GREEN);
+    String levelString;
+    if (level > GameState.FINITE_LEVEL) {
+      int infinity_level = level - GameState.FINITE_LEVEL;
+      levelString = "Infinity Stage " + infinity_level;
+    } else {
+      levelString = "Stage " + level;
+    }
     if (number >= 4)
       if (!bonusLife) {
         drawCenteredBigString(
-            screen, "Level " + level, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+            screen, levelString, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
       } else {
-        drawCenteredBigString(
-            screen,
-            "Level " + level + " - Bonus life!",
-            screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+        if (level > GameState.FINITE_LEVEL) {
+          drawCenteredRegularString(
+              screen,
+              levelString + " - Bonus life!",
+              screen.getHeight() / 2 + fontRegularMetrics.getHeight() / 3);
+        } else {
+          drawCenteredBigString(
+              screen,
+              levelString + " - Bonus life!",
+              screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+        }
       }
     else if (number != 0)
       drawCenteredBigString(
@@ -1579,5 +1603,104 @@ public final class DrawManager {
     int height = 27;
 
     return new Rectangle(x, y, width, height);
+  }
+
+  public void drawpauseVolumeBar(
+      final Screen screen,
+      final int ingamevolumelevel,
+      final boolean dragging,
+      final int index,
+      final String title,
+      int selectedSection,
+      int ingamevolumetype) {
+    final int space = 100;
+    final int baseY = screen.getHeight() * 3 / 10 + 50;
+    final int presentY = baseY + (index * space);
+
+    int bar_startWidth = screen.getWidth() / 2 - 85;
+    int bar_endWidth = screen.getWidth() - 125;
+
+    int iconSize = 16;
+    int iconBoxW = 24;
+    int iconX = bar_startWidth - iconBoxW - 25;
+    int iconY = presentY - iconSize / 2;
+
+    boolean mutedVisual = (ingamevolumelevel == 0 || Core.isIngameMuted(index));
+    drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
+
+    backBufferGraphics.setColor(Color.WHITE);
+    backBufferGraphics.drawLine(bar_startWidth, presentY, bar_endWidth, presentY);
+
+    if (selectedSection == 1 && index == ingamevolumetype) {
+      backBufferGraphics.setColor(Color.green);
+    } else {
+      backBufferGraphics.setColor(Color.white);
+    }
+    backBufferGraphics.setFont(fontRegular);
+    drawCenteredRegularString(screen, title, presentY - 30);
+
+    //		change this line to get indicator center position
+    int size = 14;
+    double ratio = ingamevolumelevel / 100.0;
+    int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
+    int indicatorX = centerX - size / 2 - 3;
+    int indicatorY = presentY - size / 2;
+
+    int rawX = Core.getInputManager().getMouseX();
+    int rawY = Core.getInputManager().getMouseY();
+    Insets insets = frame.getInsets();
+    int mouseX = rawX - insets.left;
+    int mouseY = rawY - insets.top;
+
+    boolean hoverIndicator =
+        mouseX >= indicatorX
+            && mouseX <= indicatorX + size
+            && mouseY >= indicatorY
+            && mouseY <= indicatorY + size;
+
+    if (hoverIndicator || dragging) {
+      backBufferGraphics.setColor(Color.GREEN);
+    } else {
+      backBufferGraphics.setColor(Color.WHITE);
+    }
+
+    backBufferGraphics.fillRect(indicatorX, indicatorY, size, size);
+
+    backBufferGraphics.setColor(Color.WHITE);
+    String volumeText = Integer.toString(ingamevolumelevel);
+    backBufferGraphics.drawString(volumeText, bar_endWidth + 10, presentY + 7);
+  }
+
+  public Rectangle getpauseVolumeBarHitbox(final Screen screen, int index) {
+    final int space = 100;
+    final int baseY = screen.getHeight() * 3 / 10 + 80;
+    final int presentY = baseY + (index * space);
+
+    int bar_startWidth = screen.getWidth() / 2 - 85;
+    int bar_endWidth = screen.getWidth() - 125;
+
+    int barThickness = 20;
+
+    int x = bar_startWidth;
+    int y = presentY - barThickness / 2;
+    int width = bar_endWidth - bar_startWidth;
+    int height = barThickness;
+
+    return new Rectangle(x, y, width, height);
+  }
+
+  public Rectangle getPauseSpeakerHitbox(final Screen screen, int index) {
+    final int space = 100;
+    final int baseY = screen.getHeight() * 3 / 10 + 80;
+    final int presentY = baseY + (index * space);
+
+    int bar_startWidth = screen.getWidth() / 2 - 85;
+
+    int iconSize = 16;
+    int iconBoxW = 24;
+    int iconX = bar_startWidth - iconBoxW - 15;
+    int iconY = presentY - iconSize / 2;
+
+    return new Rectangle(iconX, iconY, iconBoxW, iconSize);
   }
 }
