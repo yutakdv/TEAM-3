@@ -1,6 +1,6 @@
 package Animations; // NOPMD - PackageCase
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /*
  * The basic background stars effect during the game
@@ -8,7 +8,6 @@ import java.util.Random;
 public class BasicGameSpace {
 
   public final Star[] stars;
-  private final Random rand = new Random();
   private int[][] positions;
   private int speed;
   private final int numStars;
@@ -21,7 +20,11 @@ public class BasicGameSpace {
 
     for (int i = 0; i < this.numStars; i++) {
 
-      stars[i] = new Star(rand.nextInt(10, 448), rand.nextInt(-500, 5), randomSpeed() ? 2 : 1);
+      stars[i] =
+          new Star(
+              ThreadLocalRandom.current().nextInt(10, 448),
+              ThreadLocalRandom.current().nextInt(-500, 5),
+              randomSpeed() ? 2 : 1);
       positions[i][0] = stars[i].x;
       positions[i][1] = stars[i].y;
       positions[i][2] = stars[i].speed;
