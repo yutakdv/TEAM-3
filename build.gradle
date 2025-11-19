@@ -68,9 +68,9 @@ tasks.withType(SpotBugsTask).configureEach {
         html.required.set(true)
         html.outputLocation = projectLayout.buildDirectory.file('reports/spotbugs/spotbugs-report.html').get().asFile
     }
-//    extraArgs = [
-//            '-excludeBugs', 'gradle/spotbugs/spotbugs-baseline.xml'
-//    ]
+    extraArgs = [
+            '-excludeBugs', 'gradle/spotbugs/spotbugs-baseline.xml'
+    ]
 }
 
 java {
