@@ -34,12 +34,18 @@ public class Ship extends Entity {
   private static final int SHIP_HEIGHT = 16;
   private static final int DESTRUCTION_COOLDOWN = 1000;
 
+  /**
+   * Initializes ship properties based on ship type.
+   *
+   * <p>NORMAL = Bronze BIG_SHOT = Silver DOUBLE_SHOT = Gold MOVE_FAST = Platinum
+   */
+
   /** Types of ships. */
   public enum ShipType {
-    NORMAL, // Bullet size is normal, and moving speed is normal.
-    BIG_SHOT, // Bullet size is big, but moving speed is slow.
-    DOUBLE_SHOT, // Double shot, but moving speed is slow.
-    MOVE_FAST // Moving speed is fast, but fire rate is slow.
+    NORMAL,
+    BIG_SHOT,
+    DOUBLE_SHOT,
+    MOVE_FAST
   }
 
   /** Game state and Ship type * */
@@ -107,24 +113,29 @@ public class Ship extends Entity {
    */
   private void initializeShipProperties(final ShipType type) {
     this.bulletSpeed = BASE_BULLET_SPEED;
+    this.moveSpeed = BASE_SPEED;
+    this.shootingInterval = BASE_SHOOTING_INTERVAL; // 750
+    this.bulletWidth = BASE_BULLET_WIDTH; // 6
+    this.bulletHeight = BASE_BULLET_HEIGHT; // 10
+    this.spriteType = SpriteType.Ship1;
 
     switch (type) {
-      case BIG_SHOT:
-        this.moveSpeed -= 1;
-        this.bulletWidth = 9; // 3 * 3
-        this.bulletHeight = 15; // 5 * 3
+      case BIG_SHOT: // Silver ship
+        this.moveSpeed = 3;
+        this.shootingInterval = 700;
         this.spriteType = SpriteType.Ship2;
         break;
-      case DOUBLE_SHOT:
-        this.moveSpeed -= 1;
+      case DOUBLE_SHOT: // Gold ship
+        this.moveSpeed = 4;
+        this.shootingInterval = 700;
         this.spriteType = SpriteType.Ship3;
         break;
-      case MOVE_FAST:
-        this.moveSpeed += 1;
-        this.shootingInterval += 150;
+      case MOVE_FAST: // Platinum ship
+        this.moveSpeed = 5;
+        this.shootingInterval = 500;
         this.spriteType = SpriteType.Ship4;
         break;
-      case NORMAL:
+      case NORMAL: // Bronze ship
       default:
         break;
     }
@@ -221,12 +232,11 @@ public class Ship extends Entity {
   /** Fires bullets based on ship type. */
   private void shootBasedOnType(final Set<Bullet> bullets, final int centerX, final int bulletY) {
     switch (this.type) {
-      case DOUBLE_SHOT:
+      case DOUBLE_SHOT, MOVE_FAST:
         addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
         addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
         break;
       case BIG_SHOT:
-      case MOVE_FAST:
       case NORMAL:
       default:
         addBullet(bullets, centerX, bulletY);

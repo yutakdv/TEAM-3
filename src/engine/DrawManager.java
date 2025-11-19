@@ -1305,10 +1305,10 @@ public final class DrawManager {
     String screenTitle = "PLAYER " + playerIndex + " : CHOOSE YOUR SHIP";
 
     // Ship Type Info
-    String[] shipNames = {"Normal Type", "Big Shot Type", "Double Shot Type", "Speed Type"};
-    String[] shipSpeeds = {"SPEED: NORMAL", "SPEED: SLOW", "SPEED: SLOW", "SPEED: FAST"};
+    String[] shipNames = {"Bronze", "Silver", "Gold", "Platinum"};
+    String[] shipSpeeds = {"SPEED: ■□□□□", "SPEED: ■■□□□", "SPEED: ■■■□□", "SPEED: ■■■■□"};
     String[] shipFireRates = {
-      "FIRE RATE: NORMAL", "FIRE RATE: NORMAL", "FIRE RATE: NORMAL", "FIRE RATE: SLOW"
+      "FIRE RATE: ■□□□□", "FIRE RATE: ■■□□□", "FIRE RATE: ■■□□□", "FIRE RATE: ■■■■□"
     };
 
     for (int i = 0; i < shipExamples.length; i++) {
@@ -1331,11 +1331,6 @@ public final class DrawManager {
         drawEntity(s, x, y, Color.GRAY.darker().darker());
       }
     }
-    //        for (int i = 0; i < 4; i++) {
-    //            // Draw Player Ship
-    //            drawManager.drawEntity(ship, ship.getPositionX() - ship.getWidth()/2,
-    // ship.getPositionY());
-    //        }
 
     // Draw Selected Player Page Title
     backBufferGraphics.setColor(Color.GREEN);
@@ -1344,15 +1339,28 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.white);
     drawCenteredRegularString(
         screen, " > " + shipNames[selectedShipIndex] + " < ", screen.getHeight() / 2 - 40);
-    // Draw Selected Player Ship Info
+
+    // Temporarily changes the font that support the Unicode
+    Font original = backBufferGraphics.getFont();
+    Font statFont = new Font("Dialog", Font.PLAIN, 18);
+    backBufferGraphics.setFont(statFont);
+    java.awt.FontMetrics fm = backBufferGraphics.getFontMetrics(statFont);
+
+    String speedStr = shipSpeeds[selectedShipIndex];
+    String fireStr  = shipFireRates[selectedShipIndex];
+
+    int speedY = screen.getHeight() / 2 + 60;
+    int fireY  = screen.getHeight() / 2 + 80;
+
+    int speedX = screen.getWidth() / 2 - fm.stringWidth(speedStr) / 2;
+    int fireX  = screen.getWidth() / 2 - fm.stringWidth(fireStr)  / 2;
+
     backBufferGraphics.setColor(Color.WHITE);
-    //        drawCenteredRegularString(shipSpeeds[selectedShipIndex], centerX, screen.getHeight() /
-    // 2 + 60);
-    //        drawCenteredRegularString(shipFireRates[selectedShipIndex], centerX,
-    // screen.getHeight() / 2 + 80);
-    drawCenteredRegularString(screen, shipSpeeds[selectedShipIndex], screen.getHeight() / 2 + 60);
-    drawCenteredRegularString(
-        screen, shipFireRates[selectedShipIndex], screen.getHeight() / 2 + 80);
+    backBufferGraphics.drawString(speedStr, speedX, speedY);
+    backBufferGraphics.drawString(fireStr,  fireX,  fireY);
+
+   // Back to original font
+    backBufferGraphics.setFont(original);
 
     backBufferGraphics.setColor(Color.GRAY);
     drawCenteredRegularString(
