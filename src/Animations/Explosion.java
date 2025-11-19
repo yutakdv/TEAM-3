@@ -1,47 +1,51 @@
-package Animations;
+package Animations; // NOPMD - PackageCase
 
-import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 
-public class Explosion {
+public class Explosion { // NOPMD - DataClass
 
   private static final int NUM_PARTICLES = 40;
   private Particle[] particles;
   private boolean active;
-  private boolean enemy;
-  private int size;
+  private final boolean enemy;
+  private final int size;
 
   private static final Random random = new Random();
 
-  public Explosion(double startX, double startY, boolean enemy, boolean finalExplosion) {
+  public Explosion(final double startX, final double startY, final boolean enemy, final boolean finalExplosion) {
     this.particles = new Particle[NUM_PARTICLES];
     this.active = true;
     this.enemy = enemy;
-    if (finalExplosion) this.size = 20;
-    else this.size = 4;
+    if (finalExplosion) {
+        this.size = 20;
+    } else {
+        this.size = 4;
+    }
 
     for (int i = 0; i < NUM_PARTICLES; i++) {
-      double angle = 2 * Math.PI * random.nextDouble();
-      double speed = 2 + random.nextDouble() * 2;
-      double dx = Math.cos(angle) * speed;
-      double dy = Math.sin(angle) * speed;
+      final double angle = 2 * Math.PI * random.nextDouble();
+      final double speed = 2 + random.nextDouble() * 2;
+      final double dx = Math.cos(angle) * speed;
+      final double dy = Math.sin(angle) * speed;
 
-      Color color = new Color(255, random.nextInt(150), 0, 255);
-      int life = 60;
+      final Color color = new Color(255, random.nextInt(150), 0, 255); // NOPMD - AvoidInstantiatingObjectsInLoops
+      final int life = 60;
 
-      particles[i] = new Particle(startX, startY, dx, dy, color, life);
+      particles[i] = new Particle(startX, startY, dx, dy, color, life); // NOPMD - AvoidInstantiatingObjectsInLoops
     }
   }
 
   public void update() {
-    if (!active) return;
+    if (!active) {
+        return;
+    }
 
     boolean anyAlive = false;
     for (Particle p : particles) {
-      if (!p.active) continue;
+      if (!p.active) {
+          continue;
+      }
 
       // update position
       p.x += p.dx;
@@ -55,24 +59,30 @@ public class Explosion {
       // fade color
       int alpha = (int) (255 * ((double) p.life / 60));
       alpha = Math.max(alpha, 0);
-      p.color = new Color(p.color.getRed(), p.color.getGreen(), p.color.getBlue(), alpha);
+      p.color = new Color(p.color.getRed(), p.color.getGreen(), p.color.getBlue(), alpha); // NOPMD - AvoidInstantiatingObjectsInLoops - LawOfDemeter
 
       // decrease life
       p.life--;
-      if (p.life <= 0) p.active = false;
+      if (p.life <= 0) {
+          p.active = false;
+      }
 
-      if (p.active) anyAlive = true;
+      if (p.active) {
+          anyAlive = true;
+      }
     }
 
     // deactivate explosion if all particles are dead
-    if (!anyAlive) active = false;
+    if (!anyAlive) {
+        active = false;
+    }
   }
 
   public Particle[] getParticles() {
     return particles;
   }
 
-  public boolean enemy() {
+  public boolean isEnemy() {
     return this.enemy;
   }
 
@@ -84,14 +94,16 @@ public class Explosion {
     return this.size;
   }
 
-  public static class Particle {
-    public double x, y;
-    public double dx, dy;
+  public static class Particle { // NOPMD - DataClass
+    public double x;
+    public double y;
+    public double dx;
+    public double dy;
     public Color color;
     public int life;
     public boolean active;
 
-    public Particle(double x, double y, double dx, double dy, Color color, int life) {
+    public Particle(final double x, final double y, final double dx, final double dy, final Color color, final int life) {
       this.x = x;
       this.y = y;
       this.dx = dx;
