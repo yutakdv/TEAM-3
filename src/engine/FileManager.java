@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import java.util.HashMap;
+import entity.Ship.ShipType;
+
 import engine.DrawManager.SpriteType;
 
 /**
@@ -419,6 +422,65 @@ public final class FileManager {
     }
 
     return completer;
+  }
+
+  public void saveShipUnlocks(Map<ShipType, Boolean> unlockMap) throws IOException {
+    File file = new File(getSaveDirectory() + "ships.csv");
+
+    try (BufferedWriter writer =
+        new BufferedWriter(
+            new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+
+      writer.write("shipType,unlocked");
+      writer.newLine();
+
+      for (ShipType type : ShipType.values()) {
+        boolean unlocked = unlockMap.getOrDefault(type, false);
+        writer.write(type.name() + "," + unlocked);
+        writer.newLine();
+      }
+    }
+  }
+
+  public Map<ShipType, Boolean> loadShipUnlocks() throws IOException {
+    Map<ShipType, Boolean> unlockMap = new HashMap<>();
+
+    File file = new File(getSaveDirectory() + "ships.csv");
+
+    if (!file.exists()) {
+      unlockMap.put(ShipType.NORMAL, true);
+      unlockMap.put(ShipType.BIG_SHOT, false);
+      unlockMap.put(ShipType.DOUBLE_SHOT, false);
+      unlockMap.put(ShipType.MOVE_FAST, false);
+
+      saveShipUnlocks(unlockMap);
+      return unlockMap;
+    }
+
+    try (BufferedReader reader =
+        new BufferedReader(
+            new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+
+      String line = reader.readLine();
+
+      while ((line = reader.readLine()) != null) {
+        String[] tokens = line.split(",");
+        if (tokens.length < 2) continue;
+
+        String shipName = tokens[0].trim();
+        String unlockedStr = tokens[1].trim();
+
+        try {
+          ShipType type = ShipType.valueOf(shipName);
+          boolean unlocked = Boolean.parseBoolean(unlockedStr);
+          unlockMap.put(type, unlocked);
+        } catch (IllegalArgumentException e) {
+
+          logger.warning("Unknown ship type in ships.csv: " + shipName);
+        }
+      }
+    }
+    return unlockMap;
   }
 
   private boolean isRunningFromJarOrExe() {
