@@ -6,6 +6,10 @@ import entity.Ship;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
+import java.io.IOException;
+import entity.Ship.ShipType;
+import engine.Core;
+
 public class ShipSelectionScreen extends Screen {
   private int selectedShipIndex = 0; // 0: NORMAL, 1: BIG_SHOT, 2: DOUBLE_SHOT, 3: MOVE_FAST
   private Ship[] shipExamples = new Ship[4];
@@ -15,6 +19,8 @@ public class ShipSelectionScreen extends Screen {
 
   private int player;
   private boolean backSelected = false; // If current state is on the back button, can't select ship
+
+  private boolean[] unlockedStates = new boolean[4];
 
   public ShipSelectionScreen(final int width, final int height, final int fps, final int player) {
     super(width, height, fps);
@@ -41,6 +47,25 @@ public class ShipSelectionScreen extends Screen {
               width / 2 + 35, height / 2, Entity.Team.PLAYER2, Ship.ShipType.DOUBLE_SHOT, null);
       shipExamples[3] =
           new Ship(width / 2 + 100, height / 2, Entity.Team.PLAYER2, Ship.ShipType.MOVE_FAST, null);
+    }
+
+    try {
+      var unlockMap = Core.getFileManager().loadShipUnlocks();
+
+      // NORMAL = Bronze
+      unlockedStates[0] = unlockMap.getOrDefault(ShipType.NORMAL, true);
+      // BIG_SHOT = Silver
+      unlockedStates[1] = unlockMap.getOrDefault(ShipType.BIG_SHOT, false);
+      // DOUBLE_SHOT = Gold
+      unlockedStates[2] = unlockMap.getOrDefault(ShipType.DOUBLE_SHOT, false);
+      // MOVE_FAST = Platinum
+      unlockedStates[3] = unlockMap.getOrDefault(ShipType.MOVE_FAST, false);
+
+    } catch (IOException e) {
+      unlockedStates[0] = true;
+      unlockedStates[1] = false;
+      unlockedStates[2] = false;
+      unlockedStates[3] = false;
     }
   }
 
@@ -120,9 +145,23 @@ public class ShipSelectionScreen extends Screen {
       }
     }
     if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
+      if (backSelected) {
+        switch (player) {
+          case 1 -> this.returnCode = 5;
+          case 2 -> this.returnCode = 6;
+        }
+        SoundManager.playeffect("sound/select.wav");
+        this.isRunning = false;
+        return;
+      }
+
+      if (!isSelectedShipUnlocked()) {
+        SoundManager.playeffect("sound/hover.wav");
+        return;
+      }
       switch (player) {
-        case 1 -> this.returnCode = backSelected ? 5 : 6;
-        case 2 -> this.returnCode = backSelected ? 6 : 2;
+        case 1 -> this.returnCode = 6; // P1 → P2 선택 화면
+        case 2 -> this.returnCode = 2; // P2 → 게임 시작
       }
       SoundManager.playeffect("sound/select.wav");
       this.isRunning = false;
@@ -152,6 +191,17 @@ public class ShipSelectionScreen extends Screen {
         return;
       }
       if (hovershipIndex != null) {
+        int clickedIndex = hovershipIndex;
+
+        boolean unlocked = (unlockedStates == null)
+                || (clickedIndex >= 0 && clickedIndex < unlockedStates.length
+                && unlockedStates[clickedIndex]);
+        if (!unlocked) {
+          SoundManager.playeffect("sound/hover.wav");
+          return;
+        }
+        this.selectedShipIndex = clickedIndex;
+
         switch (player) {
           case 1 -> this.returnCode = 6;
           case 2 -> this.returnCode = 2;
@@ -165,7 +215,8 @@ public class ShipSelectionScreen extends Screen {
   private void draw() {
     drawManager.initDrawing(this);
 
-    drawManager.drawShipSelectionMenu(this, shipExamples, this.selectedShipIndex, this.player);
+    drawManager.drawShipSelectionMenu(
+        this, shipExamples, this.selectedShipIndex, this.player, this.unlockedStates);
 
     // hover highlight
     int mx = inputManager.getMouseX();
@@ -175,5 +226,11 @@ public class ShipSelectionScreen extends Screen {
     drawManager.drawBackButton(this, backHover || backSelected);
 
     drawManager.completeDrawing(this);
+  }
+
+  private boolean isSelectedShipUnlocked() {
+    if (unlockedStates == null) return true;
+    if (selectedShipIndex < 0 || selectedShipIndex >= unlockedStates.length) return false;
+    return unlockedStates[selectedShipIndex];
   }
 }

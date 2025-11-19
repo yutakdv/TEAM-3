@@ -1298,7 +1298,9 @@ public final class DrawManager {
       final Screen screen,
       final Ship[] shipExamples,
       final int selectedShipIndex,
-      final int playerIndex) {
+      final int playerIndex,
+      final boolean[] unlockedStates) {
+
     Ship ship = shipExamples[selectedShipIndex];
     int centerX = ship.getPositionX();
 
@@ -1316,8 +1318,21 @@ public final class DrawManager {
       int x = s.getPositionX() - s.getWidth() / 2;
       int y = s.getPositionY();
 
+      boolean unlocked = unlockedStates != null && unlockedStates.length > i && unlockedStates[i];
+
+      Color shipColor;
+      if (!unlocked) {
+        shipColor = Color.GRAY.darker().darker();
+      } else {
+        if (playerIndex == 1) {
+          shipColor = Color.BLUE;
+        } else {
+          shipColor = Color.RED;
+        }
+      }
+      drawEntity(s, x, y, shipColor);
+
       if (i == selectedShipIndex) {
-        drawEntity(s, x, y, null);
 
         int padding = 5;
         int frameX = x - padding;
@@ -1326,9 +1341,6 @@ public final class DrawManager {
         int frameH = s.getHeight() + padding * 2;
 
         drawFrame(frameX, frameY, frameW, frameH, Color.WHITE, 8, 1);
-
-      } else {
-        drawEntity(s, x, y, Color.GRAY.darker().darker());
       }
     }
 
@@ -1347,19 +1359,19 @@ public final class DrawManager {
     java.awt.FontMetrics fm = backBufferGraphics.getFontMetrics(statFont);
 
     String speedStr = shipSpeeds[selectedShipIndex];
-    String fireStr  = shipFireRates[selectedShipIndex];
+    String fireStr = shipFireRates[selectedShipIndex];
 
     int speedY = screen.getHeight() / 2 + 60;
-    int fireY  = screen.getHeight() / 2 + 80;
+    int fireY = screen.getHeight() / 2 + 80;
 
     int speedX = screen.getWidth() / 2 - fm.stringWidth(speedStr) / 2;
-    int fireX  = screen.getWidth() / 2 - fm.stringWidth(fireStr)  / 2;
+    int fireX = screen.getWidth() / 2 - fm.stringWidth(fireStr) / 2;
 
     backBufferGraphics.setColor(Color.WHITE);
     backBufferGraphics.drawString(speedStr, speedX, speedY);
-    backBufferGraphics.drawString(fireStr,  fireX,  fireY);
+    backBufferGraphics.drawString(fireStr, fireX, fireY);
 
-   // Back to original font
+    // Back to original font
     backBufferGraphics.setFont(original);
 
     backBufferGraphics.setColor(Color.GRAY);
