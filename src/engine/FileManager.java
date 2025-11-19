@@ -421,6 +421,65 @@ public final class FileManager {
     return completer;
   }
 
+  public int loadCoins() {
+    BufferedReader bufferedReader = null;
+
+    try {
+      File file = new File(getSaveDirectory() + "coins.csv");
+
+      bufferedReader =
+          new BufferedReader(
+              new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+
+      String line = bufferedReader.readLine();
+      if (line != null) {
+        return Integer.parseInt(line.trim());
+      }
+    } catch (FileNotFoundException e) {
+      logger.info("Coins file not found, defaulting to 0.");
+    } catch (IOException e) {
+      logger.warning("Error reading coins file: " + e.getMessage());
+    } finally {
+      if (bufferedReader != null) {
+        try {
+          bufferedReader.close();
+        } catch (IOException ignored) {
+        }
+      }
+    }
+    saveCoins(0);
+    return 0;
+  }
+
+  public void saveCoins(int coins) {
+    BufferedWriter bufferedWriter = null;
+
+    try {
+      File coinsFile = new File(getSaveDirectory() + "coins.csv");
+
+      if (!coinsFile.exists()) coinsFile.createNewFile();
+
+      bufferedWriter =
+          new BufferedWriter(
+              new OutputStreamWriter(new FileOutputStream(coinsFile), StandardCharsets.UTF_8));
+
+      bufferedWriter.write(Integer.toString(coins));
+      bufferedWriter.newLine();
+
+      logger.info("User coins saved.");
+
+    } catch (IOException e) {
+      logger.warning("Failed to save coins: " + e.getMessage());
+    } finally {
+      if (bufferedWriter != null) {
+        try {
+          bufferedWriter.close();
+        } catch (IOException ignored) {
+        }
+      }
+    }
+  }
+
   private boolean isRunningFromJarOrExe() {
     String protocol = FileManager.class.getResource("").getProtocol();
     return !protocol.equals("file");
