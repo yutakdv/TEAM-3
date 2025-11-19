@@ -1,18 +1,19 @@
-package Animations;
+package Animations; // NOPMD - PackageCase
 
 import java.awt.*;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
-public class MenuSpace {
+public class MenuSpace { // NOPMD - DataClass
 
   public final Star[] stars;
   private final Random rand = new Random();
-  private int[][] positions;
-  private int numStars;
+  private final int[][] positions;
+  private final int numStars;
   private Color color;
   private int speed;
 
-  public MenuSpace(int numStars) {
+  public MenuSpace(final int numStars) {
 
     this.numStars = numStars;
     this.stars = new Star[this.numStars];
@@ -22,7 +23,10 @@ public class MenuSpace {
 
     for (int i = 0; i < this.numStars; i++) {
 
-      stars[i] = new Star(rand.nextInt(0, 448), rand.nextInt(0, 520));
+      stars[i] =
+          new Star(
+              ThreadLocalRandom.current().nextInt(0, 448),
+              ThreadLocalRandom.current().nextInt(0, 520));
       positions[i][0] = stars[i].x;
       positions[i][1] = stars[i].y;
     }
@@ -66,12 +70,18 @@ public class MenuSpace {
       case 4:
         color = Color.RED;
         break;
+      default:
+        color = Color.YELLOW;
+        break;
     }
   }
 
   public void setSpeed(final boolean exit) {
-    if (exit) this.speed = 3;
-    else this.speed = 1;
+    if (exit) {
+      this.speed = 3;
+    } else {
+      this.speed = 1;
+    }
   }
 
   public int[][] getStarLocations() {
@@ -83,9 +93,10 @@ public class MenuSpace {
   }
 
   private static class Star {
-    int x, y;
+    int x;
+    int y;
 
-    Star(int x, int y) {
+    Star(final int x, final int y) {
       this.x = x;
       this.y = y;
     }
