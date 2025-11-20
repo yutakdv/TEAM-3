@@ -457,7 +457,12 @@ public final class FileManager {
     try {
       File coinsFile = new File(getSaveDirectory() + "coins.csv");
 
-      if (!coinsFile.exists()) coinsFile.createNewFile();
+      if (!coinsFile.exists()) {
+        boolean created = coinsFile.createNewFile();
+        if (!created) {
+          logger.warning("Failed to create coins file: " + coinsFile.getAbsolutePath());
+        }
+      }
 
       bufferedWriter =
           new BufferedWriter(
@@ -511,6 +516,18 @@ public final class FileManager {
         w.newLine();
       } catch (IOException e) {
         logger.warning("Failed to create achievement.csv: " + achFile.getAbsolutePath());
+      }
+    }
+
+    File coinsFile = new File(d, "coins.csv");
+    if (!coinsFile.exists()) {
+      try (BufferedWriter w =
+          new BufferedWriter(
+              new OutputStreamWriter(new FileOutputStream(coinsFile), StandardCharsets.UTF_8))) {
+        w.write("0");
+        w.newLine();
+      } catch (IOException e) {
+        logger.warning("Failed to create coins.csv: " + coinsFile.getAbsolutePath());
       }
     }
 

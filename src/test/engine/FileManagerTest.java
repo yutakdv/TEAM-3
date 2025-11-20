@@ -38,6 +38,11 @@ public class FileManagerTest {
       w.write("player,score");
       w.newLine();
     }
+
+    coinsFile = new File(tempDir, "coins.csv");
+    if (coinsFile.exists() && !coinsFile.delete()) {
+      throw new IOException("Failed to delete file: " + coinsFile.getAbsolutePath());
+    }
   }
 
   // ---------------------------------------------------------

@@ -7,6 +7,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class GameStateTest {
 
+  private void setCoins(int value) {
+    try {
+      var field = GameState.class.getDeclaredField("coins");
+      field.setAccessible(true);
+      field.setInt(null, value);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /** Dummy Cooldown to replace Core.getCooldown() */
   static class DummyCooldown extends Cooldown {
 
@@ -89,6 +99,7 @@ public class GameStateTest {
   /** ---------- Coin System ---------- * */
   @Test
   void testAddCoins() {
+    setCoins(10);
     GameState gs = new GameState(1, 3, false);
 
     gs.addCoins(0, 5);
@@ -97,6 +108,7 @@ public class GameStateTest {
 
   @Test
   void testSpendCoinsSuccess() {
+    setCoins(20);
     GameState gs = new GameState(1, 3, false);
 
     assertTrue(gs.spendCoins(0, 10));
@@ -105,6 +117,7 @@ public class GameStateTest {
 
   @Test
   void testSpendCoinsFailNotEnough() {
+    setCoins(5);
     GameState gs = new GameState(1, 3, false);
 
     assertFalse(gs.spendCoins(0, 10));
