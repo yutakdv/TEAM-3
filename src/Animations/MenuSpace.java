@@ -1,13 +1,11 @@
 package Animations; // NOPMD - PackageCase
 
 import java.awt.*;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MenuSpace { // NOPMD - DataClass
 
   public final Star[] stars;
-  private final Random rand = new Random();
   private final int[][] positions;
   private final int numStars;
   private Color color;

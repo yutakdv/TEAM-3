@@ -12,7 +12,7 @@ import entity.Entity.Team;
 public final class BulletPool {
 
   /** Set of already created bullets. */
-  private static Set<Bullet> pool = new HashSet<Bullet>();
+  private static Set<Bullet> pool = new HashSet<>();
 
   /** Constructor, not called. */
   private BulletPool() {}
@@ -37,21 +37,13 @@ public final class BulletPool {
       final int height,
       final Team team) {
     Bullet bullet;
-    if (!pool.isEmpty()) {
-      bullet = pool.iterator().next();
-      pool.remove(bullet);
-      bullet.setPositionX(positionX - width / 2);
-      bullet.setPositionY(positionY);
-      bullet.setSpeed(speed);
-      bullet.setSize(width, height); // bullet size
-      bullet.setTeam(team); // team setting
+    if (pool.isEmpty()) {
+      bullet = new Bullet(positionX, positionY, speed);
     } else {
-      bullet = new Bullet(positionX, positionY, width, height, speed);
-      bullet.setPositionX(positionX - width / 2);
-      bullet.setSize(width, height); // bullet size
-      bullet.setTeam(team); // team setting
+      bullet = pool.iterator().next(); // NOPMD - acceptable concise iterator access
+      pool.remove(bullet);
     }
-    bullet.setSprite();
+    bullet.initialize(positionX, positionY, speed, width, height, team); // NOPMD - initialization delegated to Bullet, acceptable for pooling
     return bullet;
   }
 
