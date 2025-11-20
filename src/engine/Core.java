@@ -127,6 +127,7 @@ public final class Core {
             LOGGER.info("Starting " + WIDTH + "x" + HEIGHT + " game screen at " + FPS + " fps.");
             returnCode = frame.setScreen(currentScreen);
             LOGGER.info("Closing game screen.");
+              Core.getFileManager().saveCoins(gameState.getCoins());
             if (returnCode == 1) {
               break;
             }
