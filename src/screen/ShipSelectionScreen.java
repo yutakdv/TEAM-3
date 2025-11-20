@@ -1,5 +1,6 @@
 package screen;
 
+import engine.Core;
 import engine.SoundManager;
 import entity.Entity;
 import entity.Ship;
@@ -16,6 +17,7 @@ public class ShipSelectionScreen extends Screen {
 
   private Integer hovershipIndex = null;
   private Integer prevHoverIndex = null;
+  private int coins;
 
   private int player;
   private boolean backSelected = false; // If current state is on the back button, can't select ship
@@ -26,6 +28,8 @@ public class ShipSelectionScreen extends Screen {
     super(width, height, fps);
     this.player = player;
     SoundManager.playBGM("sound/menu_sound.wav");
+
+    this.coins = Core.getFileManager().loadCoins();
 
     if (player == 1) {
       shipExamples[0] =
@@ -160,8 +164,8 @@ public class ShipSelectionScreen extends Screen {
         return;
       }
       switch (player) {
-        case 1 -> this.returnCode = 6; // P1 → P2 선택 화면
-        case 2 -> this.returnCode = 2; // P2 → 게임 시작
+        case 1 -> this.returnCode = 6;
+        case 2 -> this.returnCode = 2;
       }
       SoundManager.playeffect("sound/select.wav");
       this.isRunning = false;
@@ -217,6 +221,7 @@ public class ShipSelectionScreen extends Screen {
 
     drawManager.drawShipSelectionMenu(
         this, shipExamples, this.selectedShipIndex, this.player, this.unlockedStates);
+    drawManager.drawShipSelectionCoins(this, this.coins);
 
     // hover highlight
     int mx = inputManager.getMouseX();

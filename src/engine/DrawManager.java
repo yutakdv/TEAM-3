@@ -562,6 +562,20 @@ public final class DrawManager {
         "P2: " + String.format("%04d", coinsP2), screen.getWidth() - 100, 25);
   }
 
+  public void drawShipSelectionCoins(final Screen screen, final int coins) {
+    backBufferGraphics.setFont(fontRegular);
+    backBufferGraphics.setColor(Color.YELLOW);
+
+    String text = "COIN : " + String.format("%04d", coins);
+
+    int padding = 10;
+    int textWidth = fontRegularMetrics.stringWidth(text);
+    int x = screen.getWidth() - padding - textWidth;
+    int y = padding + fontRegularMetrics.getAscent();
+
+    backBufferGraphics.drawString(text, x, y);
+  }
+
   /**
    * Draws a thick line from side to side of the screen.
    *

@@ -18,7 +18,7 @@ class ShipTest {
   /** Fake GameState for item effects */
   static class FakeGameState extends GameState {
     public FakeGameState() {
-      super(1, 3, false, 0);
+      super(1, 3, false);
     }
 
     public boolean triple = false;
