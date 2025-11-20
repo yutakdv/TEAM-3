@@ -124,6 +124,7 @@ public class ShipSelectionScreen extends Screen {
       for (java.awt.Rectangle r : shipBoxes) {
         if (r.contains(mx, my)) {
           mouseHovering = true;
+          backSelected= false;
           break;
         }
       }
