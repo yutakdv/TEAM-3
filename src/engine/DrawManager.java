@@ -1315,9 +1315,6 @@ public final class DrawManager {
       final int playerIndex,
       final boolean[] unlockedStates) {
 
-    Ship ship = shipExamples[selectedShipIndex];
-    int centerX = ship.getPositionX();
-
     String screenTitle = "PLAYER " + playerIndex + " : CHOOSE YOUR SHIP";
 
     // Ship Type Info
@@ -1388,9 +1385,50 @@ public final class DrawManager {
     // Back to original font
     backBufferGraphics.setFont(original);
 
+
+    // show unlock status and costs
+    boolean selectedUnlocked =
+        (unlockedStates == null)
+            || (selectedShipIndex >= 0
+                && selectedShipIndex < unlockedStates.length
+                && unlockedStates[selectedShipIndex]);
+
+    backBufferGraphics.setFont(fontRegular);
+
+    int statusY = screen.getHeight() / 2 + 115;
+    int costY = statusY + fontRegularMetrics.getHeight();
+
+    if (selectedUnlocked) {
+      backBufferGraphics.setColor(Color.GREEN);
+      drawCenteredRegularString(screen, "STATUS: UNLOCKED", statusY);
+
+    } else {
+      backBufferGraphics.setColor(Color.RED);
+      drawCenteredRegularString(screen, "STATUS: LOCKED", statusY);
+
+      backBufferGraphics.setColor(Color.YELLOW);
+      String costText = "COST: " + getShipUnlockCost(selectedShipIndex) + " Coins";
+      drawCenteredRegularString(screen, costText, costY);
+    }
+
     backBufferGraphics.setColor(Color.GRAY);
     drawCenteredRegularString(
         screen, "Press Esc to return, Confirm with Space", screen.getHeight() - 50);
+  }
+
+  private int getShipUnlockCost(int index) {
+    switch (index) {
+      case 0: // Bronze
+        return 0;
+      case 1: // Silver
+        return 2000;
+      case 2: // Gold
+        return 3500;
+      case 3: // Platinum
+        return 5000;
+      default:
+        return 0;
+    }
   }
 
   /*

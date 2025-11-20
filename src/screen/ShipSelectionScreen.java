@@ -197,9 +197,11 @@ public class ShipSelectionScreen extends Screen {
       if (hovershipIndex != null) {
         int clickedIndex = hovershipIndex;
 
-        boolean unlocked = (unlockedStates == null)
-                || (clickedIndex >= 0 && clickedIndex < unlockedStates.length
-                && unlockedStates[clickedIndex]);
+        boolean unlocked =
+            (unlockedStates == null)
+                || (clickedIndex >= 0
+                    && clickedIndex < unlockedStates.length
+                    && unlockedStates[clickedIndex]);
         if (!unlocked) {
           SoundManager.playeffect("sound/hover.wav");
           return;
