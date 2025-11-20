@@ -160,7 +160,7 @@ public class ShipSelectionScreen extends Screen {
       }
 
       if (!isSelectedShipUnlocked()) {
-        SoundManager.playeffect("sound/hover.wav");
+        tryUnlockShip(selectedShipIndex);
         return;
       }
       switch (player) {
@@ -203,7 +203,8 @@ public class ShipSelectionScreen extends Screen {
                     && clickedIndex < unlockedStates.length
                     && unlockedStates[clickedIndex]);
         if (!unlocked) {
-          SoundManager.playeffect("sound/hover.wav");
+          tryUnlockShip(clickedIndex);
+          this.selectedShipIndex = clickedIndex;
           return;
         }
         this.selectedShipIndex = clickedIndex;
@@ -239,5 +240,68 @@ public class ShipSelectionScreen extends Screen {
     if (unlockedStates == null) return true;
     if (selectedShipIndex < 0 || selectedShipIndex >= unlockedStates.length) return false;
     return unlockedStates[selectedShipIndex];
+  }
+
+  private int getShipUnlockCost(int index) {
+    switch (index) {
+      case 0: // Bronze (NORMAL)
+        return 0;
+      case 1: // Silver (BIG_SHOT)
+        return 2000;
+      case 2: // Gold (DOUBLE_SHOT)
+        return 3500;
+      case 3: // Platinum (MOVE_FAST)
+        return 5000;
+      default:
+        return 0;
+    }
+  }
+
+  private ShipType getShipTypeByIndex(int index) {
+    switch (index) {
+      case 0:
+        return ShipType.NORMAL;
+      case 1:
+        return ShipType.BIG_SHOT;
+      case 2:
+        return ShipType.DOUBLE_SHOT;
+      case 3:
+        return ShipType.MOVE_FAST;
+      default:
+        return ShipType.NORMAL;
+    }
+  }
+
+  private boolean tryUnlockShip(int index) {
+    if (unlockedStates != null
+        && index >= 0
+        && index < unlockedStates.length
+        && unlockedStates[index]) {
+      return true;
+    }
+    int cost = getShipUnlockCost(index);
+
+    if (coins < cost) {
+      SoundManager.playeffect("sound/hover.wav");
+      return false;
+    }
+    coins -= cost;
+    if (unlockedStates != null && index >= 0 && index < unlockedStates.length) {
+      unlockedStates[index] = true;
+    }
+    try {
+      var fm = Core.getFileManager();
+
+      fm.saveCoins(coins);
+
+      var unlockMap = fm.loadShipUnlocks();
+      unlockMap.put(getShipTypeByIndex(index), true);
+      fm.saveShipUnlocks(unlockMap);
+    } catch (IOException e) {
+      Core.getLogger().warning("Failed to save ship unlock state: " + e.getMessage());
+    }
+
+    SoundManager.playeffect("sound/select.wav");
+    return true;
   }
 }
