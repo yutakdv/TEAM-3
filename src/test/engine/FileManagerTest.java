@@ -17,6 +17,7 @@ public class FileManagerTest {
   private static final String MODE = "1P";
 
   private File scoreFile;
+  private File coinsFile;
 
   @BeforeEach
   public void setup() throws Exception {
@@ -74,6 +75,46 @@ public class FileManagerTest {
     List<Score> loaded = fm.loadHighScores(MODE);
 
     assertEquals(12, loaded.size()); // 그대로 12개 유지
+  }
+
+  // ---------------------------------------------------------
+  // 코인 테스트
+  // ---------------------------------------------------------
+
+  @Test
+  @DisplayName("Coins - saveCoins 후 loadCoins 하면 같은 값이 나와야 함")
+  public void testSaveAndLoadCoins() {
+    FileManager fm = FileManager.getInstance();
+
+    fm.saveCoins(1234);
+    int loaded = fm.loadCoins();
+
+    assertEquals(1234, loaded);
+  }
+
+  @Test
+  @DisplayName("Coins - coins.csv 가 없으면 0을 반환하고 파일을 생성해야 함")
+  public void testLoadCoinsWhenFileMissing() {
+    if (coinsFile.exists()) {
+      assertTrue(coinsFile.delete());
+    }
+
+    FileManager fm = FileManager.getInstance();
+    int loaded = fm.loadCoins();
+
+    assertEquals(0, loaded);
+    assertTrue(coinsFile.exists());
+  }
+
+  @Test
+  @DisplayName("Coins - coins.csv 가 비어 있으면 0으로 초기화하고 저장해야 함")
+  public void testLoadCoinsWhenFileEmpty() throws Exception {
+    try (FileOutputStream out = new FileOutputStream(coinsFile)) {}
+
+    FileManager fm = FileManager.getInstance();
+    int loaded = fm.loadCoins();
+
+    assertEquals(0, loaded);
   }
 
   // ---------------------------------------------------------

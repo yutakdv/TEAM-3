@@ -41,7 +41,7 @@ public class GameStateTest {
   @Test
   @DisplayName("Constructor: coop=true uses shared lives")
   void testConstructorCoopMode() {
-    GameState gs = new GameState(1, 3, true, 50);
+    GameState gs = new GameState(1, 3, true);
 
     assertTrue(gs.isCoop());
     assertTrue(gs.isSharedLives());
@@ -51,7 +51,7 @@ public class GameStateTest {
   /** ---------- Score Tests ---------- * */
   @Test
   void testAddScoreNormal() {
-    GameState gs = new GameState(1, 3, false, 10);
+    GameState gs = new GameState(1, 3, false);
 
     gs.addScore(0, 50);
     assertEquals(50, gs.getScore(0));
@@ -59,7 +59,7 @@ public class GameStateTest {
 
   @Test
   void testAddScoreWithEffectMultiplier() {
-    GameState gs = new GameState(1, 3, false, 10);
+    GameState gs = new GameState(1, 3, false);
 
     gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
     gs.addScore(0, 10);
@@ -70,7 +70,7 @@ public class GameStateTest {
   /** ---------- Bullet / Ship Counters ---------- * */
   @Test
   void testIncBulletsShot() {
-    GameState gs = new GameState(1, 3, false, 10);
+    GameState gs = new GameState(1, 3, false);
     gs.incBulletsShot(0);
     gs.incBulletsShot(0);
 
@@ -80,7 +80,7 @@ public class GameStateTest {
 
   @Test
   void testIncShipsDestroyed() {
-    GameState gs = new GameState(1, 3, false, 10);
+    GameState gs = new GameState(1, 3, false);
     gs.incShipsDestroyed(0);
 
     assertEquals(1, gs.getShipsDestroyed(0));
@@ -89,7 +89,7 @@ public class GameStateTest {
   /** ---------- Coin System ---------- * */
   @Test
   void testAddCoins() {
-    GameState gs = new GameState(1, 3, false, 10);
+    GameState gs = new GameState(1, 3, false);
 
     gs.addCoins(0, 5);
     assertEquals(15, gs.getCoins());
@@ -97,7 +97,7 @@ public class GameStateTest {
 
   @Test
   void testSpendCoinsSuccess() {
-    GameState gs = new GameState(1, 3, false, 20);
+    GameState gs = new GameState(1, 3, false);
 
     assertTrue(gs.spendCoins(0, 10));
     assertEquals(10, gs.getCoins());
@@ -105,7 +105,7 @@ public class GameStateTest {
 
   @Test
   void testSpendCoinsFailNotEnough() {
-    GameState gs = new GameState(1, 3, false, 5);
+    GameState gs = new GameState(1, 3, false);
 
     assertFalse(gs.spendCoins(0, 10));
     assertEquals(5, gs.getCoins());
@@ -114,7 +114,7 @@ public class GameStateTest {
   /** ---------- Lives / Shared Lives ---------- * */
   @Test
   void testDecLifeSinglePlayer() {
-    GameState gs = new GameState(1, 3, false, 10);
+    GameState gs = new GameState(1, 3, false);
 
     gs.decLife(0);
     assertEquals(2, gs.getLivesRemaining());
@@ -122,7 +122,7 @@ public class GameStateTest {
 
   @Test
   void testDecLifeSharedLives() {
-    GameState gs = new GameState(1, 3, true, 10);
+    GameState gs = new GameState(1, 3, true);
 
     int before = gs.getTeamLives();
     gs.decLife(0);
@@ -132,7 +132,7 @@ public class GameStateTest {
 
   @Test
   void testAddLifeSinglePlayer() {
-    GameState gs = new GameState(1, 3, false, 10);
+    GameState gs = new GameState(1, 3, false);
 
     gs.addLife(0, 2);
     assertEquals(5, gs.getLivesRemaining());
@@ -140,7 +140,7 @@ public class GameStateTest {
 
   @Test
   void testAddLifeShared() {
-    GameState gs = new GameState(1, 3, true, 10);
+    GameState gs = new GameState(1, 3, true);
 
     int before = gs.getTeamLives(); // = 3 * 2 = 6
 
@@ -151,7 +151,7 @@ public class GameStateTest {
 
   @Test
   void testTeamAlive() {
-    GameState gs = new GameState(1, 1, false, 10);
+    GameState gs = new GameState(1, 1, false);
     assertTrue(gs.teamAlive());
 
     gs.decLife(0);
@@ -161,7 +161,7 @@ public class GameStateTest {
   /** ---------- Level Progression ---------- * */
   @Test
   void testNextLevel() {
-    GameState gs = new GameState(1, 1, false, 10);
+    GameState gs = new GameState(1, 1, false);
 
     gs.nextLevel();
     assertEquals(2, gs.getLevel());
@@ -170,7 +170,7 @@ public class GameStateTest {
   /** ---------- Effect System ---------- * */
   @Test
   void testAddEffectStartsEffect() {
-    GameState gs = new GameState(1, 1, false, 10);
+    GameState gs = new GameState(1, 1, false);
 
     gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
     assertTrue(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
@@ -178,7 +178,7 @@ public class GameStateTest {
 
   @Test
   void testGetEffectValue() {
-    GameState gs = new GameState(1, 1, false, 10);
+    GameState gs = new GameState(1, 1, false);
 
     gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 3, 1);
     assertEquals(3, gs.getEffectValue(0, ItemEffect.ItemEffectType.SCOREBOOST));
@@ -186,7 +186,7 @@ public class GameStateTest {
 
   @Test
   void testEffectExpiresAfterUpdate() throws Exception {
-    GameState gs = new GameState(1, 1, false, 10);
+    GameState gs = new GameState(1, 1, false);
 
     gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
 
@@ -222,7 +222,7 @@ public class GameStateTest {
 
   @Test
   void testClearEffects() {
-    GameState gs = new GameState(1, 1, false, 10);
+    GameState gs = new GameState(1, 1, false);
 
     gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
     gs.clearEffects(0);
@@ -232,7 +232,7 @@ public class GameStateTest {
 
   @Test
   void testClearAllEffects() {
-    GameState gs = new GameState(1, 1, false, 10);
+    GameState gs = new GameState(1, 1, false);
 
     gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
     gs.addEffect(1, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
