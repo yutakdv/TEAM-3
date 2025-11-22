@@ -39,7 +39,7 @@ public class AchievementManager {
   }
 
   /** Converts the achievements into a boolean list and saves them using FileManager. */
-  public void saveToFile(final String userName, final String mode) throws IOException {
+  public void saveToFile(final String userName, final String mode) {
     final List<Boolean> flags = new ArrayList<>();
     for (final Achievement a : achievements) {
       flags.add(a.isUnlocked());
@@ -63,7 +63,7 @@ public class AchievementManager {
         if (logger.isLoggable(java.util.logging.Level.INFO)) {
           logger.info("Achievement unlocked: " + a);
         }
-        toastQueue.offer(new Toast(a, TOAST_DURATION_MS));
+        toastQueue.offer(new Toast(a));
       }
     }
   }
@@ -99,9 +99,9 @@ public class AchievementManager {
     final Achievement achievement;
     final Cooldown ttl;
 
-    Toast(final Achievement achievement, final int ms) {
+    Toast(final Achievement achievement) {
       this.achievement = achievement;
-      this.ttl = Core.getCooldown(ms);
+      this.ttl = Core.getCooldown(TOAST_DURATION_MS);
     }
 
     boolean alive() {

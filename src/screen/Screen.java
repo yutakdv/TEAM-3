@@ -120,4 +120,14 @@ public class Screen {
   public final int getHeight() {
     return this.height;
   }
+
+  protected void handleBackButtonHover() {
+      final int mx = inputManager.getMouseX();
+      final int my = inputManager.getMouseY();
+      final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+
+      if (backBox.contains(mx, my)) {
+          drawManager.drawBackButton(this, true);
+      }
+  }
 }

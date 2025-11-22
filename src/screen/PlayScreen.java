@@ -2,22 +2,17 @@ package screen;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import engine.Cooldown;
-import engine.Core;
 import engine.SoundManager;
 
 /** Implements the PlayScreen */
 public class PlayScreen extends Screen {
-  private boolean coopSelected = false;
+  private boolean coopSelected = false; // NOPMD - redundant initializer
+  private int menuIndex = 0; // NOPMD - redundant initializer | 0 = 1P, 1 = 2P, 2 = Back
+  private Integer hoverIndex;
 
   public boolean isCoopSelected() {
     return coopSelected;
   }
-
-  private int menuIndex = 0; // 0 = 1P, 1 = 2P, 2 = Back
-
-  private Integer prevHoverIndex = null;
-  private Integer hoverIndex = null;
 
   /**
    * Constructor, establishes the properties of the screen.
@@ -48,14 +43,14 @@ public class PlayScreen extends Screen {
       return;
     }
 
-    int mx = inputManager.getMouseX();
-    int my = inputManager.getMouseY();
-    java.awt.Rectangle[] modeBoxesForKey = drawManager.getPlayMenuHitboxes(this);
-    java.awt.Rectangle backBoxForKey = drawManager.getBackButtonHitbox(this);
-    boolean mouseHovering =
+    final int mx = inputManager.getMouseX();
+    final int my = inputManager.getMouseY();
+    final Rectangle[] modeBoxesForKey = drawManager.getPlayMenuHitboxes(this);
+    final Rectangle backBoxForKey = drawManager.getBackButtonHitbox(this);
+    final boolean mouseHovering =
         modeBoxesForKey[0].contains(mx, my)
             || modeBoxesForKey[1].contains(mx, my)
-            || backBoxForKey.contains(mx, my);
+            || backBoxForKey.contains(mx, my); // NOPMD - LawOfDemeter
 
     if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
       this.menuIndex = (this.menuIndex + 2) % 3;
@@ -86,14 +81,17 @@ public class PlayScreen extends Screen {
         case 2: // "Back"
           this.returnCode = 1; // go back to TitleScreen
           break;
+
+        default:
+          break;
       }
       SoundManager.playeffect("sound/select.wav");
       this.isRunning = false;
     }
     if (inputManager.isMouseClicked()) {
-      java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-      java.awt.Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
-      java.awt.Rectangle[] allBoxes = {
+      final Rectangle backBox = drawManager.getBackButtonHitbox(this);
+      final Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
+      final Rectangle[] allBoxes = {
         modeBoxes[0], // 1P
         modeBoxes[1], // 2P
         backBox // Back
@@ -102,7 +100,9 @@ public class PlayScreen extends Screen {
       for (int i = 0; i < allBoxes.length; i++) {
         if (allBoxes[i].contains(mx, my)) {
           this.menuIndex = i;
-          if (i == 2) this.returnCode = 1; // Back
+          if (i == 2) {
+              this.returnCode = 1; // Back
+          }
           else {
             this.coopSelected = (i == 1); // Mode Select
             this.returnCode = 2;
@@ -119,18 +119,18 @@ public class PlayScreen extends Screen {
     drawManager.initDrawing(this);
 
     // hover highlight
-    int mx = inputManager.getMouseX();
-    int my = inputManager.getMouseY();
+    final int mx = inputManager.getMouseX();
+    final int my = inputManager.getMouseY();
 
-    java.awt.Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
-    java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-    java.awt.Rectangle[] allBoxes = {
+    final Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
+    final Rectangle backBox = drawManager.getBackButtonHitbox(this);
+    final Rectangle[] allBoxes = {
       modeBoxes[0], // 1P
       modeBoxes[1], // 2P
       backBox // Back
     };
 
-    prevHoverIndex = hoverIndex;
+    Integer prevHoverIndex = hoverIndex;
     hoverIndex = null;
 
     for (int i = 0; i < allBoxes.length; i++) {

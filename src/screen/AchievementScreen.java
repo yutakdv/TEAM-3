@@ -11,11 +11,12 @@ import java.util.List;
 
 public class AchievementScreen extends Screen {
 
-  private FileManager fileManager;
-  private AchievementManager achievementManager;
-  private List<Achievement> achievements;
+  private final FileManager fileManager;
+  AchievementManager achievementManager; // NOPMD - Field name matches class name
+  private final List<Achievement> achievements;
   private List<String> completer;
-  private int currentIdx = 0;
+  private int currentIdx;
+  private static final String HOVER_SOUND = "sound/hover.wav";
 
   public AchievementScreen(final int width, final int height, final int fps) {
     super(width, height, fps);
@@ -45,12 +46,12 @@ public class AchievementScreen extends Screen {
     if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT)) {
       currentIdx = (currentIdx + 1) % achievements.size();
       completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-      SoundManager.playeffect("sound/hover.wav");
+      SoundManager.playeffect(HOVER_SOUND);
     }
     if (inputManager.isKeyPressed(KeyEvent.VK_LEFT)) {
       currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
       completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-      SoundManager.playeffect("sound/hover.wav");
+      SoundManager.playeffect(HOVER_SOUND);
     }
 
     super.update();
@@ -58,34 +59,34 @@ public class AchievementScreen extends Screen {
 
     if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
       this.returnCode = 1;
-      SoundManager.playeffect("sound/select.wav");
+      SoundManager.playeffect(HOVER_SOUND);
       this.isRunning = false;
     }
 
     // back button click event
     if (inputManager.isMouseClicked()) {
-      int mx = inputManager.getMouseX();
-      int my = inputManager.getMouseY();
-      java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+      final int mx = inputManager.getMouseX();
+      final int my = inputManager.getMouseY();
+      final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
 
-      if (backBox.contains(mx, my)) {
+      if (backBox.contains(mx, my)) { // NOPMD - LawOfDemeter
         this.returnCode = 1;
-        SoundManager.playeffect("sound/select.wav");
+        SoundManager.playeffect(HOVER_SOUND);
         this.isRunning = false;
       }
 
-      java.awt.Rectangle[] navBoxes = drawManager.getAchievementNavHitboxes(this);
+      final java.awt.Rectangle[] navBoxes = drawManager.getAchievementNavHitboxes(this);
 
       if (navBoxes[0].contains(mx, my)) {
         currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
         completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-        SoundManager.playeffect("sound/hover.wav");
+        SoundManager.playeffect(HOVER_SOUND);
       }
 
       if (navBoxes[1].contains(mx, my)) {
         currentIdx = (currentIdx + 1) % achievements.size();
         completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-        SoundManager.playeffect("sound/hover.wav");
+        SoundManager.playeffect(HOVER_SOUND);
       }
     }
   }
@@ -95,13 +96,7 @@ public class AchievementScreen extends Screen {
     drawManager.drawAchievementMenu(this, achievements.get(currentIdx), completer);
 
     // hover highlight
-    int mx = inputManager.getMouseX();
-    int my = inputManager.getMouseY();
-    java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-
-    if (backBox.contains(mx, my)) {
-      drawManager.drawBackButton(this, true);
-    }
+    handleBackButtonHover();
 
     drawManager.completeDrawing(this);
   }

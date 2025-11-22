@@ -223,11 +223,7 @@ public class ScoreScreen extends Screen {
 
   /** Save the achievement released. 2025-10-03 add new method */
   private void saveAchievement() {
-    try {
       this.achievementManager.saveToFile(new String(this.name), this.mode);
-    } catch (IOException e) {
-      logger.warning("Couldn't save achievements!");
-    }
   }
 
   /** Draws the elements associated with the screen. */

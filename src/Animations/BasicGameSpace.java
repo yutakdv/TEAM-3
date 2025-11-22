@@ -7,8 +7,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * */
 public class BasicGameSpace {
 
-  public final Star[] stars;
-  private int[][] positions;
+  private final Star[] stars;
+  private final int[][] positions;
   private int speed;
   private final int numStars;
 

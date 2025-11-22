@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class MenuSpace { // NOPMD - DataClass
 
-  public final Star[] stars;
+  private final Star[] stars;
   private final int[][] positions;
   private final int numStars;
   private Color color;
