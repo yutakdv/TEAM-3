@@ -1,10 +1,9 @@
 package screen;
 
-import engine.Core;
-import engine.SoundManager;
+import engine.*;
 import entity.Entity;
 import entity.Ship;
-import java.awt.*;
+
 import java.awt.event.KeyEvent;
 
 import java.io.IOException;
@@ -23,6 +22,9 @@ public class ShipSelectionScreen extends Screen {
   private boolean backSelected = false; // If current state is on the back button, can't select ship
 
   private boolean[] unlockedStates = new boolean[4];
+
+  private Achievement CoinsToast = null;
+  private Cooldown CoinsCooldown = null;
 
   public ShipSelectionScreen(final int width, final int height, final int fps, final int player) {
     super(width, height, fps);
@@ -124,8 +126,14 @@ public class ShipSelectionScreen extends Screen {
       for (java.awt.Rectangle r : shipBoxes) {
         if (r.contains(mx, my)) {
           mouseHovering = true;
-          backSelected= false;
+          backSelected = false;
           break;
+        }
+      }
+      if (CoinsToast != null && CoinsCooldown != null) {
+        if (CoinsCooldown.checkFinished()) {
+          CoinsToast = null;
+          CoinsCooldown = null;
         }
       }
     }
@@ -221,6 +229,7 @@ public class ShipSelectionScreen extends Screen {
   }
 
   private void draw() {
+
     drawManager.initDrawing(this);
 
     drawManager.drawShipSelectionMenu(
@@ -233,6 +242,12 @@ public class ShipSelectionScreen extends Screen {
     java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
     boolean backHover = backBox.contains(mx, my);
     drawManager.drawBackButton(this, backHover || backSelected);
+
+    if (CoinsToast != null) {
+      java.util.List<Achievement> list = new java.util.ArrayList<>();
+      list.add(CoinsToast);
+      drawManager.drawAchievementToasts(this, list);
+    }
 
     drawManager.completeDrawing(this);
   }
@@ -284,6 +299,12 @@ public class ShipSelectionScreen extends Screen {
 
     if (coins < cost) {
       SoundManager.playeffect("sound/hover.wav");
+      String title = "NOT ENOUGH COINS";
+      String desc = "";
+
+      CoinsToast = new Achievement(title, desc);
+      CoinsCooldown = Core.getCooldown(3000); // 3초 정도
+      CoinsCooldown.reset();
       return false;
     }
     coins -= cost;

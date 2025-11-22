@@ -1153,8 +1153,9 @@ public final class DrawManager {
       int x = (screen.getWidth() - boxWidth) / 2;
       int y = (screen.getHeight() - boxHeight) / 2;
 
-      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      boolean unlocked = achievement.isUnlocked();
 
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
       g2d.setColor(Color.BLACK);
       g2d.fillRoundRect(x, y, boxWidth, boxHeight, cornerRadius, cornerRadius);
@@ -1166,40 +1167,62 @@ public final class DrawManager {
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
 
       g2d.setFont(fontBig);
-      g2d.setColor(Color.YELLOW);
-      FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
-      int titleWidth = bigMetrics.stringWidth("Achievement Clear!");
-      g2d.drawString("Achievement Clear!", (screen.getWidth() - titleWidth) / 2, y + 35);
 
-      g2d.setFont(fontRegular);
-      g2d.setColor(Color.WHITE);
-      FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
-      int nameWidth = regularMetrics.stringWidth(achievement.getName());
-      g2d.drawString(achievement.getName(), (screen.getWidth() - nameWidth) / 2, y + 60);
+      if (unlocked) {
+        g2d.setColor(Color.YELLOW);
+        FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
+        int titleWidth = bigMetrics.stringWidth("Achievement Clear!");
+        g2d.drawString("Achievement Clear!", (screen.getWidth() - titleWidth) / 2, y + 35);
 
-      g2d.setColor(Color.LIGHT_GRAY);
+        g2d.setFont(fontRegular);
+        g2d.setColor(Color.WHITE);
+        FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
+        int nameWidth = regularMetrics.stringWidth(achievement.getName());
+        g2d.drawString(achievement.getName(), (screen.getWidth() - nameWidth) / 2, y + 60);
 
-      if (achievement.getDescription().length() < 30) {
-        int descWidth = regularMetrics.stringWidth(achievement.getDescription());
-        g2d.drawString(
-            achievement.getDescription(),
-            (screen.getWidth() - descWidth) / 2,
-            y + 80 + regularMetrics.getHeight() / 2);
+        g2d.setColor(Color.LIGHT_GRAY);
+
+        if (achievement.getDescription().length() < 30) {
+          int descWidth = regularMetrics.stringWidth(achievement.getDescription());
+          g2d.drawString(
+              achievement.getDescription(),
+              (screen.getWidth() - descWidth) / 2,
+              y + 80 + regularMetrics.getHeight() / 2);
+        } else {
+          // 30 characters or more to handle the wrap
+          String line1 =
+              achievement.getDescription().substring(0, achievement.getDescription().length() / 2);
+          String line2 =
+              achievement.getDescription().substring(achievement.getDescription().length() / 2);
+
+          // first line
+          int line1Widgh = regularMetrics.stringWidth(line1);
+          g2d.drawString(line1, (screen.getWidth() - line1Widgh) / 2, y + 80);
+
+          // second line
+          int line2Widgh = regularMetrics.stringWidth(line2);
+          g2d.drawString(
+              line2, (screen.getWidth() - line2Widgh) / 2, y + 80 + regularMetrics.getHeight());
+        }
       } else {
-        // 30 characters or more to handle the wrap
-        String line1 =
-            achievement.getDescription().substring(0, achievement.getDescription().length() / 2);
-        String line2 =
-            achievement.getDescription().substring(achievement.getDescription().length() / 2);
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+        g2d.setColor(Color.YELLOW);
+        FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
+        String title = achievement.getName();
+        int titleWidth = bigMetrics.stringWidth(title);
+        g2d.drawString(title, (screen.getWidth() - titleWidth) / 2, y + 65);
 
-        // first line
-        int line1Widgh = regularMetrics.stringWidth(line1);
-        g2d.drawString(line1, (screen.getWidth() - line1Widgh) / 2, y + 80);
+        g2d.setFont(fontRegular);
+        g2d.setColor(Color.LIGHT_GRAY);
+        FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
 
-        // second line
-        int line2Widgh = regularMetrics.stringWidth(line2);
-        g2d.drawString(
-            line2, (screen.getWidth() - line2Widgh) / 2, y + 80 + regularMetrics.getHeight());
+        String[] lines = achievement.getDescription().split("\n");
+        int lineY = y + 60;
+        for (String line : lines) {
+          int w = regularMetrics.stringWidth(line);
+          g2d.drawString(line, (screen.getWidth() - w) / 2, lineY);
+          lineY += regularMetrics.getHeight();
+        }
       }
     } finally {
       g2d.dispose();
@@ -1384,7 +1407,6 @@ public final class DrawManager {
 
     // Back to original font
     backBufferGraphics.setFont(original);
-
 
     // show unlock status and costs
     boolean selectedUnlocked =
