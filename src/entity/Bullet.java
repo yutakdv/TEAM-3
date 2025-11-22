@@ -18,7 +18,7 @@ public class Bullet extends Entity { // NOPMD - DataClass
   private int ownerPlayerId;
 
   // standardised for DrawManager scaling
-  private int playerId;
+  int playerId;
 
   /**
    * Constructor, establishes the bullet's properties.
@@ -29,16 +29,18 @@ public class Bullet extends Entity { // NOPMD - DataClass
    *     down.
    */
   // change the constructor to receive width and height
-  public Bullet(
-      final int positionX,
-      final int positionY,
-      final int speed) {
+  public Bullet(final int positionX, final int positionY, final int speed) {
     super(positionX, positionY, 0, 0, Color.WHITE);
     this.speed = speed;
   }
 
   public void initialize(
-      final int positionX, final int positionY, final int speed, final int width, final int height, final Team team) {
+      final int positionX,
+      final int positionY,
+      final int speed,
+      final int width,
+      final int height,
+      final Team team) {
     this.setPositionX(positionX - width / 2);
     this.setPositionY(positionY);
     this.setSpeed(speed);
@@ -96,10 +98,5 @@ public class Bullet extends Entity { // NOPMD - DataClass
 
   public int getPlayerId() {
     return this.playerId;
-  }
-
-  public void setPlayerId(final int playerId) {
-    this.playerId = playerId;
-    this.ownerPlayerId = playerId; // keep them in sync
   }
 }

@@ -1,10 +1,8 @@
 package engine;
 
-import screen.GameScreen;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import engine.SoundManager;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -15,9 +13,13 @@ import java.util.Queue;
 public class AchievementManager {
   private static final java.util.logging.Logger logger = Core.getLogger();
 
-  private List<Achievement> achievements;
+  private final List<Achievement> achievements;
 
   private static AchievementManager instance;
+
+  private final Queue<Toast> toastQueue = new LinkedList<>();
+  private Toast activeToast;
+  private static final int TOAST_DURATION_MS = 3000;
 
   public AchievementManager() {
     this.achievements = createDefaultAchievements();
@@ -25,7 +27,7 @@ public class AchievementManager {
 
   /** Defines the default achievements available in the game. */
   private List<Achievement> createDefaultAchievements() {
-    List<Achievement> list = new ArrayList<>();
+    final List<Achievement> list = new ArrayList<>();
     list.add(new Achievement("First Blood", "Defeat your first enemy."));
     list.add(new Achievement("Survivor", "Clear a round without losing a life."));
     list.add(new Achievement("Clear", "Clear 5 levels."));
@@ -36,27 +38,15 @@ public class AchievementManager {
     return list;
   }
 
-  /**
-   * Loads the achievements from FileManager using a boolean list and converts them into Achievement
-   * objects.
-   */
-  public void loadFromBooleans(String userName) throws IOException {
-    List<Boolean> flags = FileManager.getInstance().searchAchievementsByName(userName);
-    this.achievements = createDefaultAchievements();
-    for (int i = 0; i < flags.size() && i < achievements.size(); i++) {
-      if (flags.get(i)) {
-        achievements.get(i).unlock();
-      }
-    }
-  }
-
   /** Converts the achievements into a boolean list and saves them using FileManager. */
-  public void saveToFile(String userName, String mode) throws IOException {
-    List<Boolean> flags = new ArrayList<>();
-    for (Achievement a : achievements) {
+  public void saveToFile(final String userName, final String mode) throws IOException {
+    final List<Boolean> flags = new ArrayList<>();
+    for (final Achievement a : achievements) {
       flags.add(a.isUnlocked());
     }
-    FileManager.getInstance().unlockAchievement(userName, flags, mode); // mode 추가
+    // mode 추가
+    final FileManager fm = FileManager.getInstance();
+    fm.unlockAchievement(userName, flags, mode); // NOPMD - LawOfDemeter
   }
 
   /** Returns the current achievement list. */
@@ -65,32 +55,30 @@ public class AchievementManager {
   }
 
   /** Unlocks the achievement by name. */
-  public void unlock(String name) {
-    for (Achievement a : achievements) {
-      if (a.getName().equals(name) && !a.isUnlocked()) {
+  public void unlock(final String name) {
+    for (final Achievement a : achievements) {
+      if (a.getName().equals(name) && !a.isUnlocked()) { // NOPMD - LawOfDemeter
         a.unlock();
         SoundManager.ingameeffect("sound/achievement.wav");
-        logger.info("Achievement unlocked: " + a);
+        if (logger.isLoggable(java.util.logging.Level.INFO)) {
+          logger.info("Achievement unlocked: " + a);
+        }
         toastQueue.offer(new Toast(a, TOAST_DURATION_MS));
       }
     }
   }
 
-  private final Queue<Toast> toastQueue = new LinkedList<>();
-  private Toast activeToast = null;
-  private static final int TOAST_DURATION_MS = 3000;
-
   public void update() {
     if (activeToast == null || !activeToast.alive()) {
       activeToast = toastQueue.poll();
       if (activeToast != null) {
-        activeToast.ttl.reset();
+        activeToast.ttl.reset(); // NOPMD - LawOfDemeter
       }
     }
   }
 
   public List<Achievement> getActiveToasts() {
-    List<Achievement> activeList = new ArrayList<>();
+    final List<Achievement> activeList = new ArrayList<>();
     if (activeToast != null && activeToast.alive()) {
       activeList.add(activeToast.achievement);
     }
@@ -103,14 +91,15 @@ public class AchievementManager {
    * @return If there is at least one pop-up left, true, or false
    */
   public boolean hasPendingToasts() {
-    return (activeToast != null && activeToast.alive()) || !toastQueue.isEmpty();
+    return (activeToast != null && activeToast.alive()) // NOPMD - UselessParentheses
+        || !toastQueue.isEmpty();
   }
 
   private static final class Toast {
     final Achievement achievement;
     final Cooldown ttl;
 
-    Toast(Achievement achievement, int ms) {
+    Toast(final Achievement achievement, final int ms) {
       this.achievement = achievement;
       this.ttl = Core.getCooldown(ms);
     }
@@ -125,7 +114,9 @@ public class AchievementManager {
    * drawAchievementMenu method in DrawManager.
    */
   protected static AchievementManager getInstance() {
-    if (instance == null) instance = new AchievementManager();
+    if (instance == null) {
+      instance = new AchievementManager();
+    }
     return instance;
   }
 }

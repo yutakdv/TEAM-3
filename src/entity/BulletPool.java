@@ -12,7 +12,7 @@ import entity.Entity.Team;
 public final class BulletPool {
 
   /** Set of already created bullets. */
-  private static Set<Bullet> pool = new HashSet<>();
+  private static final Set<Bullet> pool = new HashSet<>();
 
   /** Constructor, not called. */
   private BulletPool() {}
