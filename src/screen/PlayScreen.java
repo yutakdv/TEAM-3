@@ -32,88 +32,114 @@ public class PlayScreen extends Screen {
     return this.returnCode;
   }
 
+    @SuppressWarnings("PMD.OnlyOneReturn")
   protected final void update() {
     super.update();
     draw();
 
-    if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
-      this.returnCode = 1;
-      SoundManager.playeffect("sound/select.wav");
-      this.isRunning = false;
-      return;
-    }
-
-    final int mx = inputManager.getMouseX();
-    final int my = inputManager.getMouseY();
-    final Rectangle[] modeBoxesForKey = drawManager.getPlayMenuHitboxes(this);
-    final Rectangle backBoxForKey = drawManager.getBackButtonHitbox(this);
-    final boolean mouseHovering =
-        modeBoxesForKey[0].contains(mx, my)
-            || modeBoxesForKey[1].contains(mx, my)
-            || backBoxForKey.contains(mx, my); // NOPMD - LawOfDemeter
-
-    if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
-      this.menuIndex = (this.menuIndex + 2) % 3;
-      if (!mouseHovering && this.menuIndex != 2) {
-        SoundManager.playeffect("sound/hover.wav"); // UP
-      }
-    }
-    if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
-      this.menuIndex = (this.menuIndex + 1) % 3;
-      if (!mouseHovering && this.menuIndex != 2) {
-        SoundManager.playeffect("sound/hover.wav"); // DOWN
-      }
-    }
-
-    // back button click event & 1P, 2P button click event
-    if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
-      switch (this.menuIndex) {
-        case 0: // "1 Player"
-          this.coopSelected = false;
-          this.returnCode = 2; // go to GameScreen
-          break;
-
-        case 1: // "2 Players"
-          this.coopSelected = true;
-          this.returnCode = 2; // go to GameScreen
-          break;
-
-        case 2: // "Back"
-          this.returnCode = 1; // go back to TitleScreen
-          break;
-
-        default:
-          break;
-      }
-      SoundManager.playeffect("sound/select.wav");
-      this.isRunning = false;
-    }
-    if (inputManager.isMouseClicked()) {
-      final Rectangle backBox = drawManager.getBackButtonHitbox(this);
-      final Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
-      final Rectangle[] allBoxes = {
-        modeBoxes[0], // 1P
-        modeBoxes[1], // 2P
-        backBox // Back
-      };
-
-      for (int i = 0; i < allBoxes.length; i++) {
-        if (allBoxes[i].contains(mx, my)) {
-          this.menuIndex = i;
-          if (i == 2) {
-              this.returnCode = 1; // Back
-          }
-          else {
-            this.coopSelected = (i == 1); // Mode Select
-            this.returnCode = 2;
-          }
-          SoundManager.playeffect("sound/select.wav");
-          this.isRunning = false;
+      if (handleEscape()) {
           return;
-        }
       }
-    }
+      handleKeyboardNavigation();
+      if (handleSpaceSelection()) {
+          return;
+      }
+      if (handleMouseClickSelection()) {
+          return;
+      }
   }
+
+    private boolean handleEscape() {
+        if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+            this.returnCode = 1;
+            SoundManager.playeffect("sound/select.wav");
+            this.isRunning = false;
+            return true; // NOPMD - intentional early exit
+        }
+        return false;
+    }
+
+    private void handleKeyboardNavigation() {
+        final int mx = inputManager.getMouseX();
+        final int my = inputManager.getMouseY();
+        final Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
+        final Rectangle backBox = drawManager.getBackButtonHitbox(this);
+
+        final boolean mouseHovering =
+                modeBoxes[0].contains(mx, my) ||
+                        modeBoxes[1].contains(mx, my) ||
+                        backBox.contains(mx, my); // NOPMD - LawOfDemeter
+
+        if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
+            this.menuIndex = (menuIndex + 2) % 3;
+            if (!mouseHovering && menuIndex != 2) {
+                SoundManager.playeffect("sound/hover.wav");
+            }
+        }
+
+        if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
+            this.menuIndex = (menuIndex + 1) % 3;
+            if (!mouseHovering && menuIndex != 2) {
+                SoundManager.playeffect("sound/hover.wav");
+            }
+        }
+    }
+
+    private boolean handleSpaceSelection() {
+        if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
+            switch (menuIndex) {
+                case 0:
+                    this.coopSelected = false;
+                    this.returnCode = 2;
+                    break;
+                case 1:
+                    this.coopSelected = true;
+                    this.returnCode = 2;
+                    break;
+                case 2:
+                    this.returnCode = 1;
+                    break;
+                default:
+                    break;
+            }
+            SoundManager.playeffect("sound/select.wav");
+            this.isRunning = false;
+            return true; // NOPMD - intentional early exit
+        }
+        return false;
+    }
+
+    private boolean handleMouseClickSelection() {
+        if (!inputManager.isMouseClicked()) {
+            return false; // NOPMD - intentional early exit
+        }
+
+        final int mx = inputManager.getMouseX();
+        final int my = inputManager.getMouseY();
+        final Rectangle backBox = drawManager.getBackButtonHitbox(this);
+        final Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
+
+        final Rectangle[] allBoxes = {
+                modeBoxes[0], modeBoxes[1], backBox
+        };
+
+        for (int i = 0; i < allBoxes.length; i++) {
+            if (allBoxes[i].contains(mx, my)) {
+                this.menuIndex = i;
+                if (i == 2) {
+                    this.returnCode = 1;
+                } else {
+                    this.coopSelected = i == 1;
+                    this.returnCode = 2;
+                }
+                SoundManager.playeffect("sound/select.wav");
+                this.isRunning = false;
+                return true; // NOPMD - intentional early exit
+            }
+        }
+
+        return false;
+    }
 
   private void draw() {
     drawManager.initDrawing(this);
@@ -130,8 +156,8 @@ public class PlayScreen extends Screen {
       backBox // Back
     };
 
-    Integer prevHoverIndex = hoverIndex;
-    hoverIndex = null;
+    final Integer prevHoverIndex = hoverIndex;
+    hoverIndex = null; // NOPMD - hover cleared intentionally
 
     for (int i = 0; i < allBoxes.length; i++) {
       if (allBoxes[i].contains(mx, my)) {
