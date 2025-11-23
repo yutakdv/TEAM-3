@@ -211,7 +211,7 @@ public class GameSettings {
 
     int new_shooting_frequency = base.getShootingFrequency() - (infinity_level * increaseFreq);
     int new_speed = base.getBaseSpeed() - (infinity_level * increaseSpeed);
-    if (infinity_level % 2 == 1) {
+    if (infinity_level % 2 != 0) {
       new_shooting_frequency -= 10;
       new_speed -= 1;
     }
