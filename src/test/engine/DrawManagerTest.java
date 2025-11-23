@@ -10,7 +10,9 @@ class DrawManagerTest {
   private DrawManager drawManager;
 
   @BeforeEach
-  void setUp() {}
+  void setUp() {
+    drawManager = drawManager.getInstance();
+  }
 
   @AfterEach
   void tearDown() {}
