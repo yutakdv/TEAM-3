@@ -38,6 +38,29 @@ public class GameState {
   // ADD THIS LINE
   private static int coins = 0; // ADD THIS LINE - edited for 2P mode
 
+  static {
+    try {
+      coins = Core.getFileManager().loadCoins();
+      logger.info("[GameState] Loaded coins from file: " + coins);
+    } catch (Exception e) {
+      logger.warning("[GameState] Failed to load coins, defaulting to 0: " + e.getMessage());
+      coins = 0;
+    }
+
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  try {
+                    Core.getFileManager().saveCoins(coins);
+                    logger.info("[GameState] Saved coins on shutdown: " + coins);
+                  } catch (Exception e) {
+                    logger.warning(
+                        "[GameState] Failed to save coins on shutdown: " + e.getMessage());
+                  }
+                }));
+  }
+
   private static class EffectState {
     Cooldown cooldown;
     boolean active;
@@ -55,11 +78,9 @@ public class GameState {
 
   // 2P mode: co-op aware constructor used by the updated Core loop - livesEach
   // applies per-player; co-op uses shared pool.
-  public GameState(final int level, final int livesEach, final boolean coop, final int coin) {
+  public GameState(final int level, final int livesEach, final boolean coop) {
     this.level = level;
     this.coop = coop;
-    this.coins = coin;
-
     if (coop) {
       this.sharedLives = true;
       this.teamLives = Math.max(0, livesEach * NUM_PLAYERS);

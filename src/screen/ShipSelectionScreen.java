@@ -1,10 +1,14 @@
 package screen;
 
-import engine.SoundManager;
+import engine.*;
 import entity.Entity;
 import entity.Ship;
-import java.awt.*;
+
 import java.awt.event.KeyEvent;
+
+import java.io.IOException;
+import entity.Ship.ShipType;
+import engine.Core;
 
 public class ShipSelectionScreen extends Screen {
   private int selectedShipIndex = 0; // 0: NORMAL, 1: BIG_SHOT, 2: DOUBLE_SHOT, 3: MOVE_FAST
@@ -12,14 +16,22 @@ public class ShipSelectionScreen extends Screen {
 
   private Integer hovershipIndex = null;
   private Integer prevHoverIndex = null;
+  private int coins;
 
   private int player;
   private boolean backSelected = false; // If current state is on the back button, can't select ship
+
+  private boolean[] unlockedStates = new boolean[4];
+
+  private Achievement CoinsToast = null;
+  private Cooldown CoinsCooldown = null;
 
   public ShipSelectionScreen(final int width, final int height, final int fps, final int player) {
     super(width, height, fps);
     this.player = player;
     SoundManager.playBGM("sound/menu_sound.wav");
+
+    this.coins = Core.getFileManager().loadCoins();
 
     if (player == 1) {
       shipExamples[0] =
@@ -41,6 +53,25 @@ public class ShipSelectionScreen extends Screen {
               width / 2 + 35, height / 2, Entity.Team.PLAYER2, Ship.ShipType.DOUBLE_SHOT, null);
       shipExamples[3] =
           new Ship(width / 2 + 100, height / 2, Entity.Team.PLAYER2, Ship.ShipType.MOVE_FAST, null);
+    }
+
+    try {
+      var unlockMap = Core.getFileManager().loadShipUnlocks();
+
+      // NORMAL = Bronze
+      unlockedStates[0] = unlockMap.getOrDefault(ShipType.NORMAL, true);
+      // BIG_SHOT = Silver
+      unlockedStates[1] = unlockMap.getOrDefault(ShipType.BIG_SHOT, false);
+      // DOUBLE_SHOT = Gold
+      unlockedStates[2] = unlockMap.getOrDefault(ShipType.DOUBLE_SHOT, false);
+      // MOVE_FAST = Platinum
+      unlockedStates[3] = unlockMap.getOrDefault(ShipType.MOVE_FAST, false);
+
+    } catch (IOException e) {
+      unlockedStates[0] = true;
+      unlockedStates[1] = false;
+      unlockedStates[2] = false;
+      unlockedStates[3] = false;
     }
   }
 
@@ -95,7 +126,14 @@ public class ShipSelectionScreen extends Screen {
       for (java.awt.Rectangle r : shipBoxes) {
         if (r.contains(mx, my)) {
           mouseHovering = true;
+          backSelected = false;
           break;
+        }
+      }
+      if (CoinsToast != null && CoinsCooldown != null) {
+        if (CoinsCooldown.checkFinished()) {
+          CoinsToast = null;
+          CoinsCooldown = null;
         }
       }
     }
@@ -120,9 +158,23 @@ public class ShipSelectionScreen extends Screen {
       }
     }
     if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
+      if (backSelected) {
+        switch (player) {
+          case 1 -> this.returnCode = 5;
+          case 2 -> this.returnCode = 6;
+        }
+        SoundManager.playeffect("sound/select.wav");
+        this.isRunning = false;
+        return;
+      }
+
+      if (!isSelectedShipUnlocked()) {
+        tryUnlockShip(selectedShipIndex);
+        return;
+      }
       switch (player) {
-        case 1 -> this.returnCode = backSelected ? 5 : 6;
-        case 2 -> this.returnCode = backSelected ? 6 : 2;
+        case 1 -> this.returnCode = 6;
+        case 2 -> this.returnCode = 2;
       }
       SoundManager.playeffect("sound/select.wav");
       this.isRunning = false;
@@ -152,6 +204,20 @@ public class ShipSelectionScreen extends Screen {
         return;
       }
       if (hovershipIndex != null) {
+        int clickedIndex = hovershipIndex;
+
+        boolean unlocked =
+            (unlockedStates == null)
+                || (clickedIndex >= 0
+                    && clickedIndex < unlockedStates.length
+                    && unlockedStates[clickedIndex]);
+        if (!unlocked) {
+          tryUnlockShip(clickedIndex);
+          this.selectedShipIndex = clickedIndex;
+          return;
+        }
+        this.selectedShipIndex = clickedIndex;
+
         switch (player) {
           case 1 -> this.returnCode = 6;
           case 2 -> this.returnCode = 2;
@@ -163,9 +229,12 @@ public class ShipSelectionScreen extends Screen {
   }
 
   private void draw() {
+
     drawManager.initDrawing(this);
 
-    drawManager.drawShipSelectionMenu(this, shipExamples, this.selectedShipIndex, this.player);
+    drawManager.drawShipSelectionMenu(
+        this, shipExamples, this.selectedShipIndex, this.player, this.unlockedStates);
+    drawManager.drawShipSelectionCoins(this, this.coins);
 
     // hover highlight
     int mx = inputManager.getMouseX();
@@ -174,6 +243,87 @@ public class ShipSelectionScreen extends Screen {
     boolean backHover = backBox.contains(mx, my);
     drawManager.drawBackButton(this, backHover || backSelected);
 
+    if (CoinsToast != null) {
+      java.util.List<Achievement> list = new java.util.ArrayList<>();
+      list.add(CoinsToast);
+      drawManager.drawAchievementToasts(this, list);
+    }
+
     drawManager.completeDrawing(this);
+  }
+
+  private boolean isSelectedShipUnlocked() {
+    if (unlockedStates == null) return true;
+    if (selectedShipIndex < 0 || selectedShipIndex >= unlockedStates.length) return false;
+    return unlockedStates[selectedShipIndex];
+  }
+
+  private int getShipUnlockCost(int index) {
+    switch (index) {
+      case 0: // Bronze (NORMAL)
+        return 0;
+      case 1: // Silver (BIG_SHOT)
+        return 2000;
+      case 2: // Gold (DOUBLE_SHOT)
+        return 3500;
+      case 3: // Platinum (MOVE_FAST)
+        return 5000;
+      default:
+        return 0;
+    }
+  }
+
+  private ShipType getShipTypeByIndex(int index) {
+    switch (index) {
+      case 0:
+        return ShipType.NORMAL;
+      case 1:
+        return ShipType.BIG_SHOT;
+      case 2:
+        return ShipType.DOUBLE_SHOT;
+      case 3:
+        return ShipType.MOVE_FAST;
+      default:
+        return ShipType.NORMAL;
+    }
+  }
+
+  private boolean tryUnlockShip(int index) {
+    if (unlockedStates != null
+        && index >= 0
+        && index < unlockedStates.length
+        && unlockedStates[index]) {
+      return true;
+    }
+    int cost = getShipUnlockCost(index);
+
+    if (coins < cost) {
+      SoundManager.playeffect("sound/hover.wav");
+      String title = "NOT ENOUGH COINS";
+      String desc = "";
+
+      CoinsToast = new Achievement(title, desc);
+      CoinsCooldown = Core.getCooldown(3000); // 3초 정도
+      CoinsCooldown.reset();
+      return false;
+    }
+    coins -= cost;
+    if (unlockedStates != null && index >= 0 && index < unlockedStates.length) {
+      unlockedStates[index] = true;
+    }
+    try {
+      var fm = Core.getFileManager();
+
+      fm.saveCoins(coins);
+
+      var unlockMap = fm.loadShipUnlocks();
+      unlockMap.put(getShipTypeByIndex(index), true);
+      fm.saveShipUnlocks(unlockMap);
+    } catch (IOException e) {
+      Core.getLogger().warning("Failed to save ship unlock state: " + e.getMessage());
+    }
+
+    SoundManager.playeffect("sound/select.wav");
+    return true;
   }
 }
