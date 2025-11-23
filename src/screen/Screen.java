@@ -1,6 +1,5 @@
 package screen;
 
-import java.awt.Insets;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -36,9 +35,6 @@ public class Screen {
 
   /** Frames per second shown on the screen. */
   protected int fps;
-
-  /** Screen insets. */
-  protected Insets insets;
 
   /** Time until the screen accepts user input. */
   protected Cooldown inputDelay;

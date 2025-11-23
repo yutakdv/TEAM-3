@@ -2,9 +2,6 @@ package screen;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
-
-import engine.Cooldown;
-import engine.Core;
 import engine.SoundManager;
 
 /**
@@ -12,16 +9,17 @@ import engine.SoundManager;
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
+@SuppressWarnings("PMD.OnlyOneReturn")
 public class TitleScreen extends Screen {
 
   /** Time between changes in user selection. */
   //	private Cooldown selectionCooldown;
 
   // menu index added for user mode selection
-  private int menuIndex = 0;
+  private int menuIndex;
 
   /** Added variable to store which menu option is currently hovered */
-  private Integer hoverOption = null;
+  private Integer hoverOption;
 
   /**
    * Constructor, establishes the properties of the screen.
@@ -55,68 +53,87 @@ public class TitleScreen extends Screen {
   /** Updates the elements on screen and checks for events. */
   protected final void update() {
     super.update();
-
     draw();
+
+    handleKeyboardNavigation();
+    if (handleSpaceSelect()) {
+      return;
+    }
+    if (handleMouseClick()) {
+      return; // NOPMD - intentional early exit
+    }
+  }
+
+  private void handleKeyboardNavigation() {
     if (this.hoverOption == null) {
       if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
         SoundManager.playeffect("sound/hover.wav");
         previousMenuItem();
-        this.hoverOption = null;
+        this.hoverOption = null; // NOPMD - intentional null to represent no hover
       }
       if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
         SoundManager.playeffect("sound/hover.wav");
         nextMenuItem();
-        this.hoverOption = null;
+        this.hoverOption = null; // NOPMD - intentional null to represent no hover
       }
     }
+  }
 
+  private boolean handleSpaceSelect() {
     // Play : Adjust the case so that 1p and 2p can be determined within the play.
-    if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
-      SoundManager.playeffect("sound/select.wav");
-      switch (this.menuIndex) {
-        case 0: // "Play"
-          this.returnCode = 5; // go to PlayScreen
-          this.isRunning = false;
-          break;
+    if (!inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
+      return false;
+    }
 
-        case 1: // "Achievements"
-          this.returnCode = 3;
-          this.isRunning = false;
-          break;
-        case 2: // "High scores"
-          this.returnCode = 8;
-          this.isRunning = false;
-          break;
-        case 3: // "Settings"
-          this.returnCode = 4;
-          this.isRunning = false;
-          break;
+    SoundManager.playeffect("sound/select.wav");
+    switch (this.menuIndex) {
+      case 0: // "Play"
+        this.returnCode = 5; // go to PlayScreen
+        break;
 
-        case 4: // "Quit"
-          this.returnCode = 0;
-          this.isRunning = false;
-          break;
+      case 1: // "Achievements"
+        this.returnCode = 3;
+        break;
 
-        default:
-          break;
+      case 2: // "High scores"
+        this.returnCode = 8;
+        break;
+
+      case 3: // "Settings"
+        this.returnCode = 4;
+        break;
+
+      case 4: // "Quit"
+        this.returnCode = 0;
+        break;
+
+      default:
+        break;
+    }
+    this.isRunning = false;
+    return true;
+  }
+
+  private boolean handleMouseClick() {
+    if (!inputManager.isMouseClicked()) {
+      return false;
+    }
+
+    final int tempX = inputManager.getMouseX();
+    final int tempY = inputManager.getMouseY();
+
+    final Rectangle[] boxes = drawManager.getMenuHitboxes(this);
+    final int[] pos = {5, 3, 8, 4, 0};
+
+    for (int i = 0; i < boxes.length; i++) {
+      if (boxes[i].contains(tempX, tempY)) {
+        this.returnCode = pos[i];
+        SoundManager.playeffect("sound/select.wav");
+        this.isRunning = false;
+        return true;
       }
     }
-    if (inputManager.isMouseClicked()) {
-      int temp_x = inputManager.getMouseX();
-      int temp_y = inputManager.getMouseY();
-
-      java.awt.Rectangle[] boxes = drawManager.getMenuHitboxes(this);
-      int[] pos = {5, 3, 8, 4, 0};
-
-      for (int i = 0; i < boxes.length; i++) {
-        if (boxes[i].contains(temp_x, temp_y)) {
-          this.returnCode = pos[i];
-          SoundManager.playeffect("sound/select.wav");
-          this.isRunning = false;
-          break;
-        }
-      }
-    }
+    return false;
   }
 
   /** Shifts the focus to the next menu item. - modified for 2P mode selection */
@@ -134,8 +151,6 @@ public class TitleScreen extends Screen {
     drawManager.menuHover(this.menuIndex);
   }
 
-  /** Draws the elements associated with the screen. */
-
   /** Check hover based on mouse position and menu hitbox. */
   private void draw() {
     drawManager.initDrawing(this);
@@ -143,9 +158,9 @@ public class TitleScreen extends Screen {
     // Main menu space animation
     drawManager.updateMenuSpace();
 
-    int mx = inputManager.getMouseX();
-    int my = inputManager.getMouseY();
-    java.awt.Rectangle[] boxesForHover = drawManager.getMenuHitboxes(this);
+    final int mx = inputManager.getMouseX();
+    final int my = inputManager.getMouseY();
+    final Rectangle[] boxesForHover = drawManager.getMenuHitboxes(this);
 
     Integer newHover = null;
     if (boxesForHover[0].contains(mx, my)) {
@@ -180,7 +195,7 @@ public class TitleScreen extends Screen {
       // If we had a hover and the mouse left, promote last hover to selection for persistance
       if (this.hoverOption != null) {
         this.menuIndex = this.hoverOption; // persist last hovered as selection
-        this.hoverOption = null; // clear hover state
+        this.hoverOption = null; // NOPMD - intentional null state (no hover) | clear hover state
       }
     }
 

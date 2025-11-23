@@ -6,7 +6,7 @@ import java.util.Random;
 public class Explosion { // NOPMD - DataClass
 
   private static final int NUM_PARTICLES = 40;
-  private Particle[] particles;
+  private final Particle[] particles;
   private boolean active;
   private final boolean enemy;
   private final int size;
