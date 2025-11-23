@@ -596,7 +596,9 @@ public final class DrawManager {
     } else {
       levelString = "Stage " + level;
     }
-    backBufferGraphics.drawString(levelString, screen.getWidth() - 250, 25);
+    FontMetrics fontMetrics = backBufferGraphics.getFontMetrics();
+    backBufferGraphics.drawString(
+        levelString, screen.getWidth() / 2 - fontMetrics.stringWidth(levelString) / 2, 25);
   }
 
   public void drawShipCount(final Screen screen, final int shipCount) {
