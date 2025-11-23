@@ -84,7 +84,7 @@ public class ItemDB {
           }
         }
 
-        ItemData data = new ItemData(type, spriteType, dropTier, effectValue, effectDuration, cost);
+        ItemData data = new ItemData(type, spriteType, dropTier, effectValue);
         itemMap.put(type, data);
       }
     } catch (FileNotFoundException e) {
