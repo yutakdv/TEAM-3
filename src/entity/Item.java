@@ -108,8 +108,6 @@ public class Item extends Entity {
     if (data == null) return false;
 
     int value = data.getEffectValue();
-    int duration = data.getEffectDuration();
-    int cost = data.getCost();
 
     boolean applied = false;
     /* item data always true to apply because free
@@ -127,15 +125,6 @@ public class Item extends Entity {
         ItemEffect.applyScoreItem(gameState, playerId, value);
         applied = true;
         break;
-      case "TRIPLESHOT":
-        applied = ItemEffect.applyTripleShot(gameState, playerId, value, duration, cost);
-        break;
-      case "SCOREBOOST":
-        applied = ItemEffect.applyScoreBoost(gameState, playerId, value, duration, cost);
-        break;
-      case "BULLETSPEEDUP":
-        applied = ItemEffect.applyBulletSpeedUp(gameState, playerId, value, duration, cost);
-        break;
       default:
         this.logger.warning("[Item]: No ItemEffect for type " + this.type);
         applied = false;
@@ -144,7 +133,7 @@ public class Item extends Entity {
     if (!applied) {
       // Player couldn't afford the item (or other failure).
       logger.info(
-          "[Item]: Player " + playerId + " couldn't afford " + this.type + " (cost=" + cost + ")");
+          "[Item]: Player " + playerId + " couldn't afford " + this.type);
     }
 
     return applied;
