@@ -21,11 +21,6 @@ public class Score implements Comparable<Score> {
   int[] playerBullets;
   int[] playerKills;
 
-  /** level reached and lives left */
-  int levelReached;
-
-  int livesRemaining;
-
   /** 1P/2P mode */
   final String mode;
 
@@ -45,8 +40,6 @@ public class Score implements Comparable<Score> {
   public Score(final String name, final GameState gs, final String mode) {
     this.name = name;
     this.score = gs.getScore();
-    this.levelReached = gs.getLevel();
-    this.livesRemaining = gs.getLivesRemaining();
     this.mode = mode; // add 1P/2P mode
 
     final int n = GameState.NUM_PLAYERS;

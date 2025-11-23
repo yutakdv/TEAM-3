@@ -23,6 +23,7 @@ public class AchievementScreen extends Screen {
     achievementManager = Core.getAchievementManager();
     achievements = achievementManager.getAchievements();
     fileManager = Core.getFileManager();
+    this.currentIdx = 0;
     this.completer = Core.getFileManager().getAchievementCompleter(achievements.get(currentIdx));
     this.returnCode = 3;
 
