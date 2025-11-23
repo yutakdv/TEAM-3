@@ -78,7 +78,7 @@ public class SettingScreen extends Screen {
    */
   public final void initialize() {
     super.initialize();
-    this.inputCooldown = Core.getCooldown(200);
+    this.inputCooldown = Core.getCooldown(70);
     this.inputCooldown.reset();
     this.selectMenuItem = volumeMenu;
 
@@ -102,8 +102,7 @@ public class SettingScreen extends Screen {
   protected final void update() {
     super.update();
 
-    if (inputManager.isKeyDown(KeyEvent.VK_UP)
-        && this.inputCooldown.checkFinished()
+    if (inputManager.isKeyPressed(KeyEvent.VK_UP)
         && this.selectedSection == 0) {
       if (this.selectMenuItem == back) {
         this.selectMenuItem = menuItem.length - 1;
@@ -113,11 +112,9 @@ public class SettingScreen extends Screen {
         this.selectMenuItem--;
       }
       SoundManager.playeffect("sound/hover.wav");
-      this.inputCooldown.reset();
     }
 
-    if (inputManager.isKeyDown(KeyEvent.VK_DOWN)
-        && this.inputCooldown.checkFinished()
+    if (inputManager.isKeyPressed(KeyEvent.VK_DOWN)
         && this.selectedSection == 0) {
       if (this.selectMenuItem == back) {
         this.selectMenuItem = 0;
@@ -127,7 +124,6 @@ public class SettingScreen extends Screen {
         this.selectMenuItem++;
       }
       SoundManager.playeffect("sound/hover.wav");
-      this.inputCooldown.reset();
     }
 
     /*
@@ -139,37 +135,32 @@ public class SettingScreen extends Screen {
 
     if (this.selectMenuItem == volumeMenu) {
       if (this.inputCooldown.checkFinished()) {
-        if (inputManager.isKeyDown(KeyEvent.VK_SPACE) && selectedSection == 0) {
+        if (inputManager.isKeyPressed(KeyEvent.VK_SPACE) && selectedSection == 0) {
           this.selectedSection = 1;
           this.volumetype = 0;
           SoundManager.playeffect("sound/select.wav");
           this.inputCooldown.reset();
         }
       }
-      if (inputManager.isKeyDown(KeyEvent.VK_BACK_SPACE) && selectedSection == 1) {
+      if (inputManager.isKeyPressed(KeyEvent.VK_BACK_SPACE) && selectedSection == 1) {
         this.selectedSection = 0;
         SoundManager.playeffect("sound/select.wav");
-        this.inputCooldown.reset();
       }
       if (this.selectedSection == 1
-          && inputManager.isKeyDown(KeyEvent.VK_UP)
-          && this.inputCooldown.checkFinished()
+          && inputManager.isKeyPressed(KeyEvent.VK_UP)
           && volumetype > 0
           && selectedSection == 1) {
         this.volumetype--;
         this.volumelevel = volumeLevels[this.volumetype];
         SoundManager.playeffect("sound/hover.wav");
-        this.inputCooldown.reset();
       }
       if (this.selectedSection == 1
-          && inputManager.isKeyDown(KeyEvent.VK_DOWN)
-          && this.inputCooldown.checkFinished()
+          && inputManager.isKeyPressed(KeyEvent.VK_DOWN)
           && volumetype < SLIDER_TITLES.length - 1
           && selectedSection == 1) {
         this.volumetype++;
         this.volumelevel = volumeLevels[this.volumetype];
         SoundManager.playeffect("sound/hover.wav");
-        this.inputCooldown.reset();
       }
       if (inputManager.isKeyDown(KeyEvent.VK_LEFT)
           && this.inputCooldown.checkFinished()
@@ -193,7 +184,7 @@ public class SettingScreen extends Screen {
         volumeLevels[this.volumetype] = this.volumelevel;
         this.inputCooldown.reset();
       }
-      if (inputManager.isKeyDown(KeyEvent.VK_SPACE)
+      if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)
           && selectedSection == 1
           && this.inputCooldown.checkFinished()) {
         boolean newMuted = !Core.isMuted(this.volumetype);
@@ -204,7 +195,7 @@ public class SettingScreen extends Screen {
     }
     /** Change key settings */
     else if (this.selectMenuItem == firstplayerMenu || this.selectMenuItem == secondplayerMenu) {
-      if (inputManager.isKeyDown(KeyEvent.VK_SPACE)
+      if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)
           && this.inputCooldown.checkFinished()
           && waitingForNewKey == false
           && selectedSection == 0) {
@@ -214,7 +205,7 @@ public class SettingScreen extends Screen {
         this.inputCooldown.reset();
       }
       if (this.selectedSection == 1
-          && inputManager.isKeyDown(KeyEvent.VK_BACK_SPACE)
+          && inputManager.isKeyPressed(KeyEvent.VK_BACK_SPACE)
           && this.inputCooldown.checkFinished()
           && waitingForNewKey == false) {
         selectedSection = 0;
@@ -222,26 +213,22 @@ public class SettingScreen extends Screen {
         this.inputCooldown.reset();
       }
       if (this.selectedSection == 1
-          && inputManager.isKeyDown(KeyEvent.VK_UP)
-          && this.inputCooldown.checkFinished()
+          && inputManager.isKeyPressed(KeyEvent.VK_UP)
           && selectedKeyIndex > 0
           && waitingForNewKey == false) {
         selectedKeyIndex--;
         SoundManager.playeffect("sound/hover.wav");
-        this.inputCooldown.reset();
       }
       if (this.selectedSection == 1
-          && inputManager.isKeyDown(KeyEvent.VK_DOWN)
-          && this.inputCooldown.checkFinished()
+          && inputManager.isKeyPressed(KeyEvent.VK_DOWN)
           && selectedKeyIndex < keyItems.length - 1
           && waitingForNewKey == false) {
         selectedKeyIndex++;
         SoundManager.playeffect("sound/hover.wav");
-        this.inputCooldown.reset();
       }
       // Start waiting for new keystrokes
       if (this.selectedSection == 1
-          && inputManager.isKeyDown(KeyEvent.VK_SPACE)
+          && inputManager.isKeyPressed(KeyEvent.VK_SPACE)
           && this.inputCooldown.checkFinished()
           && waitingForNewKey == false) {
         keySelected[selectedKeyIndex] = !keySelected[selectedKeyIndex];
@@ -313,7 +300,7 @@ public class SettingScreen extends Screen {
     }
 
     // change space to escape
-    if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE) && this.inputCooldown.checkFinished()) {
+    if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
       this.isRunning = false;
       SoundManager.playeffect("sound/select.wav");
       this.inputCooldown.reset();
