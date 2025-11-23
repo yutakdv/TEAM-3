@@ -592,12 +592,13 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.WHITE);
     String levelString;
     if (level > GameState.FINITE_LEVEL) {
-      int infinity_level = level - GameState.FINITE_LEVEL;
-      levelString = "Infinity Stage " + infinity_level;
+      levelString = "Infinity Stage";
     } else {
       levelString = "Stage " + level;
     }
-    backBufferGraphics.drawString(levelString, screen.getWidth() - 250, 25);
+    FontMetrics fontMetrics = backBufferGraphics.getFontMetrics();
+    backBufferGraphics.drawString(
+        levelString, screen.getWidth() / 2 - fontMetrics.stringWidth(levelString) / 2, 25);
   }
 
   public void drawShipCount(final Screen screen, final int shipCount) {
@@ -1091,37 +1092,48 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.BLACK);
     backBufferGraphics.fillRect(0, screen.getHeight() / 2 - rectHeight / 2, rectWidth, rectHeight);
     backBufferGraphics.setColor(Color.GREEN);
-    String levelString;
-    if (level > GameState.FINITE_LEVEL) {
-      int infinity_level = level - GameState.FINITE_LEVEL;
-      levelString = "Infinity Stage " + infinity_level;
-    } else {
-      levelString = "Stage " + level;
+    String message = getCountdownMessage(level, number, bonusLife);
+
+    if (message != null) {
+      drawCenteredBigString(
+          screen, message, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+      return;
     }
-    if (number >= 4)
-      if (!bonusLife) {
-        drawCenteredBigString(
-            screen, levelString, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
-      } else {
-        if (level > GameState.FINITE_LEVEL) {
-          drawCenteredRegularString(
-              screen,
-              levelString + " - Bonus life!",
-              screen.getHeight() / 2 + fontRegularMetrics.getHeight() / 3);
-        } else {
-          drawCenteredBigString(
-              screen,
-              levelString + " - Bonus life!",
-              screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
-        }
-      }
-    else if (number != 0)
+    if (number != 0) {
       drawCenteredBigString(
           screen,
           Integer.toString(number),
           screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
-    else
+    } else {
       drawCenteredBigString(screen, "GO!", screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+    }
+  }
+
+  public static String getCountdownMessage(
+      final int level, final int number, final boolean bonusLife) {
+    if (number < 4) {
+      return null;
+    }
+    String levelString;
+    String message = null;
+
+    if (level > GameState.FINITE_LEVEL) {
+      levelString = "Infinity Stage";
+    } else {
+      levelString = "Stage " + level;
+    }
+
+    if (level <= GameState.FINITE_LEVEL + 1) {
+      message = levelString;
+      if (bonusLife) {
+        message += " - Bonus Life";
+      }
+    } else {
+      if (bonusLife) {
+        message = "Bonus Life";
+      }
+    }
+    return message;
   }
 
   public void drawNewHighScoreNotice(final Screen screen) {
