@@ -377,6 +377,12 @@ public class SettingScreen extends Screen {
     for (int i = 0; i < menuItem.length; i++) {
       java.awt.Rectangle menuBox = drawManager.getSettingMenuHitbox(this, i);
       if (clicked && menuBox.contains(mx, my) && selectMenuItem != i) {
+        if (waitingForNewKey){
+          if(selectedKeyIndex >= 0 && selectedKeyIndex < keyItems.length) {
+            keySelected[selectedKeyIndex] = false;
+          }
+          waitingForNewKey = false;
+        }
         this.selectMenuItem = i;
         this.selectedSection = 0;
         this.inputCooldown.reset();
