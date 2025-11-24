@@ -16,7 +16,9 @@ import engine.SoundManager;
 public class HighScoreScreen extends Screen {
 
   /** List of past high scores. */
-  private List<Score> highScores1P, highScores2P;
+  private List<Score> highScores1P;
+
+  private List<Score> highScores2P;
 
   /**
    * Constructor, establishes the properties of the screen.
@@ -36,10 +38,14 @@ public class HighScoreScreen extends Screen {
       this.highScores2P = Core.getFileManager().loadHighScores("2P");
       // 상위 7명만 남기기
       highScores1P.sort((a, b) -> b.getScore() - a.getScore());
-      if (highScores1P.size() > 7) highScores1P = highScores1P.subList(0, 7);
+      if (highScores1P.size() > 7) {
+        highScores1P = highScores1P.subList(0, 7);
+      }
 
       highScores2P.sort((a, b) -> b.getScore() - a.getScore());
-      if (highScores2P.size() > 7) highScores2P = highScores2P.subList(0, 7);
+      if (highScores2P.size() > 7) {
+        highScores2P = highScores2P.subList(0, 7);
+      }
 
     } catch (NumberFormatException | IOException e) {
       logger.warning("Couldn't load high scores!");
@@ -63,23 +69,25 @@ public class HighScoreScreen extends Screen {
     super.update();
 
     draw();
-    if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) this.isRunning = false;
+    if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+      this.isRunning = false;
+    }
 
     // back button click event
     if (inputManager.isMouseClicked()) {
-      int mx = inputManager.getMouseX();
-      int my = inputManager.getMouseY();
-      java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+      final int mx = inputManager.getMouseX();
+      final int my = inputManager.getMouseY();
+      final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
 
-      if (backBox.contains(mx, my)) {
+      if (backBox.contains(mx, my)) { // NOPMD - LawOfDemeter
         this.returnCode = 1;
         this.isRunning = false;
       }
     }
   }
 
-  private List<Score> getPlayerScores(String mode) {
-    return mode.equals("1P") ? highScores1P : highScores2P;
+  private List<Score> getPlayerScores(final String mode) {
+    return "1P".equals(mode) ? highScores1P : highScores2P;
   }
 
   /** Draws the elements associated with the screen. */
@@ -91,13 +99,7 @@ public class HighScoreScreen extends Screen {
     drawManager.drawHighScores(this, getPlayerScores("2P"), "2P"); // Right column
 
     // hover highlight
-    int mx = inputManager.getMouseX();
-    int my = inputManager.getMouseY();
-    java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-
-    if (backBox.contains(mx, my)) {
-      drawManager.drawBackButton(this, true);
-    }
+    handleBackButtonHover();
 
     drawManager.completeDrawing(this);
   }

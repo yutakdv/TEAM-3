@@ -348,7 +348,7 @@ public final class DrawManager {
 
         float[] dist = {0.0f, 0.3f, 0.7f, 1.0f};
         Color[] colors;
-        if (e.enemy()) {
+        if (e.isEnemy()) {
           colors =
               new Color[] {
                 new Color(255, 255, 250, flickerAlpha),

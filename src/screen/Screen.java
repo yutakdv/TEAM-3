@@ -1,6 +1,5 @@
 package screen;
 
-import java.awt.Insets;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -36,9 +35,6 @@ public class Screen {
 
   /** Frames per second shown on the screen. */
   protected int fps;
-
-  /** Screen insets. */
-  protected Insets insets;
 
   /** Time until the screen accepts user input. */
   protected Cooldown inputDelay;
@@ -119,5 +115,15 @@ public class Screen {
    */
   public final int getHeight() {
     return this.height;
+  }
+
+  protected void handleBackButtonHover() {
+      final int mx = inputManager.getMouseX();
+      final int my = inputManager.getMouseY();
+      final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+
+      if (backBox.contains(mx, my)) {
+          drawManager.drawBackButton(this, true);
+      }
   }
 }
