@@ -326,6 +326,7 @@ public class GameScreen extends Screen {
       SoundManager.stopAllMusic(); // Stop all music before returning to menu
       returnCode = 1;
       this.isRunning = false;
+      Core.getFileManager().saveCoins(state.getCoins());
     }
 
     if (this.isPaused) {

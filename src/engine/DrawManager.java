@@ -562,6 +562,20 @@ public final class DrawManager {
         "P2: " + String.format("%04d", coinsP2), screen.getWidth() - 100, 25);
   }
 
+  public void drawShipSelectionCoins(final Screen screen, final int coins) {
+    backBufferGraphics.setFont(fontRegular);
+    backBufferGraphics.setColor(Color.YELLOW);
+
+    String text = "COIN : " + String.format("%04d", coins);
+
+    int padding = 10;
+    int textWidth = fontRegularMetrics.stringWidth(text);
+    int x = screen.getWidth() - padding - textWidth;
+    int y = padding + fontRegularMetrics.getAscent();
+
+    backBufferGraphics.drawString(text, x, y);
+  }
+
   /**
    * Draws a thick line from side to side of the screen.
    *
@@ -578,12 +592,13 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.WHITE);
     String levelString;
     if (level > GameState.FINITE_LEVEL) {
-      int infinity_level = level - GameState.FINITE_LEVEL;
-      levelString = "Infinity Stage " + infinity_level;
+      levelString = "Infinity Stage";
     } else {
       levelString = "Stage " + level;
     }
-    backBufferGraphics.drawString(levelString, screen.getWidth() - 250, 25);
+    FontMetrics fontMetrics = backBufferGraphics.getFontMetrics();
+    backBufferGraphics.drawString(
+        levelString, screen.getWidth() / 2 - fontMetrics.stringWidth(levelString) / 2, 25);
   }
 
   public void drawShipCount(final Screen screen, final int shipCount) {
@@ -1077,37 +1092,48 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.BLACK);
     backBufferGraphics.fillRect(0, screen.getHeight() / 2 - rectHeight / 2, rectWidth, rectHeight);
     backBufferGraphics.setColor(Color.GREEN);
-    String levelString;
-    if (level > GameState.FINITE_LEVEL) {
-      int infinity_level = level - GameState.FINITE_LEVEL;
-      levelString = "Infinity Stage " + infinity_level;
-    } else {
-      levelString = "Stage " + level;
+    String message = getCountdownMessage(level, number, bonusLife);
+
+    if (message != null) {
+      drawCenteredBigString(
+          screen, message, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+      return;
     }
-    if (number >= 4)
-      if (!bonusLife) {
-        drawCenteredBigString(
-            screen, levelString, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
-      } else {
-        if (level > GameState.FINITE_LEVEL) {
-          drawCenteredRegularString(
-              screen,
-              levelString + " - Bonus life!",
-              screen.getHeight() / 2 + fontRegularMetrics.getHeight() / 3);
-        } else {
-          drawCenteredBigString(
-              screen,
-              levelString + " - Bonus life!",
-              screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
-        }
-      }
-    else if (number != 0)
+    if (number != 0) {
       drawCenteredBigString(
           screen,
           Integer.toString(number),
           screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
-    else
+    } else {
       drawCenteredBigString(screen, "GO!", screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
+    }
+  }
+
+  public static String getCountdownMessage(
+      final int level, final int number, final boolean bonusLife) {
+    if (number < 4) {
+      return null;
+    }
+    String levelString;
+    String message = null;
+
+    if (level > GameState.FINITE_LEVEL) {
+      levelString = "Infinity Stage";
+    } else {
+      levelString = "Stage " + level;
+    }
+
+    if (level <= GameState.FINITE_LEVEL + 1) {
+      message = levelString;
+      if (bonusLife) {
+        message += " - Bonus Life";
+      }
+    } else {
+      if (bonusLife) {
+        message = "Bonus Life";
+      }
+    }
+    return message;
   }
 
   public void drawNewHighScoreNotice(final Screen screen) {
@@ -1139,8 +1165,9 @@ public final class DrawManager {
       int x = (screen.getWidth() - boxWidth) / 2;
       int y = (screen.getHeight() - boxHeight) / 2;
 
-      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      boolean unlocked = achievement.isUnlocked();
 
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
       g2d.setColor(Color.BLACK);
       g2d.fillRoundRect(x, y, boxWidth, boxHeight, cornerRadius, cornerRadius);
@@ -1152,40 +1179,62 @@ public final class DrawManager {
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
 
       g2d.setFont(fontBig);
-      g2d.setColor(Color.YELLOW);
-      FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
-      int titleWidth = bigMetrics.stringWidth("Achievement Clear!");
-      g2d.drawString("Achievement Clear!", (screen.getWidth() - titleWidth) / 2, y + 35);
 
-      g2d.setFont(fontRegular);
-      g2d.setColor(Color.WHITE);
-      FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
-      int nameWidth = regularMetrics.stringWidth(achievement.getName());
-      g2d.drawString(achievement.getName(), (screen.getWidth() - nameWidth) / 2, y + 60);
+      if (unlocked) {
+        g2d.setColor(Color.YELLOW);
+        FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
+        int titleWidth = bigMetrics.stringWidth("Achievement Clear!");
+        g2d.drawString("Achievement Clear!", (screen.getWidth() - titleWidth) / 2, y + 35);
 
-      g2d.setColor(Color.LIGHT_GRAY);
+        g2d.setFont(fontRegular);
+        g2d.setColor(Color.WHITE);
+        FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
+        int nameWidth = regularMetrics.stringWidth(achievement.getName());
+        g2d.drawString(achievement.getName(), (screen.getWidth() - nameWidth) / 2, y + 60);
 
-      if (achievement.getDescription().length() < 30) {
-        int descWidth = regularMetrics.stringWidth(achievement.getDescription());
-        g2d.drawString(
-            achievement.getDescription(),
-            (screen.getWidth() - descWidth) / 2,
-            y + 80 + regularMetrics.getHeight() / 2);
+        g2d.setColor(Color.LIGHT_GRAY);
+
+        if (achievement.getDescription().length() < 30) {
+          int descWidth = regularMetrics.stringWidth(achievement.getDescription());
+          g2d.drawString(
+              achievement.getDescription(),
+              (screen.getWidth() - descWidth) / 2,
+              y + 80 + regularMetrics.getHeight() / 2);
+        } else {
+          // 30 characters or more to handle the wrap
+          String line1 =
+              achievement.getDescription().substring(0, achievement.getDescription().length() / 2);
+          String line2 =
+              achievement.getDescription().substring(achievement.getDescription().length() / 2);
+
+          // first line
+          int line1Widgh = regularMetrics.stringWidth(line1);
+          g2d.drawString(line1, (screen.getWidth() - line1Widgh) / 2, y + 80);
+
+          // second line
+          int line2Widgh = regularMetrics.stringWidth(line2);
+          g2d.drawString(
+              line2, (screen.getWidth() - line2Widgh) / 2, y + 80 + regularMetrics.getHeight());
+        }
       } else {
-        // 30 characters or more to handle the wrap
-        String line1 =
-            achievement.getDescription().substring(0, achievement.getDescription().length() / 2);
-        String line2 =
-            achievement.getDescription().substring(achievement.getDescription().length() / 2);
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+        g2d.setColor(Color.YELLOW);
+        FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
+        String title = achievement.getName();
+        int titleWidth = bigMetrics.stringWidth(title);
+        g2d.drawString(title, (screen.getWidth() - titleWidth) / 2, y + 65);
 
-        // first line
-        int line1Widgh = regularMetrics.stringWidth(line1);
-        g2d.drawString(line1, (screen.getWidth() - line1Widgh) / 2, y + 80);
+        g2d.setFont(fontRegular);
+        g2d.setColor(Color.LIGHT_GRAY);
+        FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
 
-        // second line
-        int line2Widgh = regularMetrics.stringWidth(line2);
-        g2d.drawString(
-            line2, (screen.getWidth() - line2Widgh) / 2, y + 80 + regularMetrics.getHeight());
+        String[] lines = achievement.getDescription().split("\n");
+        int lineY = y + 60;
+        for (String line : lines) {
+          int w = regularMetrics.stringWidth(line);
+          g2d.drawString(line, (screen.getWidth() - w) / 2, lineY);
+          lineY += regularMetrics.getHeight();
+        }
       }
     } finally {
       g2d.dispose();
@@ -1298,17 +1347,16 @@ public final class DrawManager {
       final Screen screen,
       final Ship[] shipExamples,
       final int selectedShipIndex,
-      final int playerIndex) {
-    Ship ship = shipExamples[selectedShipIndex];
-    int centerX = ship.getPositionX();
+      final int playerIndex,
+      final boolean[] unlockedStates) {
 
     String screenTitle = "PLAYER " + playerIndex + " : CHOOSE YOUR SHIP";
 
     // Ship Type Info
-    String[] shipNames = {"Normal Type", "Big Shot Type", "Double Shot Type", "Speed Type"};
-    String[] shipSpeeds = {"SPEED: NORMAL", "SPEED: SLOW", "SPEED: SLOW", "SPEED: FAST"};
+    String[] shipNames = {"Bronze", "Silver", "Gold", "Platinum"};
+    String[] shipSpeeds = {"SPEED: ■□□□□", "SPEED: ■■□□□", "SPEED: ■■■□□", "SPEED: ■■■■□"};
     String[] shipFireRates = {
-      "FIRE RATE: NORMAL", "FIRE RATE: NORMAL", "FIRE RATE: NORMAL", "FIRE RATE: SLOW"
+      "FIRE RATE: ■□□□□", "FIRE RATE: ■■□□□", "FIRE RATE: ■■□□□", "FIRE RATE: ■■■■□"
     };
 
     for (int i = 0; i < shipExamples.length; i++) {
@@ -1316,8 +1364,21 @@ public final class DrawManager {
       int x = s.getPositionX() - s.getWidth() / 2;
       int y = s.getPositionY();
 
+      boolean unlocked = unlockedStates != null && unlockedStates.length > i && unlockedStates[i];
+
+      Color shipColor;
+      if (!unlocked) {
+        shipColor = Color.GRAY.darker().darker();
+      } else {
+        if (playerIndex == 1) {
+          shipColor = Color.BLUE;
+        } else {
+          shipColor = Color.RED;
+        }
+      }
+      drawEntity(s, x, y, shipColor);
+
       if (i == selectedShipIndex) {
-        drawEntity(s, x, y, null);
 
         int padding = 5;
         int frameX = x - padding;
@@ -1326,16 +1387,8 @@ public final class DrawManager {
         int frameH = s.getHeight() + padding * 2;
 
         drawFrame(frameX, frameY, frameW, frameH, Color.WHITE, 8, 1);
-
-      } else {
-        drawEntity(s, x, y, Color.GRAY.darker().darker());
       }
     }
-    //        for (int i = 0; i < 4; i++) {
-    //            // Draw Player Ship
-    //            drawManager.drawEntity(ship, ship.getPositionX() - ship.getWidth()/2,
-    // ship.getPositionY());
-    //        }
 
     // Draw Selected Player Page Title
     backBufferGraphics.setColor(Color.GREEN);
@@ -1344,19 +1397,72 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.white);
     drawCenteredRegularString(
         screen, " > " + shipNames[selectedShipIndex] + " < ", screen.getHeight() / 2 - 40);
-    // Draw Selected Player Ship Info
+
+    // Temporarily changes the font that support the Unicode
+    Font original = backBufferGraphics.getFont();
+    Font statFont = new Font("Dialog", Font.PLAIN, 18);
+    backBufferGraphics.setFont(statFont);
+    java.awt.FontMetrics fm = backBufferGraphics.getFontMetrics(statFont);
+
+    String speedStr = shipSpeeds[selectedShipIndex];
+    String fireStr = shipFireRates[selectedShipIndex];
+
+    int speedY = screen.getHeight() / 2 + 60;
+    int fireY = screen.getHeight() / 2 + 80;
+
+    int speedX = screen.getWidth() / 2 - fm.stringWidth(speedStr) / 2;
+    int fireX = screen.getWidth() / 2 - fm.stringWidth(fireStr) / 2;
+
     backBufferGraphics.setColor(Color.WHITE);
-    //        drawCenteredRegularString(shipSpeeds[selectedShipIndex], centerX, screen.getHeight() /
-    // 2 + 60);
-    //        drawCenteredRegularString(shipFireRates[selectedShipIndex], centerX,
-    // screen.getHeight() / 2 + 80);
-    drawCenteredRegularString(screen, shipSpeeds[selectedShipIndex], screen.getHeight() / 2 + 60);
-    drawCenteredRegularString(
-        screen, shipFireRates[selectedShipIndex], screen.getHeight() / 2 + 80);
+    backBufferGraphics.drawString(speedStr, speedX, speedY);
+    backBufferGraphics.drawString(fireStr, fireX, fireY);
+
+    // Back to original font
+    backBufferGraphics.setFont(original);
+
+    // show unlock status and costs
+    boolean selectedUnlocked =
+        (unlockedStates == null)
+            || (selectedShipIndex >= 0
+                && selectedShipIndex < unlockedStates.length
+                && unlockedStates[selectedShipIndex]);
+
+    backBufferGraphics.setFont(fontRegular);
+
+    int statusY = screen.getHeight() / 2 + 115;
+    int costY = statusY + fontRegularMetrics.getHeight();
+
+    if (selectedUnlocked) {
+      backBufferGraphics.setColor(Color.GREEN);
+      drawCenteredRegularString(screen, "STATUS: UNLOCKED", statusY);
+
+    } else {
+      backBufferGraphics.setColor(Color.RED);
+      drawCenteredRegularString(screen, "STATUS: LOCKED", statusY);
+
+      backBufferGraphics.setColor(Color.YELLOW);
+      String costText = "COST: " + getShipUnlockCost(selectedShipIndex) + " Coins";
+      drawCenteredRegularString(screen, costText, costY);
+    }
 
     backBufferGraphics.setColor(Color.GRAY);
     drawCenteredRegularString(
         screen, "Press Esc to return, Confirm with Space", screen.getHeight() - 50);
+  }
+
+  private int getShipUnlockCost(int index) {
+    switch (index) {
+      case 0: // Bronze
+        return 0;
+      case 1: // Silver
+        return 2000;
+      case 2: // Gold
+        return 3500;
+      case 3: // Platinum
+        return 5000;
+      default:
+        return 0;
+    }
   }
 
   /*

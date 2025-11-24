@@ -183,34 +183,48 @@ public class GameSettings {
       System.exit(1);
       return Collections.emptyList();
     }
-    GameSettings base = result.get(GameState.FINITE_LEVEL - 1);
-    final int BASE_SPEED = base.getBaseSpeed();
-    final int BASE_SHOOTING_FREQUENCY = base.getShootingFrequency();
-    final int INCREASE_AMOUNT_SHOOTING_FREQUENCY = 30;
-    final int INCREASE_AMOUNT_SPEED = 3;
-    final int MAX_INCREASE = 100;
-    for (int level = GameState.FINITE_LEVEL + 1; level < MAX_INCREASE; level++) {
-      int increase_shooting_frequency =
-          (level - GameState.FINITE_LEVEL) * INCREASE_AMOUNT_SHOOTING_FREQUENCY;
-      int increase_speed = (level - GameState.FINITE_LEVEL) * INCREASE_AMOUNT_SPEED;
-      int new_shooting_frequency = BASE_SHOOTING_FREQUENCY - increase_shooting_frequency;
-      int new_speed = BASE_SPEED - increase_speed;
-      if (new_speed <= 0) {
-        new_speed = 1;
-      }
-      if (new_shooting_frequency <= 0) {
-        new_shooting_frequency = 1;
+    GameSettings base1 = result.get(result.size() - 2);
+    GameSettings base2 = result.get(result.size() - 1);
+    final int INCREASE_AMOUNT_SHOOTING_FREQUENCY = 10;
+    final int INCREASE_AMOUNT_SPEED = 1;
+    for (int level = result.size() + 1; level < GameState.INFINITE_LEVEL; level++) {
+      GameSettings base;
+      if (level % 2 == 0) {
+        base = base1;
+      } else {
+        base = base2;
       }
       GameSettings infinity_setting =
-          new GameSettings(
-              base.getFormationWidth(),
-              base.getFormationHeight(),
-              new_speed,
-              new_shooting_frequency);
+          calculateInfiniteSetting(
+              base,
+              level - result.size(),
+              INCREASE_AMOUNT_SHOOTING_FREQUENCY,
+              INCREASE_AMOUNT_SPEED);
       infinity_setting.changeDataList.addAll(base.getChangeDataList());
       result.add(infinity_setting);
     }
     return result;
+  }
+
+  public static GameSettings calculateInfiniteSetting(
+      GameSettings base, int infinity_level, int increaseFreq, int increaseSpeed) {
+
+    int new_shooting_frequency = base.getShootingFrequency() - (infinity_level * increaseFreq);
+    int new_speed = base.getBaseSpeed() - (infinity_level * increaseSpeed);
+    if (infinity_level % 2 != 0) {
+      new_shooting_frequency -= 10;
+      new_speed -= 1;
+    }
+
+    if (new_speed <= 0) {
+      new_speed = 1;
+    }
+    if (new_shooting_frequency < 100) {
+      new_shooting_frequency = 100;
+    }
+
+    return new GameSettings(
+        base.getFormationWidth(), base.getFormationHeight(), new_speed, new_shooting_frequency);
   }
 
   /**

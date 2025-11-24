@@ -140,4 +140,23 @@ public class GameSettingsTest {
     List<GameSettings.StageData> stages = GameSettings.parseStages(in);
     assertEquals(0, stages.size());
   }
+
+  // ----------------------------------CalculateInfiniteSetting-------------------------------
+  @Test
+  void testCalculateInfiniteSetting() {
+    GameSettings base1 = new GameSettings(7, 3, 39, 656);
+    GameSettings base2 = new GameSettings(7, 4, 38, 646);
+    GameSettings test1 = GameSettings.calculateInfiniteSetting(base1, 1, 10, 1);
+    assertEquals(636, test1.getShootingFrequency());
+    assertEquals(37, test1.getBaseSpeed());
+    GameSettings test2 = GameSettings.calculateInfiniteSetting(base2, 2, 10, 1);
+    assertEquals(626, test2.getShootingFrequency());
+    assertEquals(36, test2.getBaseSpeed());
+    GameSettings test3 = GameSettings.calculateInfiniteSetting(base2, 40, 10, 1);
+    assertEquals(246, test3.getShootingFrequency());
+    assertEquals(1, test3.getBaseSpeed());
+    GameSettings test4 = GameSettings.calculateInfiniteSetting(base2, 70, 10, 1);
+    assertEquals(100, test4.getShootingFrequency());
+    assertEquals(1, test4.getBaseSpeed());
+  }
 }
