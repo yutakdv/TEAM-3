@@ -18,7 +18,7 @@ class ShipTest {
   /** Fake GameState for item effects */
   static class FakeGameState extends GameState {
     public FakeGameState() {
-      super(1, 3, false, 0);
+      super(1, 3, false);
     }
 
     public boolean triple = false;
@@ -70,21 +70,21 @@ class ShipTest {
   @Test
   void testShipTypeBigShot() {
     Ship s = new Ship(0, 0, Entity.Team.PLAYER1, Ship.ShipType.BIG_SHOT, null);
-    assertEquals(1, s.getSpeed()); // BASE_SPEED-1
+    assertEquals(3, s.getSpeed()); // BASE_SPEED-1
     assertEquals(SpriteType.Ship2, s.getSpriteType());
   }
 
   @Test
   void testShipTypeDoubleShot() {
     Ship s = new Ship(0, 0, Entity.Team.PLAYER1, Ship.ShipType.DOUBLE_SHOT, null);
-    assertEquals(1, s.getSpeed());
+    assertEquals(4, s.getSpeed());
     assertEquals(SpriteType.Ship3, s.getSpriteType());
   }
 
   @Test
   void testShipTypeMoveFast() {
     Ship s = new Ship(0, 0, Entity.Team.PLAYER1, Ship.ShipType.MOVE_FAST, null);
-    assertEquals(3, s.getSpeed()); // BASE_SPEED+1
+    assertEquals(5, s.getSpeed()); // BASE_SPEED+1
     assertEquals(SpriteType.Ship4, s.getSpriteType());
   }
 

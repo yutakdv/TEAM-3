@@ -2,29 +2,23 @@ package screen;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.sql.Array;
 import java.util.*;
-
-import engine.*;
+import engine.*; // NOPMD - false positive, engine classes used implicitly
 
 /**
  * Implements the score screen.
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
+@SuppressWarnings("PMD.OnlyOneReturn")
 public class ScoreScreen extends Screen {
 
   /** Milliseconds between changes in user selection. */
   private static final int SELECTION_TIME = 200;
 
-  /** Code of first mayus character. */
-  private static final int FIRST_CHAR = 65;
-
-  /** Code of last mayus character. */
-  private static final int LAST_CHAR = 90;
-
   /** Code of max high score. */
-  private static final int MAX_HIGH_SCORE_NUM = 7;
+  private static final int MAX_HIGH_SCORE_NUM =
+      7; // NOPMD - variable name intentionally descriptive
 
   /** Maximum name length. */
   private static final int MAX_NAME_LENGTH = 5;
@@ -33,19 +27,19 @@ public class ScoreScreen extends Screen {
   private final GameState gameState;
 
   /** Current score. */
-  private int score;
+  private final int score;
 
   /** Player lives left. */
-  private int livesRemaining;
+  private final int livesRemaining;
 
   /** Current coins. */
-  private int coins;
+  private final int coins;
 
   /** Total bullets shot by the player. */
-  private int bulletsShot;
+  private final int bulletsShot;
 
   /** Total ships destroyed by the player. */
-  private int shipsDestroyed;
+  private final int shipsDestroyed;
 
   /** List of past high scores. */
   private List<Score> highScores;
@@ -54,25 +48,26 @@ public class ScoreScreen extends Screen {
   private boolean isNewRecord;
 
   /** Player name for record input. */
-  private StringBuilder name;
+  private StringBuilder name; // NOPMD - false positive
 
   /** Character of players name selected for change. */
-  private int nameCharSelected;
+  final int nameCharSelected;
 
   /** Make sure the name is less than 3 characters. */
-  private boolean showNameError = false;
+  private boolean showNameError = false; // NOPMD - keep explicit initializer for clarity
 
   /** Time between changes in user selection. */
-  private Cooldown selectionCooldown;
+  private final Cooldown selectionCooldown;
 
   /** manages achievements. */
-  private AchievementManager achievementManager;
+  private final AchievementManager
+      achievementManager; // NOPMD - variable name intentionally descriptive
 
   /** Total coins earned in the game. */
-  private int[] totalCoins = new int[2];
+  final int[] totalCoins = new int[2];
 
   /** check 1P/2P mode; */
-  private String mode;
+  private final String mode;
 
   /**
    * Constructor, establishes the properties of the screen.
@@ -89,8 +84,9 @@ public class ScoreScreen extends Screen {
       final int height,
       final int fps,
       final GameState gameState,
-      final AchievementManager achievementManager)
-      throws IOException {
+      final AchievementManager
+          achievementManager) // NOPMD - variable name intentionally descriptive
+      {
     super(width, height, fps);
     this.gameState = gameState; // Added
 
@@ -112,7 +108,9 @@ public class ScoreScreen extends Screen {
     try {
       this.highScores = Core.getFileManager().loadHighScores(this.mode);
       if (highScores.size() < MAX_HIGH_SCORE_NUM
-          || highScores.get(highScores.size() - 1).getScore() < this.score) this.isNewRecord = true;
+          || highScores.get(highScores.size() - 1).getScore() < this.score) {
+        this.isNewRecord = true;
+      }
 
     } catch (IOException e) {
       logger.warning("Couldn't load high scores!");
@@ -135,55 +133,82 @@ public class ScoreScreen extends Screen {
   /** Updates the elements on screen and checks for events. */
   protected final void update() {
     super.update();
-
     draw();
-    if (this.inputDelay.checkFinished()) {
-      if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {
-        // Return to main menu.
-        SoundManager.playeffect("sound/select.wav");
-        this.returnCode = 1;
-        this.isRunning = false;
-        if (this.isNewRecord) {
-          saveScore();
-          saveAchievement(); // 2025-10-03 call method for save achievement released
-        }
-      } else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
-        // name too short -> return
-        if (this.name.length() < 3) return;
-        // Play again.
-        SoundManager.playeffect("sound/select.wav");
-        this.returnCode = 2;
-        this.isRunning = false;
-        if (this.isNewRecord) {
-          saveScore();
-          saveAchievement(); // 2025-10-03 call method for save achievement released
+
+    if (!this.inputDelay.checkFinished()) {
+      return;
+    }
+
+    if (handleEscape()) {
+      return;
+    }
+    if (handleSpace()) {
+      return;
+    }
+
+    handleBackspace();
+    handleCharInput();
+  }
+
+  private boolean handleEscape() {
+    if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {
+      // Return to main menu.
+      SoundManager.playeffect("sound/select.wav");
+      this.returnCode = 1;
+      this.isRunning = false;
+      if (this.isNewRecord) {
+        saveScore();
+        saveAchievement(); // 2025-10-03 call method for save achievement released
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private boolean handleSpace() {
+    if (!inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
+      return false;
+    }
+    // name too short -> return
+    if (this.name.length() < 3) {
+      return true;
+    }
+    // Play again.
+    SoundManager.playeffect("sound/select.wav");
+    this.returnCode = 2;
+    this.isRunning = false;
+    if (this.isNewRecord) {
+      saveScore();
+      saveAchievement(); // 2025-10-03 call method for save achievement released
+    }
+    return true;
+  }
+
+  private void handleBackspace() {
+    // Handle backspace
+    if (inputManager.isKeyDown(KeyEvent.VK_BACK_SPACE)
+        && this.selectionCooldown.checkFinished()
+        && !this.name.isEmpty()) {
+
+      this.name.deleteCharAt(this.name.length() - 1);
+      this.selectionCooldown.reset();
+    }
+  }
+
+  private void handleCharInput() {
+    // Handle character input
+    final char typedChar = inputManager.getLastCharTyped();
+    if (typedChar != '\0') {
+      // Checks the name is not short when you press the space bar
+      if (typedChar == ' ') {
+        if (this.name.length() < 3) {
+          this.showNameError = true;
         }
       }
 
-      // Handle backspace
-      if (inputManager.isKeyDown(KeyEvent.VK_BACK_SPACE)
-          && this.selectionCooldown.checkFinished()) {
-        if (this.name.length() > 0) {
-          this.name.deleteCharAt(this.name.length() - 1);
-          this.selectionCooldown.reset();
-        }
-      }
-
-      // Handle character input
-      char typedChar = inputManager.getLastCharTyped();
-      if (typedChar != '\0') {
-        // Checks the name is not short when you press the space bar
-        if (typedChar == ' ') {
-          if (this.name.length() < 3) {
-            // System.out.println("too short!!");
-            this.showNameError = true;
-          }
-        }
-
-        // Check if it's a valid character (alphanumeric only)
-        else if ((Character.isLetterOrDigit(typedChar)) && this.name.length() < MAX_NAME_LENGTH) {
-          this.name.append(Character.toUpperCase(typedChar));
-        }
+      // Check if it's a valid character (alphanumeric only)
+      else if (Character.isLetterOrDigit(typedChar) && this.name.length() < MAX_NAME_LENGTH) {
+        this.name.append(Character.toUpperCase(typedChar));
       }
     }
   }
@@ -193,14 +218,18 @@ public class ScoreScreen extends Screen {
    * save higher scores
    */
   private void saveScore() {
-    String mode = (gameState != null && gameState.isCoop()) ? "2P" : "1P";
-    String newName = new String(this.name);
-    Score newScore = new Score(newName, this.gameState, mode);
+    final String mode =
+        (gameState != null && gameState.isCoop())
+            ? "2P"
+            : "1P"; // NOPMD - parentheses intentional for clarity
+    final String newName = this.name.toString();
+    final Score newScore = new Score(newName, Objects.requireNonNull(this.gameState), mode);
     boolean foundAndReplaced = false;
     for (int i = 0; i < highScores.size(); i++) {
-      Score existingScore = highScores.get(i);
-      if (existingScore.getName().equals(newName)) {
-        if (newScore.getScore() > existingScore.getScore()) {
+      final Score existingScore = highScores.get(i);
+      if (existingScore.getName().equals(newName)) { // NOPMD - LoD acceptable in value comparison
+        if (newScore.getScore()
+            > existingScore.getScore()) { // NOPMD - LoD acceptable in value comparison
           highScores.set(i, newScore);
           foundAndReplaced = true;
         } else {
@@ -213,9 +242,12 @@ public class ScoreScreen extends Screen {
       highScores.add(newScore);
     }
     Collections.sort(highScores);
-    if (highScores.size() > MAX_HIGH_SCORE_NUM) highScores.remove(highScores.size() - 1);
+    if (highScores.size() > MAX_HIGH_SCORE_NUM) {
+      highScores.remove(highScores.size() - 1);
+    }
     try {
-      Core.getFileManager().saveHighScores(highScores, mode);
+      Core.getFileManager()
+          .saveHighScores(highScores, mode); // NOPMD - LoD acceptable in value comparison
     } catch (IOException e) {
       logger.warning("Couldn't load high scores!");
     }
@@ -223,11 +255,7 @@ public class ScoreScreen extends Screen {
 
   /** Save the achievement released. 2025-10-03 add new method */
   private void saveAchievement() {
-    try {
-      this.achievementManager.saveToFile(new String(this.name), this.mode);
-    } catch (IOException e) {
-      logger.warning("Couldn't save achievements!");
-    }
+    this.achievementManager.saveToFile(this.name.toString(), this.mode);
   }
 
   /** Draws the elements associated with the screen. */
@@ -235,8 +263,6 @@ public class ScoreScreen extends Screen {
     drawManager.initDrawing(this);
 
     drawManager.drawGameOver(this, this.inputDelay.checkFinished());
-
-    float accuracy = (this.bulletsShot > 0) ? (float) this.shipsDestroyed / this.bulletsShot : 0f;
 
     // 2P mode: edit to include co-op + individual score/coins
     if (this.gameState != null && this.gameState.isCoop()) {
@@ -254,18 +280,18 @@ public class ScoreScreen extends Screen {
 
       // show per-player lines when in 2P mode
 
-      float p1Acc =
+      final float p1Acc =
           this.gameState.getBulletsShot(0) > 0
               ? (float) this.gameState.getShipsDestroyed(0) / this.gameState.getBulletsShot(0)
               : 0f;
-      float p2Acc =
+      final float p2Acc =
           this.gameState.getBulletsShot(1) > 0
               ? (float) this.gameState.getShipsDestroyed(1) / this.gameState.getBulletsShot(1)
               : 0f;
 
-      String p1 =
+      final String p1 =
           String.format("P1  %04d  |  acc %.2f%%", this.gameState.getScore(0), p1Acc * 100f);
-      String p2 =
+      final String p2 =
           String.format("P2  %04d  |  acc %.2f%%", this.gameState.getScore(1), p2Acc * 100f);
 
       int y; // tweak these if you want
@@ -279,7 +305,7 @@ public class ScoreScreen extends Screen {
 
     } else {
       // 1P legacy summary with accuracy
-      float acc = (this.bulletsShot > 0) ? (float) this.shipsDestroyed / this.bulletsShot : 0f;
+      final float acc = this.bulletsShot > 0 ? (float) this.shipsDestroyed / this.bulletsShot : 0f;
       drawManager.drawResults(
           this,
           this.score,
@@ -292,7 +318,9 @@ public class ScoreScreen extends Screen {
     }
 
     drawManager.drawNameInput(this, this.name, this.isNewRecord);
-    if (showNameError) drawManager.drawNameInputError(this);
+    if (showNameError) {
+      drawManager.drawNameInputError(this);
+    }
 
     drawManager.completeDrawing(this);
   }

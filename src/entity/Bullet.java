@@ -9,16 +9,16 @@ import engine.DrawManager.SpriteType;
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
-public class Bullet extends Entity {
+public class Bullet extends Entity { // NOPMD - DataClass
 
   /** Speed of the bullet, positive or negative depending on direction - positive is down. */
   private int speed;
 
   /** 2P mode: id number to specifying who fired the bullet - 0 = enemy, 1 = P1, 2 = P2 */
-  private int ownerPlayerId = 0;
+  private int ownerPlayerId;
 
   // standardised for DrawManager scaling
-  private int playerId = 0;
+  int playerId;
 
   /**
    * Constructor, establishes the bullet's properties.
@@ -29,14 +29,24 @@ public class Bullet extends Entity {
    *     down.
    */
   // change the constructor to receive width and height
-  public Bullet(
-      final int positionX,
-      final int positionY,
-      final int width,
-      final int height,
-      final int speed) {
+  public Bullet(final int positionX, final int positionY, final int speed) {
     super(positionX, positionY, 0, 0, Color.WHITE);
     this.speed = speed;
+  }
+
+  public void initialize(
+      final int positionX,
+      final int positionY,
+      final int speed,
+      final int width,
+      final int height,
+      final Team team) {
+    this.setPositionX(positionX - width / 2);
+    this.setPositionY(positionY);
+    this.setSpeed(speed);
+    this.setSize(width, height);
+    this.setTeam(team);
+    this.setSprite();
   }
 
   // reset the size when recycling bullets
@@ -88,10 +98,5 @@ public class Bullet extends Entity {
 
   public int getPlayerId() {
     return this.playerId;
-  }
-
-  public void setPlayerId(int playerId) {
-    this.playerId = playerId;
-    this.ownerPlayerId = playerId; // keep them in sync
   }
 }
