@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.nio.file.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,43 +18,48 @@ import java.io.InputStreamReader;
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
+@SuppressWarnings("PMD.LawOfDemeter")
 public class GameSettings {
 
   private static final Logger LOGGER = Logger.getLogger(Core.class.getSimpleName());
 
   /** Width of the level's enemy formation. */
-  private int formationWidth;
+  private final int formationWidth;
 
   /** Height of the level's enemy formation. */
-  private int formationHeight;
+  private final int formationHeight;
 
   /** Speed of the enemies, function of the remaining number. */
-  private int baseSpeed;
+  private final int baseSpeed;
 
   /** Frequency of enemy shootings, +/- 30%. */
-  private int shootingFrequency;
+  private final int shootingFrequency;
+
+  private List<ChangeData> changeDataList;
 
   // 추가 사항
-  public static class ChangeData {
+  public static class ChangeData { // NOPMD - Data class design is intentional
     // 바꿀 적 위치
-    public int x, y;
+    public int x;
+    public int y;
 
     // 적 체력
     public int hp;
     // 적 색상
-    public Color color = null;
+    public Color color;
 
     // 보상 배율
     public int multiplier;
 
-    public ChangeData(int x, int y, int hp, int multiplier) {
+    public ChangeData(final int x, final int y, final int hp, final int multiplier) {
       this.x = x;
       this.y = y;
       this.hp = hp;
       this.multiplier = multiplier;
     }
 
-    public ChangeData(int x, int y, int hp, int multiplier, Color color) {
+    public ChangeData(
+        final int x, final int y, final int hp, final int multiplier, final Color color) {
       this.x = x;
       this.y = y;
       this.hp = hp;
@@ -64,37 +70,40 @@ public class GameSettings {
 
   // StageData: Structure of GameSettings + List<ChangeData> at each stage
   public static class StageData {
-    public GameSettings settings;
-    public List<ChangeData> changeList;
+    public final GameSettings settings;
+    public final List<ChangeData> changeList;
 
-    public StageData(GameSettings settings, List<ChangeData> changeList) {
+    public StageData(final GameSettings settings, final List<ChangeData> changeList) {
       this.settings = settings;
       this.changeList = changeList;
     }
   }
 
   public static Color hexToColor(String hex) {
-    if (hex.startsWith("#")) hex = hex.substring(1);
-    if (hex.length() > 6) {
-      int alpha = Integer.parseInt(hex.substring(7), 16);
-      hex = hex.substring(0, 6);
-      int red = Integer.parseInt(hex.substring(0, 2), 16);
-      int green = Integer.parseInt(hex.substring(3, 5), 16);
-      int blue = Integer.parseInt(hex.substring(5), 16);
+      String cleanedHex = hex;
+    if (cleanedHex.startsWith("#")) {
+        cleanedHex = cleanedHex.substring(1);
+    }
+    if (cleanedHex.length() > 6) {
+      final int alpha = Integer.parseInt(cleanedHex.substring(7), 16);
+        cleanedHex = cleanedHex.substring(0, 6);
+      final int red = Integer.parseInt(cleanedHex.substring(0, 2), 16);
+      final int green = Integer.parseInt(cleanedHex.substring(3, 5), 16);
+      final int blue = Integer.parseInt(cleanedHex.substring(5), 16);
       // if it is hex code with 8 digits(like #AAFFAABB)
       return new Color(red, green, blue, alpha);
     }
-    int rgb = Integer.parseInt(hex, 16);
+    final int rgb = Integer.parseInt(cleanedHex, 16);
     // if it is hex code with 6 digits(like #AAFFAA)
     return new Color(rgb);
   }
 
-  public static List<StageData> parseStages(InputStream in) throws Exception {
+  public static List<StageData> parseStages(final InputStream in) throws Exception { // NOPMD
     String raw;
 
     try (BufferedReader br =
         new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
-      StringBuilder sb = new StringBuilder();
+      final StringBuilder sb = new StringBuilder();
       String line;
       while ((line = br.readLine()) != null) {
         sb.append(line).append('\n');
@@ -105,38 +114,43 @@ public class GameSettings {
     raw = raw.replace("\uFEFF", "");
     raw = raw.replaceAll("(?m)^\\s*//.*$", "");
 
-    String[] stageBlocks = raw.split("&");
-    List<StageData> result = new ArrayList<>();
-    for (String block : stageBlocks) {
-      List<String> lines =
+    final String[] stageBlocks = raw.split("&");
+    final List<StageData> result = new ArrayList<>();
+    for (final String block : stageBlocks) {
+      final List<String> lines =
           Arrays.stream(block.split("\n"))
               .map(String::trim)
               .filter(s -> !s.isEmpty() && !s.startsWith("//")) // Deleting comments and empty lines
               .toList();
-      if (lines.isEmpty()) continue;
+      if (lines.isEmpty()) {
+        continue;
+      }
 
-      String[] ints = lines.get(0).split(",");
-      GameSettings settings =
-          new GameSettings(
+      final String[] ints = lines.get(0).split(",");
+      final GameSettings settings =
+          new GameSettings( // NOPMD - per-row object creation required
               Integer.parseInt(ints[0].trim()),
               Integer.parseInt(ints[1].trim()),
               Integer.parseInt(ints[2].trim()),
               Integer.parseInt(ints[3].trim()));
 
-      List<ChangeData> changeList = new ArrayList<>();
+      final List<ChangeData> changeList = new ArrayList<>(); // NOPMD - per-row object creation required
       for (int i = 1; i < lines.size(); i++) {
-        String[] parts = lines.get(i).split(",");
-        int x = Integer.parseInt(parts[0].trim());
-        int y = Integer.parseInt(parts[1].trim());
-        int z = Integer.parseInt(parts[2].trim());
-        int w = Integer.parseInt(parts[3].trim());
+        final String[] parts = lines.get(i).split(",");
+        final int x = Integer.parseInt(parts[0].trim());
+        final int y = Integer.parseInt(parts[1].trim());
+        final int z = Integer.parseInt(parts[2].trim());
+        final int w = Integer.parseInt(parts[3].trim());
         Color color = null;
         if (parts.length >= 5) {
           String hex = parts[4].trim();
-          if (hex.startsWith("#")) hex = hex.substring(1);
+          if (hex.startsWith("#")) {
+            hex = hex.substring(1);
+          }
           color = hexToColor(hex);
         }
-        changeList.add(new ChangeData(x, y, z, w, color));
+        changeList.add(
+            new ChangeData(x, y, z, w, color)); // NOPMD - object creation required per CSV row
       }
       result.add(new StageData(settings, changeList));
     }
@@ -144,49 +158,49 @@ public class GameSettings {
     return result;
   }
 
-  private List<ChangeData> changeDataList;
-
   public final List<ChangeData> getChangeDataList() {
     return changeDataList;
   }
 
   public static List<GameSettings> getGameSettings() {
-    List<GameSettings> result = new ArrayList<>();
+    final List<GameSettings> result = new ArrayList<>();
     List<StageData> stageDataList;
 
     GameSettings setting;
 
     try {
-      InputStream in = GameSettings.class.getClassLoader().getResourceAsStream("res/level.csv");
+      InputStream in = GameSettings.class.getClassLoader().getResourceAsStream("res/level.csv"); // NOPMD
       if (in == null) {
         in = Files.newInputStream(Paths.get("res", "level.csv"));
       }
       stageDataList = parseStages(in);
 
-      for (StageData s : stageDataList) {
+      for (final StageData s : stageDataList) {
         setting = s.settings;
-        setting.changeDataList = new ArrayList<>();
+        setting.changeDataList = new ArrayList<>(); // NOPMD - per-row object creation required
 
         setting.changeDataList.addAll(s.changeList);
         result.add(setting);
       }
-    } catch (Exception e) {
-      LOGGER.info("Failed Loading Data: There is no such file named " + e.getMessage());
-      LOGGER.info("By the error, game is closing.");
-      System.exit(1);
+    } catch (Exception e) { // NOPMD - generic catch intended for fatal load fail
+      if (LOGGER.isLoggable(Level.INFO)) {
+        LOGGER.info("Failed Loading Data: There is no such file named " + e.getMessage());
+        LOGGER.info("By the error, game is closing.");
+      }
+      System.exit(1); // NOPMD - allowed for desktop game fatal failure
       return Collections.emptyList();
     }
 
     if (stageDataList.isEmpty()) {
       LOGGER.info("Failed Loading Data: There is no data in level.csv file.");
       LOGGER.info("By the error, game is closing.");
-      System.exit(1);
+      System.exit(1); // NOPMD
       return Collections.emptyList();
     }
-    GameSettings base1 = result.get(result.size() - 2);
-    GameSettings base2 = result.get(result.size() - 1);
-    final int INCREASE_AMOUNT_SHOOTING_FREQUENCY = 10;
-    final int INCREASE_AMOUNT_SPEED = 1;
+    final GameSettings base1 = result.get(result.size() - 2);
+    final GameSettings base2 = result.get(result.size() - 1);
+    final int INCREASE_AMOUNT_SHOOTING_FREQUENCY = 10; // NOPMD - name intentionally descriptive
+    final int INCREASE_AMOUNT_SPEED = 1; // NOPMD - name intentionally descriptive
     for (int level = result.size() + 1; level < GameState.INFINITE_LEVEL; level++) {
       GameSettings base;
       if (level % 2 == 0) {
@@ -194,7 +208,7 @@ public class GameSettings {
       } else {
         base = base2;
       }
-      GameSettings infinity_setting =
+      final GameSettings infinity_setting = // NOPMD - name intentionally descriptive
           calculateInfiniteSetting(
               base,
               level - result.size(),
@@ -207,24 +221,29 @@ public class GameSettings {
   }
 
   public static GameSettings calculateInfiniteSetting(
-      GameSettings base, int infinity_level, int increaseFreq, int increaseSpeed) {
+      final GameSettings base,
+      final int infinityLevel,
+      final int increaseFreq,
+      final int increaseSpeed) {
 
-    int new_shooting_frequency = base.getShootingFrequency() - (infinity_level * increaseFreq);
-    int new_speed = base.getBaseSpeed() - (infinity_level * increaseSpeed);
-    if (infinity_level % 2 != 0) {
-      new_shooting_frequency -= 10;
-      new_speed -= 1;
+    int newShootingFrequency =
+        base.getShootingFrequency()
+            - (infinityLevel * increaseFreq); // NOPMD - name intentionally descriptive
+    int newSpeed = base.getBaseSpeed() - (infinityLevel * increaseSpeed);
+    if (infinityLevel % 2 != 0) {
+      newShootingFrequency -= 10;
+      newSpeed -= 1;
     }
 
-    if (new_speed <= 0) {
-      new_speed = 1;
+    if (newSpeed <= 0) {
+      newSpeed = 1;
     }
-    if (new_shooting_frequency < 100) {
-      new_shooting_frequency = 100;
+    if (newShootingFrequency < 100) {
+      newShootingFrequency = 100;
     }
 
     return new GameSettings(
-        base.getFormationWidth(), base.getFormationHeight(), new_speed, new_shooting_frequency);
+        base.getFormationWidth(), base.getFormationHeight(), newSpeed, newShootingFrequency);
   }
 
   /**
