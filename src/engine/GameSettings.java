@@ -79,7 +79,7 @@ public class GameSettings {
     }
   }
 
-  public static Color hexToColor(String hex) {
+  public static Color hexToColor(final String hex) {
       String cleanedHex = hex;
     if (cleanedHex.startsWith("#")) {
         cleanedHex = cleanedHex.substring(1);
@@ -105,8 +105,10 @@ public class GameSettings {
         new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
       final StringBuilder sb = new StringBuilder();
       String line;
-      while ((line = br.readLine()) != null) {
+      line = br.readLine();
+      while (line != null) {
         sb.append(line).append('\n');
+        line = br.readLine();
       }
       raw = sb.toString();
     }
