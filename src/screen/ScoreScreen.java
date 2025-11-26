@@ -103,7 +103,7 @@ public class ScoreScreen extends Screen {
     this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
     this.selectionCooldown.reset();
     this.achievementManager = achievementManager;
-    this.mode = gameState.getCoop() ? "2P" : "1P";
+    this.mode = gameState.isCoop() ? "2P" : "1P";
 
     try {
       this.highScores = Core.getFileManager().loadHighScores(this.mode);
