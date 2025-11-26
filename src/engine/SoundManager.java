@@ -187,32 +187,30 @@ public final class SoundManager {
     stop();
     stopBackgroundMusic();
 
-    InputStream in = null;
     AudioInputStream audioStream = null;
 
     try {
-      in = SoundManager.class.getClassLoader().getResourceAsStream(musicResourcePath);
-      if (in == null) {
+      audioStream = openAudioStream(musicResourcePath);
+      if (audioStream == null) {
         logger.fine("Music resource not found: " + musicResourcePath);
         return;
       }
+      audioStream = toPcmSigned(audioStream);
 
-      audioStream = AudioSystem.getAudioInputStream(in);
       DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
       backgroundMusicClip = (Clip) AudioSystem.getLine(info);
-      backgroundMusicClip.open(audioStream);
 
-      // set looping
+      backgroundMusicClip.open(audioStream);
       backgroundMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
 
-      // set music volume based on user settings
       if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
         int saved = Core.getIngameVolumeLevel(0);
         boolean muted = Core.isIngameMuted(0) || saved == 0;
+
         FloatControl gain =
             (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
-
         float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
+
         gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
       }
 

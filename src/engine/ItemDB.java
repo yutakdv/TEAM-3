@@ -1,6 +1,7 @@
 package engine;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -28,8 +29,33 @@ public class ItemDB {
    */
   private void loadItemDB() {
     Logger logger = Core.getLogger();
+    BufferedReader br = null;
 
-    try (BufferedReader br = new BufferedReader(new FileReader(FILE_PATH))) {
+    try {
+      InputStream in = ItemDB.class.getClassLoader().getResourceAsStream("item_db.csv");
+
+      // Try classpath (.jar / .exe)
+      if (in != null) {
+        br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+        logger.info("[ItemDB] Loaded item_db.csv from classpath.");
+      }
+
+      // local /res/folder
+      if (br == null) {
+        File local = new File("res/item_db.csv");
+        if (local.exists()) {
+            br = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(local), StandardCharsets.UTF_8));
+          logger.info("[ItemDB] Loaded item_db.csv from local res/folder.");
+        }
+      }
+
+      // 3) File not found
+      if (br == null) {
+        logger.warning("[ItemDB] item_db.csv NOT FOUND in classpath or res folder.");
+        return;
+      }
+
       String line;
       boolean header = true;
 
@@ -39,10 +65,9 @@ public class ItemDB {
           continue;
         }
 
-        // split on comma - trim tokens
         String[] tokens = line.split(",");
         if (tokens.length < 5) {
-          logger.warning("[ItemDB] Skipping malformed line (expected >=5 cols): " + line);
+          logger.warning("[ItemDB] Skipping malformed line: " + line);
           continue;
         }
 
@@ -50,49 +75,29 @@ public class ItemDB {
         String spriteType = tokens[1].trim();
         String dropTier = tokens[2].trim();
 
-        int effectValue = 0;
-        int effectDuration = 0;
-        int cost = 0;
+        int effectValue = parseSafe(tokens[3]);
 
-        try {
-          effectValue = Integer.parseInt(tokens[3].trim());
-        } catch (NumberFormatException e) {
-          logger.warning(
-              "[ItemDB] Invalid effectValue for " + type + " -> '" + tokens[3] + "'. Using 0.");
-        }
-
-        try {
-          effectDuration = Integer.parseInt(tokens[4].trim());
-        } catch (NumberFormatException e) {
-          logger.warning(
-              "[ItemDB] Invalid effectDuration for " + type + " -> '" + tokens[4] + "'. Using 0.");
-        }
-
-        // optional cost column (index 5)
-        if (tokens.length > 5 && tokens[5] != null && !tokens[5].trim().isEmpty()) {
-          try {
-            cost = Integer.parseInt(tokens[5].trim());
-            if (cost < 0) {
-              logger.warning(
-                  "[ItemDB] Negative cost for " + type + " -> '" + tokens[5] + "'. Using 0.");
-              cost = 0;
-            }
-          } catch (NumberFormatException e) {
-            logger.warning(
-                "[ItemDB] Invalid cost for " + type + " -> '" + tokens[5] + "'. Using 0.");
-            cost = 0;
-          }
-        }
-
-        ItemData data = new ItemData(type, spriteType, dropTier, effectValue);
-        itemMap.put(type, data);
+        itemMap.put(type, new ItemData(type, spriteType, dropTier, effectValue));
       }
-    } catch (FileNotFoundException e) {
-      Logger l = Core.getLogger();
-      l.severe("Item DB file not found: " + FILE_PATH + " (" + e.getMessage() + ")");
     } catch (IOException e) {
       Logger l = Core.getLogger();
-      l.severe("Failed to load item database from " + FILE_PATH + ": " + e.getMessage());
+      l.warning("Failed to load item database from " + FILE_PATH + ": " + e.getMessage());
+    } finally {
+      if (br != null) {
+        try {
+          br.close();
+        } catch (IOException ignore) {
+
+        }
+      }
+    }
+  }
+
+  private int parseSafe(String s) {
+    try {
+      return Integer.parseInt(s.trim());
+    } catch (Exception e) {
+      return 0;
     }
   }
 
