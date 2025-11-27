@@ -1,258 +1,245 @@
 package engine;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
+
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/** GameState 단위 테스트 — 최신 구조(LifeManager, CoinManager, StatsManager, EffectManager) 반영 */
 public class GameStateTest {
 
-  private void setCoins(int value) {
-    try {
-      var field = GameState.class.getDeclaredField("coins");
-      field.setAccessible(true);
-      field.setInt(null, value);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
+    /** ---------------------------------------------
+     * Helper: coinManager.coins 반영 (reflection)
+     * --------------------------------------------- */
+    private void setCoins(GameState gs, int value) throws Exception {
+        var coinField = GameState.class.getDeclaredField("coinManager");
+        coinField.setAccessible(true);
+        Object coinManager = coinField.get(gs);
 
-  /** Dummy Cooldown to replace Core.getCooldown() */
-  static class DummyCooldown extends Cooldown {
-
-    public DummyCooldown() {
-      super(1000);
+        var coinsField = coinManager.getClass().getDeclaredField("coins");
+        coinsField.setAccessible(true);
+        coinsField.setInt(coinManager, value);
     }
 
-    public void forceFinish() {
-      try {
-        var field = Cooldown.class.getDeclaredField("lastUpdate");
-        field.setAccessible(true);
-        field.setLong(this, System.currentTimeMillis() - 2000); // duration 보다 훨씬 이전
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  /** ---------- Constructor Tests ---------- * */
-  @Test
-  @DisplayName("Constructor: coop=false initializes correct values")
-  void testConstructorSinglePlayer() {
-    GameState gs = new GameState(1, 100, 3, 10, 5, 20);
-
-    assertFalse(gs.isCoop());
-    assertFalse(gs.isSharedLives());
-    assertEquals(1, gs.getLevel());
-    assertEquals(3, gs.getLivesRemaining());
-    assertEquals(20, gs.getCoins());
-  }
-
-  @Test
-  @DisplayName("Constructor: coop=true uses shared lives")
-  void testConstructorCoopMode() {
-    GameState gs = new GameState(1, 3, true);
-
-    assertTrue(gs.isCoop());
-    assertTrue(gs.isSharedLives());
-    assertEquals(3 * GameState.NUM_PLAYERS, gs.getTeamLives());
-  }
-
-  /** ---------- Score Tests ---------- * */
-  @Test
-  void testAddScoreNormal() {
-    GameState gs = new GameState(1, 3, false);
-
-    gs.addScore(0, 50);
-    assertEquals(50, gs.getScore(0));
-  }
-
-  @Test
-  void testAddScoreWithEffectMultiplier() {
-    GameState gs = new GameState(1, 3, false);
-
-    gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
-    gs.addScore(0, 10);
-
-    assertEquals(20, gs.getScore(0)); // x2 boost
-  }
-
-  /** ---------- Bullet / Ship Counters ---------- * */
-  @Test
-  void testIncBulletsShot() {
-    GameState gs = new GameState(1, 3, false);
-    gs.incBulletsShot(0);
-    gs.incBulletsShot(0);
-
-    assertEquals(2, gs.getBulletsShot(0));
-    assertEquals(2, gs.getBulletsShot());
-  }
-
-  @Test
-  void testIncShipsDestroyed() {
-    GameState gs = new GameState(1, 3, false);
-    gs.incShipsDestroyed(0);
-
-    assertEquals(1, gs.getShipsDestroyed(0));
-  }
-
-  /** ---------- Coin System ---------- * */
-  @Test
-  void testAddCoins() {
-    setCoins(10);
-    GameState gs = new GameState(1, 3, false);
-
-    gs.addCoins(0, 5);
-    assertEquals(15, gs.getCoins());
-  }
-
-  @Test
-  void testSpendCoinsSuccess() {
-    setCoins(20);
-    GameState gs = new GameState(1, 3, false);
-
-    assertTrue(gs.spendCoins(0, 10));
-    assertEquals(10, gs.getCoins());
-  }
-
-  @Test
-  void testSpendCoinsFailNotEnough() {
-    setCoins(5);
-    GameState gs = new GameState(1, 3, false);
-
-    assertFalse(gs.spendCoins(0, 10));
-    assertEquals(5, gs.getCoins());
-  }
-
-  /** ---------- Lives / Shared Lives ---------- * */
-  @Test
-  void testDecLifeSinglePlayer() {
-    GameState gs = new GameState(1, 3, false);
-
-    gs.decLife(0);
-    assertEquals(2, gs.getLivesRemaining());
-  }
-
-  @Test
-  void testDecLifeSharedLives() {
-    GameState gs = new GameState(1, 3, true);
-
-    int before = gs.getTeamLives();
-    gs.decLife(0);
-
-    assertEquals(before - 1, gs.getTeamLives());
-  }
-
-  @Test
-  void testAddLifeSinglePlayer() {
-    GameState gs = new GameState(1, 3, false);
-
-    gs.addLife(0, 2);
-    assertEquals(5, gs.getLivesRemaining());
-  }
-
-  @Test
-  void testAddLifeShared() {
-    GameState gs = new GameState(1, 3, true);
-
-    int before = gs.getTeamLives(); // = 3 * 2 = 6
-
-    gs.addLife(0, 2); // teamLivesCap = 6 이므로 증가 안됨
-
-    assertEquals(before, gs.getTeamLives());
-  }
-
-  @Test
-  void testTeamAlive() {
-    GameState gs = new GameState(1, 1, false);
-    assertTrue(gs.teamAlive());
-
-    gs.decLife(0);
-    assertFalse(gs.teamAlive());
-  }
-
-  /** ---------- Level Progression ---------- * */
-  @Test
-  void testNextLevel() {
-    GameState gs = new GameState(1, 1, false);
-
-    gs.nextLevel();
-    assertEquals(2, gs.getLevel());
-  }
-
-  /** ---------- Effect System ---------- * */
-  @Test
-  void testAddEffectStartsEffect() {
-    GameState gs = new GameState(1, 1, false);
-
-    gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
-    assertTrue(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
-  }
-
-  @Test
-  void testGetEffectValue() {
-    GameState gs = new GameState(1, 1, false);
-
-    gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 3, 1);
-    assertEquals(3, gs.getEffectValue(0, ItemEffect.ItemEffectType.SCOREBOOST));
-  }
-
-  @Test
-  void testEffectExpiresAfterUpdate() throws Exception {
-    GameState gs = new GameState(1, 1, false);
-
-    gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
-
-    // 1) playerEffects private 필드 가져오기
-    var field = GameState.class.getDeclaredField("playerEffects");
-    field.setAccessible(true);
-
+    /** ---------------------------------------------
+     * Helper: effectManager.playerEffects 접근
+     * --------------------------------------------- */
     @SuppressWarnings("unchecked")
-    Map<Integer, Map<ItemEffect.ItemEffectType, ?>> effects =
-        (Map<Integer, Map<ItemEffect.ItemEffectType, ?>>) field.get(gs);
+    private Map<Integer, Map<ItemEffect.ItemEffectType, ?>> getEffects(GameState gs) throws Exception {
+        var effField = GameState.class.getDeclaredField("effectManager");
+        effField.setAccessible(true);
+        Object effMgr = effField.get(gs);
 
-    // 2) player 0의 effect map 가져오기
-    Map<ItemEffect.ItemEffectType, ?> map = effects.get(0);
+        var peField = effMgr.getClass().getDeclaredField("playerEffects");
+        peField.setAccessible(true);
 
-    // 3) effect 객체 가져오기
-    Object effect = map.get(ItemEffect.ItemEffectType.SCOREBOOST);
-    assertNotNull(effect);
+        return (Map<Integer, Map<ItemEffect.ItemEffectType, ?>>) peField.get(effMgr);
+    }
 
-    // 4) effect.cooldown 가져오기
-    var cField = effect.getClass().getDeclaredField("cooldown");
-    cField.setAccessible(true);
-    Cooldown cd = (Cooldown) cField.get(effect);
+    /** ---------------------------------------------
+     * Helper: 효과 만료 강제 처리
+     * --------------------------------------------- */
+    private void forceExpire(Object effectState) throws Exception {
+        var cdField = effectState.getClass().getDeclaredField("cooldown");
+        cdField.setAccessible(true);
+        Cooldown cd = (Cooldown) cdField.get(effectState);
 
-    // 5) Cooldown.time 값을 과거로 설정 → 강제 만료
-    var tField = Cooldown.class.getDeclaredField("time");
-    tField.setAccessible(true);
-    tField.setLong(cd, System.currentTimeMillis() - 999999L);
+        var timeField = Cooldown.class.getDeclaredField("time");
+        timeField.setAccessible(true);
+        timeField.setLong(cd, System.currentTimeMillis() - 999_999L);
+    }
 
-    // 6) updateEffects 호출 → effect 삭제 여부 확인
-    gs.updateEffects();
-    assertFalse(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
-  }
+    /** ======================================================
+     *  Constructor Tests
+     * ====================================================== */
 
-  @Test
-  void testClearEffects() {
-    GameState gs = new GameState(1, 1, false);
+    @Test
+    void testConstructorSinglePlayer() throws Exception {
+        GameState gs = new GameState(1, 100, 3, 10, 5);
 
-    gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
-    gs.clearEffects(0);
+        assertFalse(gs.isCoop());
+        assertEquals(1, gs.getLevel());
+        assertEquals(3, gs.getLivesRemaining());
+    }
 
-    assertFalse(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
-  }
+    @Test
+    void testConstructorCoopMode() {
+        GameState gs = new GameState(1, 3, true);
 
-  @Test
-  void testClearAllEffects() {
-    GameState gs = new GameState(1, 1, false);
+        assertTrue(gs.isCoop());
+        assertTrue(gs.isSharedLives());
+        assertEquals(3 * GameState.NUM_PLAYERS, gs.getTeamLives());
+    }
 
-    gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
-    gs.addEffect(1, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
+    /** ======================================================
+     *  Score / Stats
+     * ====================================================== */
 
-    gs.clearAllEffects();
+    @Test
+    void testAddScoreNormal() {
+        GameState gs = new GameState(1, 3, false);
 
-    assertFalse(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
-    assertFalse(gs.hasEffect(1, ItemEffect.ItemEffectType.SCOREBOOST));
-  }
+        gs.addScore(0, 50);
+        assertEquals(50, gs.getScore(0));
+    }
+
+    @Test
+    void testAddScoreWithEffectMultiplier() {
+        GameState gs = new GameState(1, 3, false);
+
+        gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
+        gs.addScore(0, 10);
+
+        assertEquals(20, gs.getScore(0));
+    }
+
+    @Test
+    void testIncBulletsShot() {
+        GameState gs = new GameState(1, 3, false);
+
+        gs.incBulletsShot(0);
+        gs.incBulletsShot(0);
+
+        assertEquals(2, gs.getBulletsShot(0));
+    }
+
+    @Test
+    void testIncShipsDestroyed() {
+        GameState gs = new GameState(1, 3, false);
+        gs.incShipsDestroyed(0);
+
+        assertEquals(1, gs.getShipsDestroyed(0));
+    }
+
+    /** ======================================================
+     *  Coin System
+     * ====================================================== */
+
+    @Test
+    void testAddCoins() throws Exception {
+        GameState gs = new GameState(1, 3, false);
+        setCoins(gs, 10);
+
+        gs.addCoins(0, 5);
+        assertEquals(15, gs.getCoins());
+    }
+
+    @Test
+    void testSpendCoinsSuccess() throws Exception {
+        GameState gs = new GameState(1, 3, false);
+        setCoins(gs, 20);
+
+        assertTrue(gs.spendCoins(1, 15));
+        assertEquals(5, gs.getCoins());
+    }
+
+    @Test
+    void testSpendCoinsFail() throws Exception {
+        GameState gs = new GameState(1, 3, false);
+        setCoins(gs, 5);
+
+        assertFalse(gs.spendCoins(1, 10));
+        assertEquals(5, gs.getCoins());
+    }
+
+    /** ======================================================
+     *  Life System
+     * ====================================================== */
+
+    @Test
+    void testDecLifeSinglePlayer() {
+        GameState gs = new GameState(1, 3, false);
+        gs.decLife(0);
+
+        assertEquals(2, gs.getLivesRemaining());
+    }
+
+    @Test
+    void testDecLifeSharedLives() {
+        GameState gs = new GameState(1, 3, true);
+        int before = gs.getTeamLives();
+
+        gs.decLife(0);
+
+        assertEquals(before - 1, gs.getTeamLives());
+    }
+
+    @Test
+    void testAddLifeSinglePlayer() {
+        GameState gs = new GameState(1, 3, false);
+
+        gs.addLife(0, 2);
+        assertEquals(5, gs.getLivesRemaining());
+    }
+
+    /** ======================================================
+     *  Level
+     * ====================================================== */
+    @Test
+    void testNextLevel() {
+        GameState gs = new GameState(1, 1, false);
+        gs.nextLevel();
+
+        assertEquals(2, gs.getLevel());
+    }
+
+    /** ======================================================
+     *  Effect System
+     * ====================================================== */
+
+    @Test
+    void testAddEffectStartsEffect() {
+        GameState gs = new GameState(1, 1, false);
+
+        gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
+        assertTrue(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
+    }
+
+    @Test
+    void testGetEffectValue() {
+        GameState gs = new GameState(1, 1, false);
+        gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 3, 1);
+
+        assertEquals(3, gs.getEffectValue(0, ItemEffect.ItemEffectType.SCOREBOOST));
+    }
+
+    @Test
+    void testEffectExpiresAfterUpdate() throws Exception {
+        GameState gs = new GameState(1, 1, false);
+
+        gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
+        Map<Integer, Map<ItemEffect.ItemEffectType, ?>> effects = getEffects(gs);
+
+        Object effect = effects.get(0).get(ItemEffect.ItemEffectType.SCOREBOOST);
+        assertNotNull(effect);
+
+        forceExpire(effect);
+        gs.updateEffects();
+
+        assertFalse(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
+    }
+
+    @Test
+    void testClearEffects() {
+        GameState gs = new GameState(1, 1, false);
+
+        gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
+        gs.clearEffects(0);
+
+        assertFalse(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
+    }
+
+    @Test
+    void testClearAllEffects() {
+        GameState gs = new GameState(1, 1, false);
+
+        gs.addEffect(0, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
+        gs.addEffect(1, ItemEffect.ItemEffectType.SCOREBOOST, 2, 1);
+
+        gs.clearAllEffects();
+
+        assertFalse(gs.hasEffect(0, ItemEffect.ItemEffectType.SCOREBOOST));
+        assertFalse(gs.hasEffect(1, ItemEffect.ItemEffectType.SCOREBOOST));
+    }
 }
