@@ -1,5 +1,5 @@
 shipType,unlocked
 NORMAL,true
 BIG_SHOT,false
-DOUBLE_SHOT,false
+DOUBLE_SHOT,true
 MOVE_FAST,false
