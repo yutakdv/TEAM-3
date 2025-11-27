@@ -1,8 +1,7 @@
 // engine/GameState.java
 package engine;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.Level;
 import engine.ItemEffect.ItemEffectType;
 
 /**
@@ -11,6 +10,7 @@ import engine.ItemEffect.ItemEffectType;
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyMethods"})
 public class GameState {
 
   private static final java.util.logging.Logger logger = Core.getLogger();
@@ -28,84 +28,27 @@ public class GameState {
 
   public static final int INFINITE_LEVEL = 100;
   // 2P mode: if true, lives are shared in a team pool; else per-player lives
-  private final boolean sharedLives;
 
   // team life pool and cap (used when sharedLives == true).
-  private int teamLives;
-  private int teamLivesCap;
 
-  /** Current coin count. */
-  // ADD THIS LINE
-  private static int coins = 0; // ADD THIS LINE - edited for 2P mode
+  // 2P mode: per-player tallies (used for stats/scoring; lives[] unused in shared
+  // mode).
 
-  static {
-    try {
-      coins = Core.getFileManager().loadCoins();
-      logger.info("[GameState] Loaded coins from file: " + coins);
-    } catch (Exception e) {
-      logger.warning("[GameState] Failed to load coins, defaulting to 0: " + e.getMessage());
-      coins = 0;
-    }
-
-    Runtime.getRuntime()
-        .addShutdownHook(
-            new Thread(
-                () -> {
-                  try {
-                    Core.getFileManager().saveCoins(coins);
-                    logger.info("[GameState] Saved coins on shutdown: " + coins);
-                  } catch (Exception e) {
-                    logger.warning(
-                        "[GameState] Failed to save coins on shutdown: " + e.getMessage());
-                  }
-                }));
-  }
-
-  private static class EffectState {
-    Cooldown cooldown;
-    boolean active;
-    Integer effectValue;
-
-    EffectState() {
-      this.cooldown = null;
-      this.active = false;
-      this.effectValue = null;
-    }
-  }
-
-  /** Each player has all effect types always initialized (inactive at start). */
-  private final Map<Integer, Map<ItemEffectType, EffectState>> playerEffects = new HashMap<>();
+  private final GameEffectManager effectManager = new GameEffectManager();
+  private final PlayerStatsManager statsManager = new PlayerStatsManager();
+  private final CoinManager coinManager = new CoinManager();
+  private final LifeManager lifeManager;
 
   // 2P mode: co-op aware constructor used by the updated Core loop - livesEach
   // applies per-player; co-op uses shared pool.
   public GameState(final int level, final int livesEach, final boolean coop) {
     this.level = level;
     this.coop = coop;
-    if (coop) {
-      this.sharedLives = true;
-      this.teamLives = Math.max(0, livesEach * NUM_PLAYERS);
-      this.teamLivesCap = this.teamLives;
-    } else {
-      this.sharedLives = false;
-      this.teamLives = 0;
-      this.teamLivesCap = 0;
-      // legacy: put all lives on P1
-      lives[0] = Math.max(0, livesEach);
-    }
-
-    initializeEffectStates();
+    this.lifeManager = new LifeManager(livesEach, coop);
   }
-
-  // 2P mode: per-player tallies (used for stats/scoring; lives[] unused in shared
-  // mode).
-  private final int[] score = new int[NUM_PLAYERS];
-  private final int[] lives = new int[NUM_PLAYERS];
-  private final int[] bulletsShot = new int[NUM_PLAYERS];
-  private final int[] shipsDestroyed = new int[NUM_PLAYERS];
 
   /* ---------- Constructors ---------- */
 
-  /** Legacy 6-arg - kept for old call sites */
   /**
    * Constructor.
    *
@@ -114,112 +57,96 @@ public class GameState {
    * @param livesRemaining Lives currently remaining.
    * @param bulletsShot Bullets shot until now.
    * @param shipsDestroyed Ships destroyed until now.
-   * @param coins // ADD THIS LINE Current coin count. // ADD THIS LINE
    */
   public GameState(
       final int level,
       final int score,
       final int livesRemaining,
       final int bulletsShot,
-      final int shipsDestroyed,
-      final int coins) { // MODIFY THIS LINE
+      final int shipsDestroyed) {
     this.level = level;
-    this.sharedLives = false;
-    this.teamLives = 0;
-    this.teamLivesCap = 0;
-
-    this.score[0] = score;
-    this.lives[0] = livesRemaining;
-    this.bulletsShot[0] = bulletsShot;
-    this.shipsDestroyed[0] = shipsDestroyed;
-
-    this.coins = coins; // ADD THIS LINE - edited for 2P mode
     this.coop = false; // 2P: single-player mode
+    this.lifeManager = new LifeManager(livesRemaining, false);
 
-    initializeEffectStates();
+    statsManager.addRawScore(0, score);
+    for (int i = 0; i < bulletsShot; i++) {
+      statsManager.incBulletsShot(0);
+    }
+    for (int i = 0; i < shipsDestroyed; i++) {
+      statsManager.incShipsDestroyed(0);
+    }
   }
 
   /* ------- 2P mode: aggregate totals used by Core/ScoreScreen/UI------- */
   public int getScore() {
-    int t = 0;
-    for (int p = 0; p < NUM_PLAYERS; p++) t += score[p];
-    return t;
+    return statsManager.getTotalScore();
   }
 
   public int getLivesRemaining() {
-    return sharedLives ? teamLives : (lives[0] + lives[1]);
+    return lifeManager.getLivesRemaining();
   }
 
   public int getBulletsShot() {
-    int t = 0;
-    for (int p = 0; p < NUM_PLAYERS; p++) t += bulletsShot[p];
-    return t;
+    return statsManager.getTotalBulletsShot();
   }
 
   public int getShipsDestroyed() {
-    int t = 0;
-    for (int p = 0; p < NUM_PLAYERS; p++) t += shipsDestroyed[p];
-    return t;
+    return statsManager.getTotalShipsDestroyed();
   }
 
   /* ----- Per-player getters (needed by Score.java) ----- */
   public int getScore(final int p) {
-    return (p >= 0 && p < NUM_PLAYERS) ? score[p] : 0;
+    return statsManager.getScore(p);
   }
 
   public int getBulletsShot(final int p) {
-    return (p >= 0 && p < NUM_PLAYERS) ? bulletsShot[p] : 0;
+    return statsManager.getBulletsShot(p);
   }
 
   public int getShipsDestroyed(final int p) {
-    return (p >= 0 && p < NUM_PLAYERS) ? shipsDestroyed[p] : 0;
+    return statsManager.getShipsDestroyed(p);
   }
 
   public void addScore(final int p, final int delta) {
     int realDelta = delta;
     // If ScoreBoost item active, score gain is doubled.
-    Integer multiplier = getEffectValue(p, ItemEffect.ItemEffectType.SCOREBOOST);
+    final Integer multiplier = getEffectValue(p, ItemEffect.ItemEffectType.SCOREBOOST);
     if (multiplier != null) {
       realDelta = delta * multiplier;
-      logger.info(
-          "[GameState] Player "
-              + (p + 1)
-              + " ScoreBoost active (x"
-              + multiplier
-              + "). Score changed from "
-              + delta
-              + " to "
-              + realDelta);
+      if (logger.isLoggable(Level.INFO)) {
+        logger.info(
+            "LOG_PREFIX_PLAYER "
+                + (p + 1)
+                + " ScoreBoost active (x"
+                + multiplier
+                + "). Score changed from "
+                + delta
+                + " to "
+                + realDelta);
+      }
     }
-    score[p] += realDelta;
+    statsManager.addRawScore(p, realDelta);
   }
 
   public void incBulletsShot(final int p) {
-    bulletsShot[p]++;
+    statsManager.incBulletsShot(p);
   }
 
   public void incShipsDestroyed(final int p) {
-    shipsDestroyed[p]++;
-  }
-
-  public boolean getCoop() {
-    return this.coop;
+    statsManager.incShipsDestroyed(p);
   }
 
   // 2P mode: per-player coin tracking
   public int getCoins() {
-    return coins;
+    return coinManager.getCoins();
   } // legacy total for ScoreScreen
 
   public void addCoins(final int p, final int delta) {
-    if (p >= 0 && p < NUM_PLAYERS && delta > 0) coins = Math.max(0, coins + delta);
+    coinManager.addCoins(p, delta);
   }
 
   public boolean spendCoins(final int p, final int amount) {
-    if (p < 0 || p >= NUM_PLAYERS || amount < 0) return false;
-    if (coins < amount) return false;
-    coins -= amount;
-    return true;
+    return coinManager.spendCoins(p, amount);
   }
 
   // ===== Mode / life-pool helpers expected elsewhere =====
@@ -228,37 +155,25 @@ public class GameState {
   }
 
   public boolean isSharedLives() {
-    return sharedLives;
+    return lifeManager.isShared();
   }
 
   public int getTeamLives() {
-    return teamLives;
+    return lifeManager.getTeamLives();
   }
 
   public void addTeamLife(final int n) {
-    if (sharedLives) teamLives = Math.min(teamLivesCap, teamLives + Math.max(0, n));
-  }
-
-  private void decTeamLife(final int n) {
-    if (sharedLives) teamLives = Math.max(0, teamLives - Math.max(0, n));
+    lifeManager.addTeamLife(n);
   }
 
   // 2P mode: decrement life (shared pool if enabled; otherwise per player). */
   public void decLife(final int p) {
-    if (sharedLives) {
-      decTeamLife(1);
-    } else if (p >= 0 && p < NUM_PLAYERS && lives[p] > 0) {
-      lives[p]--;
-    }
+    lifeManager.decLife(p);
   }
 
   // for bonusLife, balance out decLife (+/- life)
   public void addLife(final int p, final int n) {
-    if (sharedLives) {
-      addTeamLife(n);
-    } else if (p >= 0 && p < NUM_PLAYERS) {
-      lives[p] = Math.max(0, lives[p] + Math.max(0, n));
-    }
+    lifeManager.addLife(p, n);
   }
 
   public int getLevel() {
@@ -271,91 +186,29 @@ public class GameState {
 
   // Team alive if pool > 0 (shared) or any player has lives (separate).
   public boolean teamAlive() {
-    return sharedLives ? (teamLives > 0) : (lives[0] > 0 || lives[1] > 0);
+    return lifeManager.teamAlive();
   }
 
   // for ItemEffect.java
   public int getTeamLivesCap() {
-    return teamLivesCap;
+    return lifeManager.getTeamLivesCap();
   }
 
   // for ItemEffect.java
   public int get1PlayerLives() {
-
-    return lives[0];
-  }
-
-  /** ---------- Item effects status methods ---------- * */
-
-  /** Initialize all possible effects for every player (inactive). */
-  private void initializeEffectStates() {
-    for (int p = 0; p < NUM_PLAYERS; p++) {
-      Map<ItemEffectType, EffectState> effectMap = new HashMap<>();
-      for (ItemEffectType type : ItemEffectType.values()) {
-        effectMap.put(type, new EffectState());
-      }
-      playerEffects.put(p, effectMap);
-    }
+    return lifeManager.getPlayerLives(0);
   }
 
   public void addEffect(
-      int playerIndex, ItemEffectType type, Integer effectValue, int durationSeconds) {
-    if (playerIndex < 0 || playerIndex >= NUM_PLAYERS) return;
-
-    Map<ItemEffectType, EffectState> effects = playerEffects.get(playerIndex);
-    if (effects == null) return;
-
-    EffectState state = effects.get(type);
-    if (state == null) return;
-
-    String valueStr = (effectValue != null) ? " (value: " + effectValue + ")" : "";
-
-    if (state.active && state.cooldown != null) {
-      // Extend existing effect
-      state.cooldown.addTime(durationSeconds * 1000);
-
-      state.effectValue = effectValue;
-
-      logger.info(
-          "[GameState] Player "
-              + playerIndex
-              + " extended "
-              + type
-              + valueStr
-              + ") by "
-              + durationSeconds
-              + "s to "
-              + state.cooldown.getDuration());
-    } else {
-      // Start new effect
-      state.cooldown = Core.getCooldown(durationSeconds * 1000);
-      state.cooldown.reset();
-      state.active = true;
-
-      state.effectValue = effectValue;
-
-      logger.info(
-          "[GameState] Player "
-              + playerIndex
-              + " started "
-              + type
-              + valueStr
-              + ") for "
-              + durationSeconds
-              + "s");
-    }
+      final int playerIndex,
+      final ItemEffectType type,
+      final Integer effectValue,
+      final int durationSeconds) {
+    effectManager.addEffect(playerIndex, type, effectValue, durationSeconds);
   }
 
-  public boolean hasEffect(int playerIndex, ItemEffectType type) {
-    if (playerIndex < 0 || playerIndex >= NUM_PLAYERS) return false;
-
-    Map<ItemEffectType, EffectState> effects = playerEffects.get(playerIndex);
-    if (effects == null) return false;
-
-    EffectState state = effects.get(type);
-    if (state == null || !state.active) return false;
-
-    return !state.cooldown.checkFinished();
+  public boolean hasEffect(final int playerIndex, final ItemEffectType type) {
+    return effectManager.hasEffect(playerIndex, type);
   }
 
   /**
@@ -365,67 +218,22 @@ public class GameState {
    * @param type Type of effect to check
    * @return Effect value if active, null otherwise
    */
-  public Integer getEffectValue(int playerIndex, ItemEffectType type) {
-    if (playerIndex < 0 || playerIndex >= NUM_PLAYERS) return null;
-
-    Map<ItemEffectType, EffectState> effects = playerEffects.get(playerIndex);
-    if (effects == null) return null;
-
-    EffectState state = effects.get(type);
-    if (state == null || !state.active) return null;
-
-    // Check if effect is still valid (not expired)
-    if (state.cooldown != null && state.cooldown.checkFinished()) {
-      return null;
-    }
-
-    return state.effectValue;
+  public Integer getEffectValue(final int playerIndex, final ItemEffectType type) {
+    return effectManager.getEffectValue(playerIndex, type);
   }
 
   /** Call this each frame to clean up expired effects */
   public void updateEffects() {
-    for (int p = 0; p < NUM_PLAYERS; p++) {
-      Map<ItemEffectType, EffectState> effects = playerEffects.get(p);
-      if (effects == null) continue;
-
-      for (Map.Entry<ItemEffectType, EffectState> entry : effects.entrySet()) {
-        EffectState state = entry.getValue();
-        if (state.active && state.cooldown != null && state.cooldown.checkFinished()) {
-          logger.info("[GameState] Player " + p + " effect " + entry.getKey() + " expired.");
-          state.active = false;
-          state.cooldown = null; // Release reference
-          state.effectValue = null;
-        }
-      }
-    }
+    effectManager.updateEffects();
   }
 
   /** Clear all active effects for a specific player */
-  public void clearEffects(int playerIndex) {
-    //
-    if (playerIndex < 0 || playerIndex >= NUM_PLAYERS) return;
-
-    Map<ItemEffectType, EffectState> effects = playerEffects.get(playerIndex);
-    if (effects == null) return;
-
-    // for - all effect types for this player
-    for (Map.Entry<ItemEffectType, EffectState> entry : effects.entrySet()) {
-      // get effect state
-      EffectState state = entry.getValue();
-      // if state active then false
-      if (state.active) {
-        state.active = false;
-        state.cooldown = null;
-        state.effectValue = null;
-      }
-    }
-    logger.info("[GameState] Player " + playerIndex + ": All effects cleared.");
+  public void clearEffects(final int playerIndex) {
+    effectManager.clearEffects(playerIndex);
   }
 
   /** Clear all active effects for all players */
   public void clearAllEffects() {
-    for (int p = 0; p < NUM_PLAYERS; p++) {
-      clearEffects(p);
-    }
+    effectManager.clearAllEffects();
   }
 }

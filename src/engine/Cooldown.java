@@ -49,13 +49,13 @@ public class Cooldown {
    *
    * @return Cooldown state.
    */
-  public final boolean checkFinished() {
+  public boolean checkFinished() {
     if ((this.time == 0) || this.time + this.duration < System.currentTimeMillis()) return true;
     return false;
   }
 
   /** Restarts the cooldown. */
-  public final void reset() {
+  public void reset() {
     this.time = System.currentTimeMillis();
     if (this.variance != 0)
       this.duration =
@@ -79,4 +79,18 @@ public class Cooldown {
     long elapsed = System.currentTimeMillis() - this.time;
     return Math.max(0, this.duration - (int) elapsed);
   }
+
+  public static final Cooldown EMPTY =
+      new Cooldown(0) {
+        @Override
+        public boolean checkFinished() {
+          return true;
+        }
+
+        @Override
+        public void reset() {}
+
+        @Override
+        public void addTime(int ms) {}
+      };
 }
