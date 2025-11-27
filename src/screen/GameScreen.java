@@ -27,9 +27,11 @@ import entity.ItemPool;
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
 public class GameScreen extends Screen {
-
   /** Milliseconds until the screen accepts user input. */
   private static final int INPUT_DELAY = 6000;
+
+  /** Used when there is no message */
+  private static final int INPUT_DELAY_NO_MESSAGE = 4000;
 
   /** Bonus score for each life remaining at the end of the level. */
   private static final int LIFE_SCORE = 100;
@@ -118,6 +120,8 @@ public class GameScreen extends Screen {
   private int bulletsShot;
   private int shipsDestroyed;
   private Ship ship;
+
+  private boolean hasCountdownMessage;
 
   /** checks if player took damage 2025-10-02 add new variable */
   private boolean tookDamageThisLevel;
@@ -249,9 +253,19 @@ public class GameScreen extends Screen {
     // New Item Code
     this.items = new HashSet<Item>();
 
+    String message = DrawManager.getCountdownMessage(this.state.getLevel(), 5, this.bonusLife);
+
+    this.hasCountdownMessage = (message != null);
+
     // Special input delay / countdown.
     this.gameStartTime = System.currentTimeMillis();
-    this.inputDelay = Core.getCooldown(INPUT_DELAY);
+    int delay;
+    if (this.hasCountdownMessage) {
+      delay = INPUT_DELAY;
+    } else {
+      delay = INPUT_DELAY_NO_MESSAGE;
+    }
+    this.inputDelay = Core.getCooldown(delay);
     this.inputDelay.reset();
     drawManager.setDeath(false);
 
@@ -605,8 +619,16 @@ public class GameScreen extends Screen {
     drawManager.drawShipCount(this, enemyShipFormation.getShipCount());
 
     if (!this.inputDelay.checkFinished()) {
-      int countdown =
-          (int) ((INPUT_DELAY - (System.currentTimeMillis() - this.gameStartTime)) / 1000);
+      int countdown;
+      if (this.hasCountdownMessage) {
+        countdown =
+            (int) ((INPUT_DELAY - (System.currentTimeMillis() - this.gameStartTime)) / 1000);
+      } else {
+        countdown =
+            (int)
+                ((INPUT_DELAY_NO_MESSAGE - (System.currentTimeMillis() - this.gameStartTime))
+                    / 1000);
+      }
       drawManager.drawCountDown(this, this.state.getLevel(), countdown, this.bonusLife);
       drawManager.drawHorizontalLine(this, this.height / 2 - this.height / 12);
       drawManager.drawHorizontalLine(this, this.height / 2 + this.height / 12);
