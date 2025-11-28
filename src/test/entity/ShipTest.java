@@ -1,6 +1,5 @@
 package entity;
 
-import engine.GameState;
 import engine.DrawManager.SpriteType;
 
 import org.junit.jupiter.api.*;

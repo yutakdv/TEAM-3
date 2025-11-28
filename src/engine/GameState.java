@@ -1,8 +1,6 @@
 // engine/GameState.java
 package engine;
 
-import java.util.logging.Level;
-import engine.ItemEffect.ItemEffectType;
 
 /**
  * Implements an object that stores the state of the game between levels - supports 2-player co-op
@@ -34,7 +32,6 @@ public class GameState {
   // 2P mode: per-player tallies (used for stats/scoring; lives[] unused in shared
   // mode).
 
-  private final GameEffectManager effectManager = new GameEffectManager();
   private final PlayerStatsManager statsManager = new PlayerStatsManager();
   private final LifeManager lifeManager;
 
@@ -108,22 +105,6 @@ public class GameState {
 
   public void addScore(final int p, final int delta) {
     int realDelta = delta;
-    // If ScoreBoost item active, score gain is doubled.
-    final Integer multiplier = getEffectValue(p, ItemEffect.ItemEffectType.SCOREBOOST);
-    if (multiplier != null) {
-      realDelta = delta * multiplier;
-      if (logger.isLoggable(Level.INFO)) {
-        logger.info(
-            "LOG_PREFIX_PLAYER "
-                + (p + 1)
-                + " ScoreBoost active (x"
-                + multiplier
-                + "). Score changed from "
-                + delta
-                + " to "
-                + realDelta);
-      }
-    }
     statsManager.addRawScore(p, realDelta);
   }
 
@@ -145,7 +126,7 @@ public class GameState {
   }
 
   public boolean spendCoins(final int p, final int amount) {
-    return CoinManager.spendCoins(p, amount);
+    return CoinManager  .spendCoins(p, amount);
   }
 
   // ===== Mode / life-pool helpers expected elsewhere =====
@@ -198,41 +179,5 @@ public class GameState {
     return lifeManager.getPlayerLives(0);
   }
 
-  public void addEffect(
-      final int playerIndex,
-      final ItemEffectType type,
-      final Integer effectValue,
-      final int durationSeconds) {
-    effectManager.addEffect(playerIndex, type, effectValue, durationSeconds);
-  }
 
-  public boolean hasEffect(final int playerIndex, final ItemEffectType type) {
-    return effectManager.hasEffect(playerIndex, type);
-  }
-
-  /**
-   * Gets the effect value for a specific player and effect type
-   *
-   * @param playerIndex Index of the player (0 or 1)
-   * @param type Type of effect to check
-   * @return Effect value if active, null otherwise
-   */
-  public Integer getEffectValue(final int playerIndex, final ItemEffectType type) {
-    return effectManager.getEffectValue(playerIndex, type);
-  }
-
-  /** Call this each frame to clean up expired effects */
-  public void updateEffects() {
-    effectManager.updateEffects();
-  }
-
-  /** Clear all active effects for a specific player */
-  public void clearEffects(final int playerIndex) {
-    effectManager.clearEffects(playerIndex);
-  }
-
-  /** Clear all active effects for all players */
-  public void clearAllEffects() {
-    effectManager.clearAllEffects();
-  }
 }

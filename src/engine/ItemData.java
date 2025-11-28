@@ -26,7 +26,10 @@ public class ItemData {
    * @param dropTier rarity tier.
    * @param effectValue numerical value of the item's effect.duration the effect remains active.
    */
-  public ItemData(String type, String spriteType, String dropTier, int effectValue) {
+  public ItemData(final String type,
+                  final String spriteType,
+                  final String dropTier,
+                  final int effectValue) {
     // Unique identifier for the item (e.g "COIN", "HEAL", "SCORE").
     this.type = type;
     // The sprite type (e.g "ItemScore, ItemHeal", etc).

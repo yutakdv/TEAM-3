@@ -8,7 +8,7 @@ import java.util.Set;
 public final class ItemPool {
 
   /** Set of items. */
-  private static final Set<Item> pool = new HashSet<Item>();
+  private static final Set<Item> pool = new HashSet<>();
 
   /** Constructor, not called. */
   private ItemPool() {}
@@ -24,20 +24,23 @@ public final class ItemPool {
    *     positive is down.
    * @return Requested item.
    */
-  public static Item getItem(ItemData data, int positionX, int positionY, int speed) {
-    String type = data.getType();
+  public static Item getItem(
+      final ItemData data, final int positionX, final int positionY, final int speed) {
+    final String type = data.getType();
     // create new item
     Item item;
-    if (!pool.isEmpty()) {
-      item = pool.iterator().next();
-      pool.remove(item);
+    if (pool.isEmpty()) {
+      item = new Item(type, positionX - 3, positionY, speed);
+
+    } else {
+      final java.util.Iterator<Item> it = pool.iterator();
+      item = it.next();
+      it.remove();
 
       item.reset(type);
       item.setPositionX(positionX - item.getWidth() / 2);
       item.setPositionY(positionY);
       item.setItemSpeed(speed);
-    } else {
-      item = new Item(type, positionX - 3, positionY, speed);
     }
 
     return item;
@@ -49,7 +52,9 @@ public final class ItemPool {
    * @param items Items to recycle.
    */
   public static void recycle(final Set<Item> items) {
-    if (items == null) return;
+    if (items == null) {
+      return;
+    }
     pool.addAll(items);
   }
 }

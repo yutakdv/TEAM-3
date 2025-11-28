@@ -1,6 +1,7 @@
 package entity;
 
 import java.awt.Color;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import engine.Core;
@@ -34,7 +35,7 @@ public class Item extends Entity {
    * @param positionY Initial position of the Item in the Y axis.
    * @param speed Speed of the Item, positive or negative depending on direction - positive is down.
    */
-  public Item(String itemType, final int positionX, final int positionY, final int speed) {
+  public Item(final String itemType, final int positionX, final int positionY, final int speed) {
 
     super(positionX, positionY, 3 * 2, 5 * 2, Color.WHITE);
 
@@ -48,22 +49,28 @@ public class Item extends Entity {
   private ItemData getItemData() {
     ItemData data = ITEM_DB.getItemData(this.type);
     if (data == null) {
-      LOGGER.warning("[Item]: No ItemData found for type " + this.type);
+      if (LOGGER.isLoggable(Level.WARNING)) {
+        LOGGER.warning("[Item]: No ItemData found for type " + this.type);
+      }
     }
     return data;
   }
 
   /** Setter for the sprite of the Item using data from ItemDB. */
   public final void setSprite() {
-    ItemData data = getItemData();
+    final ItemData data = getItemData();
 
     if (data != null) {
       try {
         this.spriteType = SpriteType.valueOf(data.getSpriteType());
       } catch (IllegalArgumentException e) {
         this.spriteType = SpriteType.ItemScore; // fallback
-        LOGGER.warning(
-            "[Item]: Unknown sprite type in ItemDB: " + data.getSpriteType() + ", using default.");
+        if (LOGGER.isLoggable(Level.WARNING)) {
+          LOGGER.warning(
+              "[Item]: Unknown sprite type in ItemDB: "
+                  + data.getSpriteType()
+                  + ", using default.");
+        }
       }
     } else {
       this.spriteType = SpriteType.ItemScore;
@@ -81,10 +88,12 @@ public class Item extends Entity {
       case "TRIPLESHOT", "BULLETSPEEDUP" -> this.changeColor(Color.BLUE);
       default -> {
         this.changeColor(Color.BLACK);
-        LOGGER.warning(
-            "[Item]: Unknown item type in applyColorByType(): "
-                + this.type
-                + " (fallback color BLACK)");
+        if (LOGGER.isLoggable(Level.WARNING)) {
+          LOGGER.warning(
+              "[Item]: Unknown item type in applyColorByType(): "
+                  + this.type
+                  + " (fallback color BLACK)");
+        }
       }
     }
   }
@@ -101,7 +110,7 @@ public class Item extends Entity {
    * @param playerId ID of the player to apply the effect to.
    */
   public void applyEffect(final GameState gameState, final int playerId) {
-    ItemData data = getItemData();
+    final ItemData data = getItemData();
     if (data == null) {
       return;
     }
@@ -123,13 +132,17 @@ public class Item extends Entity {
             yield true;
           }
           default -> {
-            LOGGER.warning("[Item]: No ItemEffect for type " + this.type);
+            if (LOGGER.isLoggable(Level.WARNING)) {
+              LOGGER.warning("[Item]: No ItemEffect for type " + this.type);
+            }
             yield false;
           }
         };
 
     if (!applied) {
-      LOGGER.info("[Item]: Player " + playerId + " couldn't afford or use " + this.type);
+      if (LOGGER.isLoggable(Level.WARNING)) {
+        LOGGER.info("[Item]: Player " + playerId + " couldn't afford or use " + this.type);
+      }
     }
   }
 
@@ -147,7 +160,7 @@ public class Item extends Entity {
    *
    * @param newType new type of the Item.
    */
-  public final void reset(String newType) {
+  public final void reset(final String newType) {
     this.type = newType;
     this.itemSpeed = 0;
     setSprite(); // change to your enum if different
