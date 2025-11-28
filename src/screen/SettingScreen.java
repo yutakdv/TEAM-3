@@ -2,6 +2,7 @@ package screen;
 
 import engine.Cooldown;
 import engine.Core;
+import engine.SoundControl;
 import engine.SoundManager;
 import java.awt.event.KeyEvent;
 
@@ -57,16 +58,16 @@ public class SettingScreen extends Screen {
 
     if (index == 0) {
       this.volumelevel = val;
-      Core.setVolumeLevel(index, val);
+      SoundControl.setVolumeLevel(index, val);
     }
 
     if (index == 1) {
       this.volumelevel = val;
-      Core.setVolumeLevel(index, val);
+      SoundControl.setVolumeLevel(index, val);
     }
     if (index == 2) {
       this.volumelevel = val;
-      Core.setVolumeLevel(index, val);
+      SoundControl.setVolumeLevel(index, val);
     }
     SoundManager.updateVolume();
   }
@@ -82,9 +83,9 @@ public class SettingScreen extends Screen {
     this.inputCooldown.reset();
     this.selectMenuItem = volumeMenu;
 
-    volumeLevels[0] = Core.getVolumeLevel(0);
-    volumeLevels[1] = Core.getVolumeLevel(1);
-    volumeLevels[2] = Core.getVolumeLevel(2);
+    volumeLevels[0] = SoundControl.getVolumeLevel(0);
+    volumeLevels[1] = SoundControl.getVolumeLevel(1);
+    volumeLevels[2] = SoundControl.getVolumeLevel(2);
 
     this.volumetype = 0;
     this.volumelevel = volumeLevels[this.volumetype];
@@ -167,8 +168,8 @@ public class SettingScreen extends Screen {
           && volumelevel > 0
           && selectedSection == 1) {
         this.volumelevel--;
-        Core.setVolumeLevel(this.volumetype, this.volumelevel);
-        Core.setMute(this.volumetype, false);
+        SoundControl.setVolumeLevel(this.volumetype, this.volumelevel);
+        SoundControl.setMute(this.volumetype, false);
         SoundManager.updateVolume();
         volumeLevels[this.volumetype] = this.volumelevel;
         this.inputCooldown.reset();
@@ -178,8 +179,8 @@ public class SettingScreen extends Screen {
           && volumelevel < 100
           && selectedSection == 1) {
         this.volumelevel++;
-        Core.setVolumeLevel(this.volumetype, this.volumelevel);
-        Core.setMute(this.volumetype, false);
+        SoundControl.setVolumeLevel(this.volumetype, this.volumelevel);
+        SoundControl.setMute(this.volumetype, false);
         SoundManager.updateVolume();
         volumeLevels[this.volumetype] = this.volumelevel;
         this.inputCooldown.reset();
@@ -187,8 +188,8 @@ public class SettingScreen extends Screen {
       if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)
           && selectedSection == 1
           && this.inputCooldown.checkFinished()) {
-        boolean newMuted = !Core.isMuted(this.volumetype);
-        Core.setMute(this.volumetype, newMuted);
+        boolean newMuted = !SoundControl.isMuted(this.volumetype);
+        SoundControl.setMute(this.volumetype, newMuted);
         SoundManager.updateVolume();
         this.inputCooldown.reset();
       }
@@ -337,7 +338,7 @@ public class SettingScreen extends Screen {
       if (draggingIndex != -1 && pressed) {
         java.awt.Rectangle box = drawManager.getVolumeBarHitbox(this, draggingIndex);
         setVolumeFromX(box, mx, draggingIndex);
-        Core.setMute(this.volumetype, false);
+        SoundControl.setMute(this.volumetype, false);
       }
 
       if (!pressed) {
@@ -365,8 +366,8 @@ public class SettingScreen extends Screen {
       for (int i = 0; i < SLIDER_TITLES.length; i++) {
         java.awt.Rectangle iconBox = drawManager.getSpeakerHitbox(this, i);
         if (clicked && iconBox.contains(mx, my)) {
-          boolean newMuted = !Core.isMuted(i);
-          Core.setMute(i, newMuted);
+          boolean newMuted = !SoundControl.isMuted(i);
+          SoundControl.setMute(i, newMuted);
           SoundManager.updateVolume();
           this.inputCooldown.reset();
           break;
