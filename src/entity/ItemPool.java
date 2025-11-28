@@ -8,7 +8,7 @@ import java.util.Set;
 public final class ItemPool {
 
   /** Set of items. */
-  private static Set<Item> pool = new HashSet<Item>();
+  private static final Set<Item> pool = new HashSet<Item>();
 
   /** Constructor, not called. */
   private ItemPool() {}

@@ -12,15 +12,11 @@ public class GameStateTest {
     /** ---------------------------------------------
      * Helper: coinManager.coins 반영 (reflection)
      * --------------------------------------------- */
-    private void setCoins(GameState gs, int value) throws Exception {
-        var coinField = GameState.class.getDeclaredField("coinManager");
-        coinField.setAccessible(true);
-        Object coinManager = coinField.get(gs);
-
-        var coinsField = coinManager.getClass().getDeclaredField("coins");
-        coinsField.setAccessible(true);
-        coinsField.setInt(coinManager, value);
-    }
+ private void setCoins(int value) throws Exception {
+           var coinsField = CoinManager.class.getDeclaredField("coins");
+            coinsField.setAccessible(true);
+                  coinsField.setInt(null, value);
+       }
 
     /** ---------------------------------------------
      * Helper: effectManager.playerEffects 접근
@@ -119,7 +115,7 @@ public class GameStateTest {
     @Test
     void testAddCoins() throws Exception {
         GameState gs = new GameState(1, 3, false);
-        setCoins(gs, 10);
+        setCoins(10);
 
         gs.addCoins(0, 5);
         assertEquals(15, gs.getCoins());
@@ -128,7 +124,7 @@ public class GameStateTest {
     @Test
     void testSpendCoinsSuccess() throws Exception {
         GameState gs = new GameState(1, 3, false);
-        setCoins(gs, 20);
+        setCoins(20);
 
         assertTrue(gs.spendCoins(1, 15));
         assertEquals(5, gs.getCoins());
@@ -137,7 +133,7 @@ public class GameStateTest {
     @Test
     void testSpendCoinsFail() throws Exception {
         GameState gs = new GameState(1, 3, false);
-        setCoins(gs, 5);
+        setCoins(5);
 
         assertFalse(gs.spendCoins(1, 10));
         assertEquals(5, gs.getCoins());

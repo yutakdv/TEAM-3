@@ -36,7 +36,6 @@ public class GameState {
 
   private final GameEffectManager effectManager = new GameEffectManager();
   private final PlayerStatsManager statsManager = new PlayerStatsManager();
-  private final CoinManager coinManager = new CoinManager();
   private final LifeManager lifeManager;
 
   // 2P mode: co-op aware constructor used by the updated Core loop - livesEach
@@ -138,15 +137,15 @@ public class GameState {
 
   // 2P mode: per-player coin tracking
   public int getCoins() {
-    return coinManager.getCoins();
+    return CoinManager.getCoins();
   } // legacy total for ScoreScreen
 
   public void addCoins(final int p, final int delta) {
-    coinManager.addCoins(p, delta);
+    CoinManager.addCoins(p, delta);
   }
 
   public boolean spendCoins(final int p, final int amount) {
-    return coinManager.spendCoins(p, amount);
+    return CoinManager.spendCoins(p, amount);
   }
 
   // ===== Mode / life-pool helpers expected elsewhere =====
