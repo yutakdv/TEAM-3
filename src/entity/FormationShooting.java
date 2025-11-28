@@ -81,7 +81,12 @@ public class FormationShooting {
   }
 
   private void createSplitBullets(
-      final Set<Bullet> bullets, final EnemyShip shooter, final int spawnY, final int speed, final int w, final int h) {
+      final Set<Bullet> bullets,
+      final EnemyShip shooter,
+      final int spawnY,
+      final int speed,
+      final int w,
+      final int h) {
     final int offset = 6;
     bullets.add(
         BulletPool.getBullet(

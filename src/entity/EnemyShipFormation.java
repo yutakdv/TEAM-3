@@ -18,7 +18,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
   /** DrawManager instance. */
   private final DrawManager drawManager;
 
-    /** Screen to draw ships on. */
+  /** Screen to draw ships on. */
   private Screen screen;
 
   private final FormationMovement movement;
@@ -33,8 +33,8 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
    */
   public EnemyShipFormation(final GameSettings gameSettings) {
     this.drawManager = Core.getDrawManager();
-      /** Application logger. */
-      final Logger logger = Core.getLogger();
+    /** Application logger. */
+    final Logger logger = Core.getLogger();
 
     // 1. Movement & Shooting 초기화
     this.movement = new FormationMovement(gameSettings.getBaseSpeed());
@@ -104,7 +104,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
 
     // Grid가 비었다면 업데이트 중단
     if (grid.getShipCount() == 0) {
-        return;
+      return;
     }
 
     // 2. Movement 업데이트 (Grid의 현재 상태 전달)
@@ -145,7 +145,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
     // 1. Grid에서 배 제거
     final boolean removed = grid.removeShip(destroyedShip);
     if (!removed) {
-        return;
+      return;
     }
 
     destroyedShip.destroy();
@@ -175,10 +175,10 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
       if (!col.isEmpty()
           && Math.abs(col.get(0).getPositionX() - destroyedShip.getPositionX()) < 5) { // NOPMD
         final EnemyShip next = col.get(col.size() - 1);
-          if (next.isDestroyed()) { // NOPMD
-              return null;
-          }
-          return next;
+        if (next.isDestroyed()) { // NOPMD
+          return null;
+        }
+        return next;
       }
     }
     return null;
