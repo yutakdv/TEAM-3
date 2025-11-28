@@ -61,30 +61,30 @@ class CoreTest {
   /** ---------------- Volume Logic ---------------- */
   @Test
   void testSetVolumeLevel_validRange() {
-    Core.setVolumeLevel(0, 120); // 100 초과
-    assertEquals(100, Core.getVolumeLevel(0));
+    SoundControl.setVolumeLevel(0, 120); // 100 초과
+    assertEquals(100, SoundControl.getVolumeLevel(0));
 
-    Core.setVolumeLevel(1, -20); // 0 미만
-    assertEquals(0, Core.getVolumeLevel(1));
+    SoundControl.setVolumeLevel(1, -20); // 0 미만
+    assertEquals(0, SoundControl.getVolumeLevel(1));
 
-    Core.setVolumeLevel(0, 50);
-    assertEquals(50, Core.getVolumeLevel(0));
+    SoundControl.setVolumeLevel(0, 50);
+    assertEquals(50, SoundControl.getVolumeLevel(0));
   }
 
   @Test
   void testGetVolumetype_reflectsLastSetIndex() {
-    Core.setVolumeLevel(1, 70);
-    assertEquals(1, Core.getVolumetype());
+    SoundControl.setVolumeLevel(1, 70);
+    assertEquals(1, SoundControl.getVolumetype());
   }
 
   /** ---------------- Mute Logic ---------------- */
   @Test
   void testMute_toggleState() {
-    Core.setMute(0, true);
-    assertTrue(Core.isMuted(0));
+    SoundControl.setMute(0, true);
+    assertTrue(SoundControl.isMuted(0));
 
-    Core.setMute(0, false);
-    assertFalse(Core.isMuted(0));
+    SoundControl.setMute(0, false);
+    assertFalse(SoundControl.isMuted(0));
   }
 
   /** ---------------- Integration-like check ---------------- */

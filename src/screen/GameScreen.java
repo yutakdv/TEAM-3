@@ -277,9 +277,9 @@ public class GameScreen extends Screen {
     this.pauseInputCooldown.reset();
 
     this.pauseSelectedSection = 1;
-    this.pauseVolumetype = Core.getIngameVolumetype();
+    this.pauseVolumetype = SoundControl.getIngameVolumetype();
     for (int i = 0; i < numPauseSliders; i++) {
-      pauseVolumeLevels[i] = Core.getIngameVolumeLevel(i);
+      pauseVolumeLevels[i] = SoundControl.getIngameVolumeLevel(i);
     }
 
     this.pauseDraggingIndex = -1;
@@ -322,7 +322,7 @@ public class GameScreen extends Screen {
         && this.pauseCooldown.checkFinished()) {
       this.isPaused = !this.isPaused;
       this.pauseVolumetype = 0;
-      Core.setIngameVolumetype(0);
+      SoundControl.setIngameVolumetype(0);
       this.pauseCooldown.reset();
 
       if (this.isPaused) {
@@ -350,7 +350,7 @@ public class GameScreen extends Screen {
           && this.pauseInputCooldown.checkFinished()) {
         if (pauseVolumetype > 0) {
           pauseVolumetype--;
-          Core.setIngameVolumetype(pauseVolumetype);
+          SoundControl.setIngameVolumetype(pauseVolumetype);
           SoundManager.ingameeffect("sound/hover.wav");
           this.pauseInputCooldown.reset();
         }
@@ -360,7 +360,7 @@ public class GameScreen extends Screen {
           && this.pauseInputCooldown.checkFinished()) {
         if (pauseVolumetype < numPauseSliders - 1) {
           pauseVolumetype++;
-          Core.setIngameVolumetype(pauseVolumetype);
+          SoundControl.setIngameVolumetype(pauseVolumetype);
           SoundManager.ingameeffect("sound/hover.wav");
           this.pauseInputCooldown.reset();
         }
@@ -369,11 +369,11 @@ public class GameScreen extends Screen {
       if (pauseSelectedSection == 1
           && inputManager.isKeyDown(KeyEvent.VK_LEFT)
           && this.pauseInputCooldown.checkFinished()) {
-        int v = Core.getIngameVolumeLevel(pauseVolumetype);
+        int v = SoundControl.getIngameVolumeLevel(pauseVolumetype);
         if (v > 0) {
           v--;
-          Core.setIngameVolumeLevel(pauseVolumetype, v);
-          Core.setIngameMute(pauseVolumetype, false);
+          SoundControl.setIngameVolumeLevel(pauseVolumetype, v);
+          SoundControl.setIngameMute(pauseVolumetype, false);
           pauseVolumeLevels[pauseVolumetype] = v;
           SoundManager.updateVolume();
           this.pauseInputCooldown.reset();
@@ -382,11 +382,11 @@ public class GameScreen extends Screen {
       if (pauseSelectedSection == 1
           && inputManager.isKeyDown(KeyEvent.VK_RIGHT)
           && this.pauseInputCooldown.checkFinished()) {
-        int v = Core.getIngameVolumeLevel(pauseVolumetype);
+        int v = SoundControl.getIngameVolumeLevel(pauseVolumetype);
         if (v < 100) {
           v++;
-          Core.setIngameVolumeLevel(pauseVolumetype, v);
-          Core.setIngameMute(pauseVolumetype, false);
+          SoundControl.setIngameVolumeLevel(pauseVolumetype, v);
+          SoundControl.setIngameMute(pauseVolumetype, false);
           pauseVolumeLevels[pauseVolumetype] = v;
           SoundManager.updateVolume();
           this.pauseInputCooldown.reset();
@@ -396,8 +396,8 @@ public class GameScreen extends Screen {
       if (pauseSelectedSection == 1
           && inputManager.isKeyDown(KeyEvent.VK_SPACE)
           && this.pauseInputCooldown.checkFinished()) {
-        boolean newMuted = !Core.isIngameMuted(pauseVolumetype);
-        Core.setIngameMute(pauseVolumetype, newMuted);
+        boolean newMuted = !SoundControl.isIngameMuted(pauseVolumetype);
+        SoundControl.setIngameMute(pauseVolumetype, newMuted);
         SoundManager.updateVolume();
         this.pauseInputCooldown.reset();
       }
@@ -412,9 +412,9 @@ public class GameScreen extends Screen {
           java.awt.Rectangle iconBox = drawManager.getPauseSpeakerHitbox(this, i);
           if (iconBox.contains(mx, my)) {
             pauseVolumetype = i;
-            Core.setIngameVolumetype(i);
-            boolean newMuted = !Core.isIngameMuted(i);
-            Core.setIngameMute(i, newMuted);
+            SoundControl.setIngameVolumetype(i);
+            boolean newMuted = !SoundControl.isIngameMuted(i);
+            SoundControl.setIngameMute(i, newMuted);
             SoundManager.updateVolume();
 
             break;
@@ -650,12 +650,12 @@ public class GameScreen extends Screen {
       for (int i = 0; i < numPauseSliders; i++) {
         drawManager.drawpauseVolumeBar(
             this,
-            Core.getIngameVolumeLevel(i),
+            SoundControl.getIngameVolumeLevel(i),
             pauseDragging,
             i,
             PAUSE_SLIDER_TITLES[i],
             pauseSelectedSection,
-            Core.getIngameVolumetype());
+            SoundControl.getIngameVolumetype());
       }
     }
 
@@ -668,8 +668,8 @@ public class GameScreen extends Screen {
     int val = (int) Math.round(ratio * 100.0);
 
     pauseVolumeLevels[index] = val;
-    Core.setIngameVolumeLevel(index, val);
-    Core.setIngameMute(index, false);
+    SoundControl.setIngameVolumeLevel(index, val);
+    SoundControl.setIngameMute(index, false);
     SoundManager.updateVolume();
   }
 

@@ -38,8 +38,8 @@ public final class SoundManager {
       // Set volume based on user settings
       if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
         FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        int saved = Core.getVolumeLevel(2);
-        boolean muted = Core.isMuted(2) || saved == 0;
+        int saved = SoundControl.getVolumeLevel(2);
+        boolean muted = SoundControl.isMuted(2) || saved == 0;
         if (muted) {
           clip.close();
           return;
@@ -83,8 +83,8 @@ public final class SoundManager {
       // Set volume based on user settings
       if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
         FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        int saved = Core.getIngameVolumeLevel(1);
-        boolean muted = Core.isIngameMuted(1) || saved == 0;
+        int saved = SoundControl.getIngameVolumeLevel(1);
+        boolean muted = SoundControl.isIngameMuted(1) || saved == 0;
         if (muted) {
           clip.close();
           return;
@@ -131,8 +131,8 @@ public final class SoundManager {
 
       // Set volume based on user settings for loops
       if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = Core.getVolumeLevel(1);
-        boolean muted = Core.isMuted(1) || saved == 0;
+        int saved = SoundControl.getVolumeLevel(1);
+        boolean muted = SoundControl.isMuted(1) || saved == 0;
         FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
         float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
         gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
@@ -204,8 +204,8 @@ public final class SoundManager {
       backgroundMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
 
       if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = Core.getIngameVolumeLevel(0);
-        boolean muted = Core.isIngameMuted(0) || saved == 0;
+        int saved = SoundControl.getIngameVolumeLevel(0);
+        boolean muted = SoundControl.isIngameMuted(0) || saved == 0;
 
         FloatControl gain =
             (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
@@ -290,9 +290,9 @@ public final class SoundManager {
    * changed.
    */
   public static void updateVolume() {
-    int vol0 = Core.getVolumeLevel(1);
-    boolean muted0 = Core.isMuted(1) || vol0 == 0;
-    float volumeDb = muted0 ? -80.0f : calculateVolumeDb(Core.getVolumeLevel(Core.getVolumetype()));
+    int vol0 = SoundControl.getVolumeLevel(1);
+    boolean muted0 = SoundControl.isMuted(1) || vol0 == 0;
+    float volumeDb = muted0 ? -80.0f : calculateVolumeDb(SoundControl.getVolumeLevel(SoundControl.getVolumetype()));
 
     // Update looped sound volume (menu music)
     if (loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
@@ -317,19 +317,19 @@ public final class SoundManager {
    * @return Volume in decibels
    */
   private static float calculateVolumeDb(int volumeLevel) {
-    boolean muted = Core.isMuted(0);
+    boolean muted = SoundControl.isMuted(0);
 
     if (muted || volumeLevel <= 0) {
       return -80.0f; // Silent
     }
-    if (Core.getVolumeLevel(0) >= 100 && volumeLevel >= 100) {
+    if (SoundControl.getVolumeLevel(0) >= 100 && volumeLevel >= 100) {
       return 0.0f; // Full volume
     }
 
     // Convert percentage to decibels
     // Using logarithmic scale: dB = 20 * log10(volumeLevel/100)
     // But we'll use a simpler linear mapping for better user experience
-    float ratio = (((float) Core.getVolumeLevel(0) / 100) * volumeLevel) / 100.0f;
+    float ratio = (((float) SoundControl.getVolumeLevel(0) / 100) * volumeLevel) / 100.0f;
     return (float) (20.0 * Math.log10(ratio));
   }
 }
