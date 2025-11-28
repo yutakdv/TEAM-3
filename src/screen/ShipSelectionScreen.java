@@ -101,7 +101,6 @@ public class ShipSelectionScreen extends Screen {
 
   protected final void update() {
     super.update();
-    draw();
     if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
       this.returnCode = (player == 1) ? 5 : 6;
       SoundManager.playeffect("sound/select.wav");
@@ -226,6 +225,7 @@ public class ShipSelectionScreen extends Screen {
         this.isRunning = false;
       }
     }
+    draw();
   }
 
   private void draw() {
