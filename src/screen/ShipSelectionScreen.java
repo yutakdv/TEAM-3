@@ -1,6 +1,6 @@
 package screen;
 
-import engine.*;
+import engine.*; //NOPMD - used import
 import entity.Entity;
 import entity.Ship;
 
@@ -8,7 +8,6 @@ import java.awt.event.KeyEvent;
 
 import java.io.IOException;
 import entity.Ship.ShipType;
-import engine.Core;
 
 public class ShipSelectionScreen extends Screen {
   private int selectedShipIndex = 0; // 0: NORMAL, 1: BIG_SHOT, 2: DOUBLE_SHOT, 3: MOVE_FAST
@@ -18,7 +17,7 @@ public class ShipSelectionScreen extends Screen {
   private Integer prevHoverIndex = null;
   private int coins;
 
-  private int player;
+  private final int player;
   private boolean backSelected = false; // If current state is on the back button, can't select ship
 
   private boolean[] unlockedStates = new boolean[4];
@@ -56,7 +55,7 @@ public class ShipSelectionScreen extends Screen {
     }
 
     try {
-      var unlockMap = Core.getFileManager().loadShipUnlocks();
+      final var unlockMap = Core.getFileManager().loadShipUnlocks();
 
       // NORMAL = Bronze
       unlockedStates[0] = unlockMap.getOrDefault(ShipType.NORMAL, true);
@@ -114,15 +113,15 @@ public class ShipSelectionScreen extends Screen {
       backSelected = false;
     }
 
-    int mx = inputManager.getMouseX();
-    int my = inputManager.getMouseY();
+    final int mx = inputManager.getMouseX();
+    final int my = inputManager.getMouseY();
 
-    java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-    java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
+    final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+    final java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
 
     boolean mouseHovering = backBox.contains(mx, my);
     if (!mouseHovering) {
-      for (java.awt.Rectangle r : shipBoxes) {
+      for (final java.awt.Rectangle r : shipBoxes) {
         if (r.contains(mx, my)) {
           mouseHovering = true;
           backSelected = false;
@@ -179,7 +178,7 @@ public class ShipSelectionScreen extends Screen {
       this.isRunning = false;
     }
 
-    boolean clicked = inputManager.isMouseClicked();
+    final boolean clicked = inputManager.isMouseClicked();
 
     prevHoverIndex = hovershipIndex;
     hovershipIndex = null;
@@ -203,9 +202,9 @@ public class ShipSelectionScreen extends Screen {
         return;
       }
       if (hovershipIndex != null) {
-        int clickedIndex = hovershipIndex;
+        final int clickedIndex = hovershipIndex;
 
-        boolean unlocked =
+        final boolean unlocked =
             (unlockedStates == null)
                 || (clickedIndex >= 0
                     && clickedIndex < unlockedStates.length
@@ -237,14 +236,14 @@ public class ShipSelectionScreen extends Screen {
     drawManager.drawShipSelectionCoins(this, this.coins);
 
     // hover highlight
-    int mx = inputManager.getMouseX();
-    int my = inputManager.getMouseY();
-    java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-    boolean backHover = backBox.contains(mx, my);
+    final int mx = inputManager.getMouseX();
+    final int my = inputManager.getMouseY();
+    final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+    final boolean backHover = backBox.contains(mx, my);
     drawManager.drawBackButton(this, backHover || backSelected);
 
     if (CoinsToast != null) {
-      java.util.List<Achievement> list = new java.util.ArrayList<>();
+      final java.util.List<Achievement> list = new java.util.ArrayList<>();
       list.add(CoinsToast);
       drawManager.drawAchievementToasts(this, list);
     }
@@ -258,7 +257,7 @@ public class ShipSelectionScreen extends Screen {
     return unlockedStates[selectedShipIndex];
   }
 
-  private int getShipUnlockCost(int index) {
+  private int getShipUnlockCost(final int index) {
     switch (index) {
       case 0: // Bronze (NORMAL)
         return 0;
@@ -273,7 +272,7 @@ public class ShipSelectionScreen extends Screen {
     }
   }
 
-  private ShipType getShipTypeByIndex(int index) {
+  private ShipType getShipTypeByIndex(final int index) {
     switch (index) {
       case 0:
         return ShipType.NORMAL;
@@ -288,19 +287,19 @@ public class ShipSelectionScreen extends Screen {
     }
   }
 
-  private boolean tryUnlockShip(int index) {
+  private boolean tryUnlockShip(final int index) {
     if (unlockedStates != null
         && index >= 0
         && index < unlockedStates.length
         && unlockedStates[index]) {
       return true;
     }
-    int cost = getShipUnlockCost(index);
+    final int cost = getShipUnlockCost(index);
 
     if (coins < cost) {
       SoundManager.playeffect("sound/hover.wav");
-      String title = "NOT ENOUGH COINS";
-      String desc = "";
+      final String title = "NOT ENOUGH COINS";
+      final String desc = "";
 
       CoinsToast = new Achievement(title, desc);
       CoinsCooldown = Core.getCooldown(3000); // 3초 정도
@@ -312,11 +311,11 @@ public class ShipSelectionScreen extends Screen {
       unlockedStates[index] = true;
     }
     try {
-      var fm = Core.getFileManager();
+      final var fm = Core.getFileManager();
 
       fm.saveCoins(coins);
 
-      var unlockMap = fm.loadShipUnlocks();
+      final var unlockMap = fm.loadShipUnlocks();
       unlockMap.put(getShipTypeByIndex(index), true);
       fm.saveShipUnlocks(unlockMap);
     } catch (IOException e) {
