@@ -8,10 +8,10 @@ package engine;
 public class Cooldown {
 
   /** Cooldown duration. */
-  private int milliseconds;
+  private final int milliseconds;
 
   /** Maximum difference between durations. */
-  private int variance;
+  private final int variance;
 
   /** Duration of this run, varies between runs if variance > 0. */
   private int duration;
@@ -50,33 +50,36 @@ public class Cooldown {
    * @return Cooldown state.
    */
   public boolean checkFinished() {
-    if ((this.time == 0) || this.time + this.duration < System.currentTimeMillis()) return true;
-    return false;
+    return this.time == 0 || this.time + this.duration < System.currentTimeMillis();
   }
 
   /** Restarts the cooldown. */
   public void reset() {
     this.time = System.currentTimeMillis();
-    if (this.variance != 0)
+    if (this.variance != 0) {
       this.duration =
           (this.milliseconds - this.variance)
               + (int) (Math.random() * (this.milliseconds + this.variance));
+    }
   }
 
-  public void addTime(int extraMs) {
-    if (!this.checkFinished()) {
+  public void addTime(final int extraMs) {
+    if (this.checkFinished()) {
       // extend current cooldown
-      this.duration += extraMs;
-    } else {
-      // restart as new cooldown
       this.reset();
       this.duration = extraMs;
+
+    } else {
+      // restart as new cooldown
+      this.duration += extraMs;
     }
   }
 
   public int getDuration() {
-    if (this.time == 0) return 0; // cooldown hasn't started
-    long elapsed = System.currentTimeMillis() - this.time;
+    if (this.time == 0) {
+      return 0; // cooldown hasn't started
+    }
+    final long elapsed = System.currentTimeMillis() - this.time;
     return Math.max(0, this.duration - (int) elapsed);
   }
 
@@ -91,6 +94,6 @@ public class Cooldown {
         public void reset() {}
 
         @Override
-        public void addTime(int ms) {}
+        public void addTime(final int ms) {}
       };
 }
