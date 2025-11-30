@@ -57,8 +57,6 @@ public class GameScreen extends Screen { // NOPMD
   private static final int HIGH_SCORE_NOTICE_DURATION = 2000;
   private static boolean sessionHighScoreNotified = false; // NOPMD
 
-  int pauseVolumetype;
-
   /** For Check Achievement 2015-10-02 add new */
   private AchievementManager achievementManager; // NOPMD
 
@@ -68,16 +66,13 @@ public class GameScreen extends Screen { // NOPMD
   /** Current game difficulty settings. */
   private final GameSettings gameSettings;
 
-  /** Current difficulty level number. */
-  int level;
-
   /** Formation of enemy ships. */
   private EnemyShipFormation enemyShipFormation;
 
   private EnemyShip enemyShipSpecial;
 
   /** Formation of player ships. */
-  private Ship[] ships = new Ship[GameState.NUM_PLAYERS];
+  private final Ship[] ships = new Ship[GameState.NUM_PLAYERS];
 
   /** Minimum time between bonus ship appearances. */
   private Cooldown enemyShipSpecialCooldown;
@@ -109,11 +104,7 @@ public class GameScreen extends Screen { // NOPMD
   private boolean isPaused;
   private Cooldown pauseCooldown;
   private Cooldown returnMenuCooldown;
-
-  int score;
   int lives;
-  int bulletsShot;
-  int shipsDestroyed;
 
   private boolean hasCountdownMessage;
 
@@ -159,14 +150,11 @@ public class GameScreen extends Screen { // NOPMD
     this.bonusLife = bonusLife;
     this.shipTypeP1 = shipTypeP1;
     this.shipTypeP2 = shipTypeP2;
-    this.level = gameState.getLevel();
-    this.score = gameState.getScore();
+
     this.lives = gameState.getLivesRemaining();
     if (this.bonusLife) {
       this.lives++;
     }
-    this.bulletsShot = gameState.getBulletsShot();
-    this.shipsDestroyed = gameState.getShipsDestroyed();
 
     // for check Achievement 2025-10-02 add
     this.achievementManager = achievementManager;
@@ -298,7 +286,6 @@ public class GameScreen extends Screen { // NOPMD
         && inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)
         && this.pauseCooldown.checkFinished()) {
       this.isPaused = !this.isPaused;
-      this.pauseVolumetype = 0;
       SoundControl.setIngameVolumetype(0);
       this.pauseCooldown.reset();
 
@@ -433,9 +420,9 @@ public class GameScreen extends Screen { // NOPMD
   private void checkLevelEndCondition() { // NOPMD
     if ((this.enemyShipFormation.isEmpty() || !state.teamAlive()) && !this.levelFinished) {
       BulletPool.recycle(this.bullets);
-      this.bullets.removeAll(this.bullets);
+      this.bullets.clear();
       ItemPool.recycle(items);
-      this.items.removeAll(this.items);
+      this.items.clear();
 
       this.levelFinished = true;
       this.screenFinishedCooldown.reset();
@@ -448,7 +435,7 @@ public class GameScreen extends Screen { // NOPMD
       if (enemyShipFormation.getShipCount() == 0 && !this.tookDamageThisLevel) {
         achievementManager.unlock("Survivor");
       }
-      if (enemyShipFormation.getShipCount() == 0 & state.getLevel() == 5) {
+      if (enemyShipFormation.getShipCount() == 0 && state.getLevel() == 5) {
         achievementManager.unlock("Clear");
       }
       this.achievementManager.checkAchievements(
