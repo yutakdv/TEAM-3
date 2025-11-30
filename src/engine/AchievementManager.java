@@ -1,5 +1,7 @@
 package engine;
 
+import entity.EnemyShipFormation;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
@@ -117,5 +119,27 @@ public class AchievementManager {
       instance = new AchievementManager();
     }
     return instance;
+  }
+
+  public void checkAchievements(
+      GameState state, EnemyShipFormation formation, boolean levelFinished, boolean tookDamage) {
+    if (state.getShipsDestroyed() == 1) unlock("First Blood");
+    if (state.getBulletsShot() >= 50) unlock("50 Bullets");
+    if (state.getScore() >= 3000) unlock("Get 3000 Score");
+
+    if (levelFinished && formation.isEmpty() && state.getLevel() == 5) {
+      unlock("Clear");
+      float p1Acc =
+          state.getBulletsShot(0) > 0
+              ? (float) state.getShipsDestroyed(0) / state.getBulletsShot(0) * 100
+              : 0f;
+      float p2Acc =
+          state.getBulletsShot(1) > 0
+              ? (float) state.getShipsDestroyed(1) / state.getBulletsShot(1) * 100
+              : 0f;
+
+      if (!tookDamage) unlock("Survivor");
+      if (p1Acc >= 80 || p2Acc >= 80) unlock("Sharpshooter");
+    }
   }
 }
