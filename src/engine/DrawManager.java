@@ -37,39 +37,41 @@ public final class DrawManager {
   private static DrawManager instance;
 
   /** Current frame. */
-  private static Frame frame;
+  private Frame frame;
 
   /** FileManager instance. */
-  private static FileManager fileManager;
+  private FileManager fileManager;
 
   /** Application logger. */
-  private static Logger logger;
+  private Logger logger;
 
   /** Graphics context. */
-  private static Graphics graphics;
+  private Graphics graphics;
 
   /** Buffer Graphics. */
-  private static Graphics backBufferGraphics;
+  private Graphics backBufferGraphics;
 
   /** Buffer image. */
-  private static BufferedImage backBuffer;
+  private BufferedImage backBuffer;
 
   /** Normal sized font. */
-  private static Font fontRegular;
+  private Font fontRegular;
 
   /** Normal sized font properties. */
-  private static FontMetrics fontRegularMetrics;
+  private FontMetrics fontRegularMetrics;
 
   /** Big sized font. */
-  private static Font fontBig;
+  private Font fontBig;
 
   /** Big sized font properties. */
-  private static FontMetrics fontBigMetrics;
+  private FontMetrics fontBigMetrics;
 
   /** Sprite types mapped to their images. */
-  private static Map<SpriteType, boolean[][]> spriteMap;
+  private Map<SpriteType, boolean[][]> spriteMap;
 
   private final java.util.List<Explosion> explosions = new java.util.ArrayList<>();
+
+  private final java.util.Random explosionRandom = new java.util.Random();
 
   /** Stars background animations for both game and main menu Star density specified as argument. */
   BasicGameSpace basicGameSpace = new BasicGameSpace(100);
@@ -194,7 +196,7 @@ public final class DrawManager {
    * @param currentFrame Frame to draw on.
    */
   public void setFrame(final Frame currentFrame) {
-    frame = currentFrame;
+    this.frame = currentFrame;
   }
 
   /**
@@ -204,20 +206,17 @@ public final class DrawManager {
    * @param screen Screen to draw in.
    */
   public void initDrawing(final Screen screen) {
-    backBuffer =
+    this.backBuffer =
         new BufferedImage(screen.getWidth(), screen.getHeight(), BufferedImage.TYPE_INT_RGB);
 
-    graphics = frame.getGraphics();
-    backBufferGraphics = backBuffer.getGraphics();
+    this.graphics = this.frame.getGraphics();
+    this.backBufferGraphics = this.backBuffer.getGraphics();
 
-    backBufferGraphics.setColor(Color.BLACK);
-    backBufferGraphics.fillRect(0, 0, screen.getWidth(), screen.getHeight());
+    this.backBufferGraphics.setColor(Color.BLACK);
+    this.backBufferGraphics.fillRect(0, 0, screen.getWidth(), screen.getHeight());
 
-    fontRegularMetrics = backBufferGraphics.getFontMetrics(fontRegular);
-    fontBigMetrics = backBufferGraphics.getFontMetrics(fontBig);
-
-    // drawBorders(screen);
-    // drawGrid(screen);
+    this.fontRegularMetrics = this.backBufferGraphics.getFontMetrics(this.fontRegular);
+    this.fontBigMetrics = this.backBufferGraphics.getFontMetrics(this.fontBig);
   }
 
   /**
@@ -226,7 +225,7 @@ public final class DrawManager {
    * @param screen Screen to draw on.
    */
   public void completeDrawing(final Screen screen) {
-    graphics.drawImage(backBuffer, frame.getInsets().left, frame.getInsets().top, frame);
+    this.graphics.drawImage(this.backBuffer, this.frame.getInsets().left, this.frame.getInsets().top, this.frame);
   }
 
   /**
@@ -339,12 +338,12 @@ public final class DrawManager {
 
         int baseSize;
 
-        Random random = new Random();
-        if (e.getSize() == 4) baseSize = random.nextInt(5) + 2;
-        else baseSize = random.nextInt(6) + 18;
+
+        if (e.getSize() == 4) baseSize = explosionRandom.nextInt(5) + 2;
+        else baseSize = explosionRandom.nextInt(6) + 18;
 
         int flickerAlpha =
-            Math.max(0, Math.min(255, p.color.getAlpha() - (int) (Math.random() * 50)));
+            Math.max(0, Math.min(255, p.color.getAlpha() -  explosionRandom.nextInt(50)));
 
         float[] dist = {0.0f, 0.3f, 0.7f, 1.0f};
         Color[] colors;
@@ -371,12 +370,14 @@ public final class DrawManager {
 
         g2d.setPaint(paint);
 
-        int offsetX = (int) (Math.random() * 4 - 2);
-        int offsetY = (int) (Math.random() * 4 - 2);
+        int offsetX = explosionRandom.nextInt(4) - 2;
+        int offsetY = explosionRandom.nextInt(4) - 2;
+
+        final double halfSize = baseSize / 2.0;
 
         g2d.fillOval(
-            (int) (p.x - baseSize / 2 + offsetX),
-            (int) (p.y - baseSize / 2 + offsetY),
+            (int) (p.x - halfSize + offsetX),
+            (int) (p.y - halfSize + offsetY),
             baseSize,
             baseSize);
       }
