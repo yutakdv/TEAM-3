@@ -105,18 +105,12 @@ public class ShipSelectionScreen extends Screen {
 
   protected final void update() {
     super.update();
-    if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
-      this.returnCode = (player == 1) ? 5 : 6;
-      SoundManager.playeffect(SELECT_SOUND);
-      this.isRunning = false;
+
+    if (handleEscape()) {
       return;
     }
-    if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
-      backSelected = true;
-    }
-    if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
-      backSelected = false;
-    }
+
+    updateBackSelectionByKeys();
 
     final int mx = inputManager.getMouseX();
     final int my = inputManager.getMouseY();
@@ -124,111 +118,17 @@ public class ShipSelectionScreen extends Screen {
     final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
     final java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
 
-    boolean mouseHovering = backBox.contains(mx, my); // NOPMD - LawofDemeter
-    if (!mouseHovering) {
-      for (final java.awt.Rectangle r : shipBoxes) {
-        if (r.contains(mx, my)) {
-          mouseHovering = true;
-          backSelected = false;
-          break;
-        }
-      }
-      if (CoinsToast != null && CoinsCooldown != null && CoinsCooldown.checkFinished()) {
-        coinsToastActive = false;
-      }
+    final boolean mouseHovering = updateMouseHoverAndToast(mx, my, backBox, shipBoxes);
+
+    handleArrowNavigation(mouseHovering);
+
+    if (handleSpaceSelection()) {
+      return;
     }
 
-    if (!backSelected) {
-      if (inputManager.isKeyPressed(KeyEvent.VK_LEFT) || inputManager.isKeyPressed(KeyEvent.VK_A)) {
-        this.selectedShipIndex = this.selectedShipIndex - 1;
-        if (this.selectedShipIndex < 0) {
-          this.selectedShipIndex += 4;
-        }
-        this.selectedShipIndex = this.selectedShipIndex % 4;
-        if (!mouseHovering) {
-          SoundManager.playeffect(HOVER_SOUND);
-        }
-      }
-      if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT)
-          || inputManager.isKeyPressed(KeyEvent.VK_D)) {
-        this.selectedShipIndex = (this.selectedShipIndex + 1) % 4;
-        if (!mouseHovering) {
-          SoundManager.playeffect(HOVER_SOUND);
-        }
-      }
-    }
-    if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
-      if (backSelected) {
-        if (player == 1) {
-          this.returnCode = 5;
-        } else if (player == 2) {
-          this.returnCode = 6;
-        }
-        SoundManager.playeffect(SELECT_SOUND);
-        this.isRunning = false;
-        return;
-      }
+    updateHoverIndex(mx, my, shipBoxes);
+    handleMouseClick(mx, my, backBox);
 
-      if (!isSelectedShipUnlocked()) {
-        tryUnlockShip(selectedShipIndex);
-        return;
-      }
-      if (player == 1) {
-        this.returnCode = 6;
-      } else if (player == 2) {
-        this.returnCode = 2;
-      }
-      SoundManager.playeffect(SELECT_SOUND);
-      this.isRunning = false;
-    }
-
-    final boolean clicked = inputManager.isMouseClicked();
-
-    prevHoverIndex = hovershipIndex;
-    hovershipIndex = -1;
-
-    for (int i = 0; i < shipBoxes.length; i++) {
-      if (shipBoxes[i].contains(mx, my)) {
-        hovershipIndex = i;
-        this.selectedShipIndex = i;
-        break;
-      }
-    }
-    if (hovershipIndex != -1 && hovershipIndex != prevHoverIndex) {
-      SoundManager.playeffect(HOVER_SOUND);
-    }
-
-    if (clicked) {
-      if (backBox.contains(mx, my)) {
-        this.returnCode = (player == 1) ? 5 : 6;
-        SoundManager.playeffect(SELECT_SOUND);
-        this.isRunning = false;
-        return;
-      }
-      if (hovershipIndex != -1) {
-        final int clickedIndex = hovershipIndex;
-
-        final boolean unlocked =
-            unlockedStates == null
-                || clickedIndex >= 0
-                    && clickedIndex < unlockedStates.length
-                    && unlockedStates[clickedIndex];
-        if (!unlocked) {
-          tryUnlockShip(clickedIndex);
-          this.selectedShipIndex = clickedIndex;
-          return;
-        }
-        this.selectedShipIndex = clickedIndex;
-
-        if (player == 1) {
-          this.returnCode = 6;
-        } else if (player == 2) {
-          this.returnCode = 2;
-        }
-        SoundManager.playeffect(SELECT_SOUND);
-        this.isRunning = false;
-      }
-    }
     draw();
   }
 
@@ -333,15 +233,171 @@ public class ShipSelectionScreen extends Screen {
   private void saveUnlockState(final int index) {
     try {
       final var fm = Core.getFileManager();
-      fm.saveCoins(coins); // NOPMD - LawofDemeter
+      fm.saveCoins(coins); // NOPMD - LawofDemeter(why???)
 
       final var unlockMap = fm.loadShipUnlocks(); // NOPMD - LawofDemeter
       unlockMap.put(getShipTypeByIndex(index), true); // NOPMD - LawofDemeter
       fm.saveShipUnlocks(unlockMap); // NOPMD - LawofDemeter
 
     } catch (IOException e) {
-      Core.getLogger()//NOPMD - LawofDemeter
+      Core.getLogger() // NOPMD - LawofDemeter
           .warning("Failed to save ship unlock state: " + e.getMessage()); // NOPMD - LawofDemeter
     }
+  }
+
+  private boolean handleEscape() {
+    if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+      this.returnCode = (player == 1) ? 5 : 6;
+      SoundManager.playeffect(SELECT_SOUND);
+      this.isRunning = false;
+      return true;
+    }
+    return false;
+  }
+
+  private void updateBackSelectionByKeys() {
+    if (inputManager.isKeyPressed(KeyEvent.VK_UP) || inputManager.isKeyPressed(KeyEvent.VK_W)) {
+      backSelected = true;
+    }
+    if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) || inputManager.isKeyPressed(KeyEvent.VK_S)) {
+      backSelected = false;
+    }
+  }
+
+  private boolean updateMouseHoverAndToast(
+      final int mx,
+      final int my,
+      final java.awt.Rectangle backBox,
+      final java.awt.Rectangle[] shipBoxes) { // NOPMD - Do not need varargs
+
+    boolean mouseHovering = backBox.contains(mx, my); // NOPMD - LawofDemeter
+    if (!mouseHovering) {
+      for (final java.awt.Rectangle r : shipBoxes) {
+        if (r.contains(mx, my)) {
+          mouseHovering = true;
+          backSelected = false;
+          break;
+        }
+      }
+      if (CoinsToast != null && CoinsCooldown != null && CoinsCooldown.checkFinished()) {
+        coinsToastActive = false;
+      }
+    }
+    return mouseHovering;
+  }
+
+  private void handleArrowNavigation(final boolean mouseHovering) {
+    if (backSelected) {
+      return;
+    }
+
+    if (inputManager.isKeyPressed(KeyEvent.VK_LEFT) || inputManager.isKeyPressed(KeyEvent.VK_A)) {
+      this.selectedShipIndex = this.selectedShipIndex - 1;
+      if (this.selectedShipIndex < 0) {
+        this.selectedShipIndex += 4;
+      }
+      this.selectedShipIndex = this.selectedShipIndex % 4;
+      if (!mouseHovering) {
+        SoundManager.playeffect(HOVER_SOUND);
+      }
+    }
+
+    if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT) || inputManager.isKeyPressed(KeyEvent.VK_D)) {
+      this.selectedShipIndex = (this.selectedShipIndex + 1) % 4;
+      if (!mouseHovering) {
+        SoundManager.playeffect(HOVER_SOUND);
+      }
+    }
+  }
+
+  private boolean handleSpaceSelection() {
+    if (!inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
+      return false;
+    }
+
+    if (backSelected) {
+      if (player == 1) {
+        this.returnCode = 5;
+      } else if (player == 2) {
+        this.returnCode = 6;
+      }
+      SoundManager.playeffect(SELECT_SOUND);
+      this.isRunning = false;
+      return true;
+    }
+
+    if (!isSelectedShipUnlocked()) {
+      tryUnlockShip(selectedShipIndex);
+      return true;
+    }
+
+    if (player == 1) {
+      this.returnCode = 6;
+    } else if (player == 2) {
+      this.returnCode = 2;
+    }
+    SoundManager.playeffect(SELECT_SOUND);
+    this.isRunning = false;
+    return true;
+  }
+
+  private void updateHoverIndex(final int mx, final int my, final java.awt.Rectangle[] shipBoxes) { //NOPMD - DO not need varargs
+    prevHoverIndex = hovershipIndex;
+    hovershipIndex = -1;
+
+    for (int i = 0; i < shipBoxes.length; i++) {
+      if (shipBoxes[i].contains(mx, my)) {
+        hovershipIndex = i;
+        this.selectedShipIndex = i;
+        break;
+      }
+    }
+
+    if (hovershipIndex != -1 && hovershipIndex != prevHoverIndex) {
+      SoundManager.playeffect(HOVER_SOUND);
+    }
+  }
+
+  private void handleMouseClick(final int mx, final int my, final java.awt.Rectangle backBox) {
+
+    final boolean clicked = inputManager.isMouseClicked();
+    if (!clicked) {
+      return;
+    }
+
+    if (backBox.contains(mx, my)) {
+      this.returnCode = (player == 1) ? 5 : 6;
+      SoundManager.playeffect(SELECT_SOUND);
+      this.isRunning = false;
+      return;
+    }
+
+    if (hovershipIndex == -1) {
+      return;
+    }
+
+    final int clickedIndex = hovershipIndex;
+
+    final boolean unlocked =
+        unlockedStates == null
+            || clickedIndex >= 0
+                && clickedIndex < unlockedStates.length
+                && unlockedStates[clickedIndex];
+
+    if (!unlocked) {
+      tryUnlockShip(clickedIndex);
+      this.selectedShipIndex = clickedIndex;
+      return;
+    }
+
+    this.selectedShipIndex = clickedIndex;
+
+    if (player == 1) {
+      this.returnCode = 6;
+    } else if (player == 2) {
+      this.returnCode = 2;
+    }
+    SoundManager.playeffect(SELECT_SOUND);
+    this.isRunning = false;
   }
 }
