@@ -40,10 +40,49 @@ public class Ship extends Entity {
 
   /** Types of ships. */
   public enum ShipType {
-    NORMAL,
-    BIG_SHOT,
-    DOUBLE_SHOT,
-    MOVE_FAST
+    NORMAL(BASE_SPEED, BASE_SHOOTING_INTERVAL, SpriteType.Ship1) {
+      void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY) {
+        ship.addBullet(bullets, centerX, bulletY);
+      }
+    },
+    BIG_SHOT(3, 700, SpriteType.Ship2) {
+      void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY) {
+        ship.addBullet(bullets, centerX, bulletY);
+      }
+    },
+    DOUBLE_SHOT(4, 700, SpriteType.Ship3) {
+      void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY) {
+        ship.addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
+        ship.addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
+      }
+    },
+    MOVE_FAST(5, 500, SpriteType.Ship4) {
+      void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY) {
+        ship.addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
+        ship.addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
+      }
+    };
+
+    private final int moveSpeed;
+    private final int shootingInterval;
+    private final SpriteType spriteType;
+
+    ShipType(int moveSpeed, int shootingInterval, SpriteType spriteType) {
+      this.moveSpeed = moveSpeed;
+      this.shootingInterval = shootingInterval;
+      this.spriteType = spriteType;
+    }
+
+    void applyStats(Ship ship) {
+      ship.moveSpeed = this.moveSpeed;
+      ship.shootingInterval = this.shootingInterval;
+      ship.spriteType = this.spriteType;
+      ship.bulletSpeed = BASE_BULLET_SPEED;
+      ship.bulletWidth = BASE_BULLET_WIDTH;
+      ship.bulletHeight = BASE_BULLET_HEIGHT;
+    }
+
+    abstract void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY);
   }
 
   /** Game state and Ship type * */
@@ -89,7 +128,7 @@ public class Ship extends Entity {
     this.type = (type != null) ? type : ShipType.NORMAL;
     this.spriteType = SpriteType.Ship1;
 
-    initializeShipProperties(this.type);
+    this.type.applyStats(this);
 
     this.shootingCooldown = Core.getCooldown(this.shootingInterval);
     this.destructionCooldown = Core.getCooldown(DESTRUCTION_COOLDOWN);
@@ -99,43 +138,7 @@ public class Ship extends Entity {
     this.setTeam(playerID);
     this.playerIndex = (playerID == Team.PLAYER1) ? 0 : (playerID == Team.PLAYER2) ? 1 : 0;
 
-    int Y = positionY;
     this.hits = 0;
-  }
-
-  /**
-   * Initializes ship properties based on ship type.
-   *
-   * @param type Ship type to configure
-   */
-  private void initializeShipProperties(final ShipType type) {
-    this.bulletSpeed = BASE_BULLET_SPEED;
-    this.moveSpeed = BASE_SPEED;
-    this.shootingInterval = BASE_SHOOTING_INTERVAL; // 750
-    this.bulletWidth = BASE_BULLET_WIDTH; // 6
-    this.bulletHeight = BASE_BULLET_HEIGHT; // 10
-    this.spriteType = SpriteType.Ship1;
-
-    switch (type) {
-      case BIG_SHOT: // Silver ship
-        this.moveSpeed = 3;
-        this.shootingInterval = 700;
-        this.spriteType = SpriteType.Ship2;
-        break;
-      case DOUBLE_SHOT: // Gold ship
-        this.moveSpeed = 4;
-        this.shootingInterval = 700;
-        this.spriteType = SpriteType.Ship3;
-        break;
-      case MOVE_FAST: // Platinum ship
-        this.moveSpeed = 5;
-        this.shootingInterval = 500;
-        this.spriteType = SpriteType.Ship4;
-        break;
-      case NORMAL: // Bronze ship
-      default:
-        break;
-    }
   }
 
   /** Moves the ship speed uni ts right, or until the right screen border is reached. */
@@ -167,7 +170,7 @@ public class Ship extends Entity {
     int bulletY = this.positionY - this.bulletHeight;
 
     // Default shooting based on ship type
-    shootBasedOnType(bullets, bulletX, bulletY);
+    this.type.shoot(this, bullets, bulletX, bulletY);
     return true;
   }
 
@@ -228,32 +231,15 @@ public class Ship extends Entity {
     return this.playerIndex + 1;
   }
 
-  public void setPlayerId(int id) {
+  public void setPlayerId(final int id) {
     this.playerIndex = id - 1;
   }
 
-  /** Fires bullets based on ship type. */
-  private void shootBasedOnType(final Set<Bullet> bullets, final int centerX, final int bulletY) {
-    switch (this.type) {
-      case DOUBLE_SHOT, MOVE_FAST:
-        addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
-        addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
-        break;
-      case BIG_SHOT:
-      case NORMAL:
-      default:
-        addBullet(bullets, centerX, bulletY);
-        break;
-    }
-  }
-
   /** Creates and adds a bullet to the game. */
-  private void addBullet(final Set<Bullet> bullets, final int x, final int y) {
-    int currentBulletSpeed = this.bulletSpeed;
-
-    Bullet bullet =
+  void addBullet(final Set<Bullet> bullets, final int x, final int y) {
+    final Bullet bullet =
         BulletPool.getBullet(
-            x, y, currentBulletSpeed, this.bulletWidth, this.bulletHeight, this.getTeam());
+            x, y, this.bulletSpeed, this.bulletWidth, this.bulletHeight, this.getTeam());
     bullet.setOwnerPlayerId(this.getPlayerId());
     bullets.add(bullet);
   }

@@ -47,12 +47,12 @@ public class Item extends Entity {
 
   /** Safely fetches ItemData for the current type (logs if missing). */
   private ItemData getItemData() {
-    ItemData data = ITEM_DB.getItemData(this.type);
-    if (data == null) {
-      if (LOGGER.isLoggable(Level.WARNING)) {
-        LOGGER.warning("[Item]: No ItemData found for type " + this.type);
-      }
+    final ItemData data = ITEM_DB.getItemData(this.type);
+
+    if (data == null && LOGGER.isLoggable(Level.WARNING)) {
+      LOGGER.warning("[Item]: No ItemData found for type " + this.type);
     }
+
     return data;
   }
 
@@ -117,7 +117,7 @@ public class Item extends Entity {
 
     final int value = data.getEffectValue();
 
-    boolean applied =
+    final boolean applied =
         switch (this.type) {
           case "COIN" -> {
             ItemEffect.applyCoinItem(gameState, playerId, value);
@@ -139,10 +139,8 @@ public class Item extends Entity {
           }
         };
 
-    if (!applied) {
-      if (LOGGER.isLoggable(Level.WARNING)) {
-        LOGGER.info("[Item]: Player " + playerId + " couldn't afford or use " + this.type);
-      }
+    if (!applied && LOGGER.isLoggable(Level.WARNING)) {
+      LOGGER.info("[Item]: Player " + playerId + " couldn't afford or use " + this.type);
     }
   }
 

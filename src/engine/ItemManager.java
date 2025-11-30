@@ -149,13 +149,6 @@ public final class ItemManager {
     final int itemSpeed = 2;
     final Item drop = ItemPool.getItem(chosenData, centerX, centerY, itemSpeed);
 
-    if (drop == null) {
-      if (LOGGER.isLoggable(Level.WARNING)) {
-        LOGGER.warning("[ItemManager]: Failed to create item: " + chosenData.getType());
-      }
-      return null;
-    }
-
     if (LOGGER.isLoggable(Level.INFO)) {
       LOGGER.info(
           "[ItemManager]: created item "
