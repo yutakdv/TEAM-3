@@ -12,18 +12,16 @@ public class CoinManager {
   // ADD THIS LINE
   private static int coins; // ADD THIS LINE - edited for 2P mode
 
-  public CoinManager() {
-    load();
-  }
+  private CoinManager() {}
 
-  public final void load() {
+  public static void load() {
     coins = Core.getFileManager().loadCoins(); // NOPMD
     if (logger.isLoggable(Level.INFO)) {
       logger.info("[CoinManager] Loaded coins from file: " + coins);
     }
   }
 
-  public void save() {
+  public static void save() {
     Core.getFileManager().saveCoins(coins); // NOPMD
     if (logger.isLoggable(Level.INFO)) {
       logger.info("[CoinManager] Saved coins: " + coins);
@@ -31,17 +29,17 @@ public class CoinManager {
   }
 
   // 2P mode: per-player coin tracking
-  public int getCoins() {
+  public static int getCoins() {
     return coins;
   } // legacy total for ScoreScreen
 
-  public void addCoins(final int p, final int delta) {
+  public static void addCoins(final int p, final int delta) {
     if (p >= 0 && p < NUM_PLAYERS && delta > 0) {
       coins = Math.max(0, coins + delta);
     }
   }
 
-  public boolean spendCoins(final int p, final int amount) {
+  public static boolean spendCoins(final int p, final int amount) {
     if (p < 0 || p >= NUM_PLAYERS || amount < 0) {
       return false;
     }

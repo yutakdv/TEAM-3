@@ -1,6 +1,7 @@
 package entity;
 
 import java.awt.Color;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import engine.Core;
@@ -15,7 +16,10 @@ import engine.ItemEffect;
 public class Item extends Entity {
 
   /** Logger instance for logging purposes. */
-  private Logger logger;
+  private static final Logger LOGGER = Core.getLogger();
+
+  /** Shared ItemDB instance for all items. */
+  private static final ItemDB ITEM_DB = new ItemDB();
 
   /** Type of Item. */
   private String type;
@@ -31,11 +35,9 @@ public class Item extends Entity {
    * @param positionY Initial position of the Item in the Y axis.
    * @param speed Speed of the Item, positive or negative depending on direction - positive is down.
    */
-  public Item(String itemType, final int positionX, final int positionY, final int speed) {
+  public Item(final String itemType, final int positionX, final int positionY, final int speed) {
 
     super(positionX, positionY, 3 * 2, 5 * 2, Color.WHITE);
-
-    logger = Core.getLogger();
 
     this.type = itemType;
     this.itemSpeed = speed;
@@ -43,50 +45,56 @@ public class Item extends Entity {
     setSprite();
   }
 
+  /** Safely fetches ItemData for the current type (logs if missing). */
+  private ItemData getItemData() {
+    final ItemData data = ITEM_DB.getItemData(this.type);
+
+    if (data == null && LOGGER.isLoggable(Level.WARNING)) {
+      LOGGER.warning("[Item]: No ItemData found for type " + this.type);
+    }
+
+    return data;
+  }
+
   /** Setter for the sprite of the Item using data from ItemDB. */
   public final void setSprite() {
-    ItemDB itemDB = new ItemDB();
-    ItemData data = itemDB.getItemData(this.type);
+    final ItemData data = getItemData();
 
     if (data != null) {
       try {
         this.spriteType = SpriteType.valueOf(data.getSpriteType());
       } catch (IllegalArgumentException e) {
         this.spriteType = SpriteType.ItemScore; // fallback
-        this.logger.warning(
-            "[Item]: Unknown sprite type in ItemDB: " + data.getSpriteType() + ", using default.");
+        if (LOGGER.isLoggable(Level.WARNING)) {
+          LOGGER.warning(
+              "[Item]: Unknown sprite type in ItemDB: "
+                  + data.getSpriteType()
+                  + ", using default.");
+        }
       }
     } else {
       this.spriteType = SpriteType.ItemScore;
     }
 
-    // added this line for set color of items for better visibility
+    applyColorByType();
+  }
+
+  /** Applies a color to the item based on its type for better visibility. */
+  private void applyColorByType() {
     switch (this.type) {
-      case "COIN":
-        this.changeColor(Color.YELLOW);
-        break;
-
-      case "SCORE":
-      case "SCOREBOOST":
-        this.changeColor(Color.GREEN);
-        break;
-
-      case "HEAL":
-        this.changeColor(Color.PINK);
-        break;
-
-      case "TRIPLESHOT":
-      case "BULLETSPEEDUP":
-        this.changeColor(Color.BLUE);
-        break;
-
-      default:
+      case "COIN" -> this.changeColor(Color.YELLOW);
+      case "SCORE", "SCOREBOOST" -> this.changeColor(Color.GREEN);
+      case "HEAL" -> this.changeColor(Color.PINK);
+      case "TRIPLESHOT", "BULLETSPEEDUP" -> this.changeColor(Color.BLUE);
+      default -> {
         this.changeColor(Color.BLACK);
-        if (this.logger != null) {
-          this.logger.warning(
-              "[Item]: Unknown item type in setSprite(): " + this.type + " (fallback color BLACK)");
+        if (LOGGER.isLoggable(Level.WARNING)) {
+          LOGGER.warning(
+              "[Item]: Unknown item type in applyColorByType(): "
+                  + this.type
+                  + " (fallback color BLACK)");
         }
-        break;
+      }
     }
   }
 
@@ -101,44 +109,40 @@ public class Item extends Entity {
    * @param gameState current game state instance.
    * @param playerId ID of the player to apply the effect to.
    */
-  public boolean applyEffect(final GameState gameState, final int playerId) {
-    ItemDB itemDB = new ItemDB();
-    ItemData data = itemDB.getItemData(this.type);
-
-    if (data == null) return false;
-
-    int value = data.getEffectValue();
-
-    boolean applied = false;
-    /* item data always true to apply because free
-     * duration item will apply if enough coins*/
-    switch (this.type) {
-      case "COIN":
-        ItemEffect.applyCoinItem(gameState, playerId, value);
-        applied = true;
-        break;
-      case "HEAL":
-        ItemEffect.applyHealItem(gameState, playerId, value);
-        applied = true;
-        break;
-      case "SCORE":
-        ItemEffect.applyScoreItem(gameState, playerId, value);
-        applied = true;
-        break;
-      default:
-        this.logger.warning("[Item]: No ItemEffect for type " + this.type);
-        applied = false;
-        break;
-    }
-    if (!applied) {
-      // Player couldn't afford the item (or other failure).
-      logger.info(
-          "[Item]: Player " + playerId + " couldn't afford " + this.type);
+  public void applyEffect(final GameState gameState, final int playerId) {
+    final ItemData data = getItemData();
+    if (data == null) {
+      return;
     }
 
-    return applied;
+    final int value = data.getEffectValue();
+
+    final boolean applied =
+        switch (this.type) {
+          case "COIN" -> {
+            ItemEffect.applyCoinItem(gameState, playerId, value);
+            yield true;
+          }
+          case "HEAL" -> {
+            ItemEffect.applyHealItem(gameState, playerId, value);
+            yield true;
+          }
+          case "SCORE" -> {
+            ItemEffect.applyScoreItem(gameState, playerId, value);
+            yield true;
+          }
+          default -> {
+            if (LOGGER.isLoggable(Level.WARNING)) {
+              LOGGER.warning("[Item]: No ItemEffect for type " + this.type);
+            }
+            yield false;
+          }
+        };
+
+    if (!applied && LOGGER.isLoggable(Level.WARNING)) {
+      LOGGER.info("[Item]: Player " + playerId + " couldn't afford or use " + this.type);
+    }
   }
-  ;
 
   /**
    * Setter of the speed of the Item.
@@ -150,20 +154,11 @@ public class Item extends Entity {
   }
 
   /**
-   * Getter for Item Movement Speed.
-   *
-   * @return speed of the Item.
-   */
-  public final int getItemSpeed() {
-    return this.itemSpeed;
-  }
-
-  /**
    * Reset the Item. Set the item type and sprite to newType, and the speed to 0.
    *
    * @param newType new type of the Item.
    */
-  public final void reset(String newType) {
+  public final void reset(final String newType) {
     this.type = newType;
     this.itemSpeed = 0;
     setSprite(); // change to your enum if different

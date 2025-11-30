@@ -210,7 +210,6 @@ public class GameScreen extends Screen {
   public final void initialize() {
     super.initialize();
 
-    state.clearAllEffects();
 
     // Start background music for gameplay
     SoundManager.ingameBGM("sound/SpaceInvader-GameTheme.wav");
@@ -523,7 +522,6 @@ public class GameScreen extends Screen {
       manageItemPickups();
 
       // check active item affects
-      state.updateEffects();
       drawManager.setLastLife(state.getLivesRemaining() == 1);
       draw();
 

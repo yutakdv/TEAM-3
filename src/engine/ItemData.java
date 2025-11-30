@@ -5,19 +5,18 @@ package engine;
  */
 public class ItemData {
   /** Unique identifier for the item (e.g. "COIN", "HEAL", "SCORE"). */
-  private String type;
+  private final String type;
 
   /** sprite type (e.g. "ItemScore", "ItemHeal"). */
-  private String spriteType;
+  private final String spriteType;
 
   /** rarity tier (e.g. "COMMON", "UNCOMMON", "RARE"). */
-  private String dropTier;
+  private final String dropTier;
 
   /** numerical value of the item effect (e.g. heal amount, score amount). */
-  private int effectValue;
+  private final int effectValue;
 
-  /** duration that the effect remains active. */
-
+  /* duration that the effect remains active. */
 
   /**
    * Constructs an ItemData object.
@@ -27,11 +26,10 @@ public class ItemData {
    * @param dropTier rarity tier.
    * @param effectValue numerical value of the item's effect.duration the effect remains active.
    */
-  public ItemData(
-      String type,
-      String spriteType,
-      String dropTier,
-      int effectValue) {
+  public ItemData(final String type,
+                  final String spriteType,
+                  final String dropTier,
+                  final int effectValue) {
     // Unique identifier for the item (e.g "COIN", "HEAL", "SCORE").
     this.type = type;
     // The sprite type (e.g "ItemScore, ItemHeal", etc).
@@ -78,5 +76,4 @@ public class ItemData {
   public int getEffectValue() {
     return effectValue;
   }
-
 }
