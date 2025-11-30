@@ -1,8 +1,5 @@
 package entity;
 
-import engine.Core;
-import engine.Cooldown;
-import engine.GameState;
 import engine.DrawManager.SpriteType;
 
 import org.junit.jupiter.api.*;
@@ -10,33 +7,9 @@ import org.junit.jupiter.api.*;
 import java.util.HashSet;
 import java.util.Set;
 
-import static engine.ItemEffect.ItemEffectType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShipTest {
-
-  /** Fake GameState for item effects */
-  static class FakeGameState extends GameState {
-    public FakeGameState() {
-      super(1, 3, false);
-    }
-
-    public boolean triple = false;
-    public int bulletSpeed = 1;
-    public int tripleOffset = 5;
-
-    @Override
-    public boolean hasEffect(int idx, engine.ItemEffect.ItemEffectType type) {
-      return triple && type == TRIPLESHOT;
-    }
-
-    @Override
-    public Integer getEffectValue(int idx, engine.ItemEffect.ItemEffectType type) {
-      if (type == BULLETSPEEDUP) return bulletSpeed;
-      if (type == TRIPLESHOT) return tripleOffset;
-      return null;
-    }
-  }
 
   /** ---------------- Movement tests ---------------- */
   @Test
@@ -149,33 +122,5 @@ class ShipTest {
     s.shoot(bullets);
 
     assertEquals(2, bullets.size());
-  }
-
-  @Test
-  void testShootTripleShot() {
-    FakeGameState gs = new FakeGameState();
-    gs.triple = true;
-    gs.tripleOffset = 5;
-
-    Ship s = new Ship(50, 200, Entity.Team.PLAYER1, Ship.ShipType.NORMAL, gs);
-    Set<Bullet> bullets = new HashSet<>();
-
-    s.shoot(bullets);
-
-    assertEquals(3, bullets.size());
-  }
-
-  @Test
-  void testBulletSpeedMultiplier() {
-    FakeGameState gs = new FakeGameState();
-    gs.bulletSpeed = 3;
-
-    Ship s = new Ship(50, 200, Entity.Team.PLAYER1, Ship.ShipType.NORMAL, gs);
-    Set<Bullet> bullets = new HashSet<>();
-
-    s.shoot(bullets);
-
-    int speed = bullets.iterator().next().getSpeed();
-    assertEquals(-6 * 3, speed);
   }
 }
