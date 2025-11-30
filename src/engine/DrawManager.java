@@ -242,22 +242,22 @@ public final class DrawManager {
 
   public void drawEntity(
       final Entity entity, final int positionX, final int positionY, final Color override) {
-    boolean[][] image = spriteMap.get(entity.getSpriteType());
+    final boolean[][] image = spriteMap.get(entity.getSpriteType());
 
     Color color = (override != null) ? override : entity.getColor();
 
     if (override == null) {
       // Color-code by player when applicable
       if (entity instanceof Ship) {
-        Ship ship = (Ship) entity;
-        int pid = ship.getPlayerId(); // requires Ship.getPlayerId()
+        final Ship ship = (Ship) entity;
+        final int pid = ship.getPlayerId(); // requires Ship.getPlayerId()
         if (pid == 1) color = Color.BLUE; // P1 ship
         else if (pid == 2) color = Color.RED; // P2 ship
 
         // else leave default (e.g., green) for legacy/unknown
       } else if (entity instanceof Bullet) {
-        Bullet bullet = (Bullet) entity;
-        int pid = bullet.getPlayerId(); // requires Bullet.getPlayerId()
+        final Bullet bullet = (Bullet) entity;
+        final int pid = bullet.getPlayerId(); // requires Bullet.getPlayerId()
         if (pid == 1) color = Color.CYAN; // P1 bullet
         else if (pid == 2) color = Color.MAGENTA; // P2 bullet
         // enemy bullets will keep their default color from the entity
@@ -272,16 +272,16 @@ public final class DrawManager {
 
     // --- Scaling logic ---
     // Original sprite dimensions
-    int spriteWidth = image.length;
-    int spriteHeight = image[0].length;
+    final int spriteWidth = image.length;
+    final int spriteHeight = image[0].length;
 
     // Entity dimensions (modified via Bullet constructor or other entities)
-    int entityWidth = entity.getWidth();
-    int entityHeight = entity.getHeight();
+    final int entityWidth = entity.getWidth();
+    final int entityHeight = entity.getHeight();
 
     // Calculate scaling ratios compared to original sprite
-    float widthRatio = (float) entityWidth / (spriteWidth * 2);
-    float heightRatio = (float) entityHeight / (spriteHeight * 2);
+    final float widthRatio = (float) entityWidth / (spriteWidth * 2);
+    final float heightRatio = (float) entityHeight / (spriteHeight * 2);
     // --- End of scaling logic ---
 
     // Set drawing color again
@@ -307,7 +307,7 @@ public final class DrawManager {
     menuSpace.setSpeed(state == 4);
   }
 
-  public void triggerExplosion(int x, int y, boolean enemy, boolean finalExplosion) {
+  public void triggerExplosion(final int x, final int y, final boolean enemy, final boolean finalExplosion) {
     logger.info("Enemy: " + enemy);
     logger.info("final: " + finalExplosion);
     explosions.add(new Explosion(x, y, enemy, finalExplosion));
@@ -315,15 +315,15 @@ public final class DrawManager {
 
   public void drawExplosions() {
 
-    Graphics2D g2d = (Graphics2D) backBufferGraphics;
+    final Graphics2D g2d = (Graphics2D) backBufferGraphics;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     g2d.setColor(Color.WHITE);
 
-    Iterator<Explosion> iterator = explosions.iterator();
+    final Iterator<Explosion> iterator = explosions.iterator();
 
     while (iterator.hasNext()) {
-      Explosion e = iterator.next();
+      final Explosion e = iterator.next();
       e.update();
 
       if (!e.isActive()) {
@@ -331,7 +331,7 @@ public final class DrawManager {
         continue;
       }
 
-      for (Explosion.Particle p : e.getParticles()) {
+      for (final Explosion.Particle p : e.getParticles()) {
         if (!p.active) {
           continue;
         }
@@ -342,10 +342,10 @@ public final class DrawManager {
         if (e.getSize() == 4) baseSize = explosionRandom.nextInt(5) + 2;
         else baseSize = explosionRandom.nextInt(6) + 18;
 
-        int flickerAlpha =
+        final int flickerAlpha =
             Math.max(0, Math.min(255, p.color.getAlpha() -  explosionRandom.nextInt(50)));
 
-        float[] dist = {0.0f, 0.3f, 0.7f, 1.0f};
+        final float[] dist = {0.0f, 0.3f, 0.7f, 1.0f};
         Color[] colors;
         if (e.isEnemy()) {
           colors =
@@ -365,13 +365,13 @@ public final class DrawManager {
               };
         }
 
-        RadialGradientPaint paint =
+        final RadialGradientPaint paint =
             new RadialGradientPaint(new Point((int) p.x, (int) p.y), baseSize, dist, colors);
 
         g2d.setPaint(paint);
 
-        int offsetX = explosionRandom.nextInt(4) - 2;
-        int offsetY = explosionRandom.nextInt(4) - 2;
+        final int offsetX = explosionRandom.nextInt(4) - 2;
+        final int offsetY = explosionRandom.nextInt(4) - 2;
 
         final double halfSize = baseSize / 2.0;
 
@@ -388,21 +388,21 @@ public final class DrawManager {
   public void updateMenuSpace() {
     menuSpace.updateStars();
 
-    Graphics2D g2d = (Graphics2D) backBufferGraphics;
+    final Graphics2D g2d = (Graphics2D) backBufferGraphics;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     backBufferGraphics.setColor(Color.WHITE);
-    int[][] positions = menuSpace.getStarLocations();
+    final int[][] positions = menuSpace.getStarLocations();
 
     for (int i = 0; i < menuSpace.getNumStars(); i++) {
 
-      int size = 1;
-      int radius = size * 2;
+      final int size = 1;
+      final int radius = size * 2;
 
-      float[] dist = {0.0f, 1.0f};
-      Color[] colors = {menuSpace.getColor(), new Color(255, 255, 200, 0)};
+      final float[] dist = {0.0f, 1.0f};
+      final Color[] colors = {menuSpace.getColor(), new Color(255, 255, 200, 0)};
 
-      RadialGradientPaint paint =
+      final RadialGradientPaint paint =
           new RadialGradientPaint(
               new Point(positions[i][0], positions[i][1]), radius, dist, colors);
       g2d.setPaint(paint);
@@ -412,11 +412,11 @@ public final class DrawManager {
     }
   }
 
-  public void setLastLife(boolean status) {
+  public void setLastLife(final boolean status) {
     basicGameSpace.setLastLife(status);
   }
 
-  public void setDeath(boolean status) {
+  public void setDeath(final boolean status) {
     if (status) explosion_size = 20;
     else explosion_size = 2;
   }
@@ -425,17 +425,17 @@ public final class DrawManager {
   public void updateGameSpace() {
     basicGameSpace.update();
 
-    Graphics2D g2d = (Graphics2D) backBufferGraphics;
+    final Graphics2D g2d = (Graphics2D) backBufferGraphics;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     backBufferGraphics.setColor(Color.WHITE);
-    int[][] positions = basicGameSpace.getStarLocations();
+    final int[][] positions = basicGameSpace.getStarLocations();
     for (int i = 0; i < basicGameSpace.getNumStars(); i++) {
 
-      int size = (positions[i][2] < 2) ? 2 : 1;
-      int radius = size * 2;
+      final int size = (positions[i][2] < 2) ? 2 : 1;
+      final int radius = size * 2;
 
-      float[] dist = {0.0f, 1.0f};
+      final float[] dist = {0.0f, 1.0f};
       Color[] colors = new Color[2];
       if (basicGameSpace.isLastLife()) {
         colors[0] = new Color(255, 0, 0, 100);
@@ -445,7 +445,7 @@ public final class DrawManager {
         colors[1] = new Color(255, 255, 200, 50);
       }
 
-      RadialGradientPaint paint =
+      final RadialGradientPaint paint =
           new RadialGradientPaint(
               new Point(positions[i][0] + size / 2, positions[i][1] + size / 2),
               radius,
@@ -497,7 +497,7 @@ public final class DrawManager {
   public void drawScore(final Screen screen, final int score) {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.WHITE);
-    String scoreString = String.format("%04d", score);
+    final String scoreString = String.format("%04d", score);
     backBufferGraphics.drawString(scoreString, screen.getWidth() - 60, 25);
   }
 
@@ -511,7 +511,7 @@ public final class DrawManager {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.WHITE);
 
-    Entity heart =
+    final Entity heart =
         new Entity(0, 0, 11 * 2, 10 * 2, Color.RED) {
           {
             this.spriteType = SpriteType.Heart;
@@ -547,7 +547,7 @@ public final class DrawManager {
   public void drawCoins(final Screen screen, final int coins) { // ADD THIS METHOD
     backBufferGraphics.setFont(fontRegular); // ADD THIS METHOD
     backBufferGraphics.setColor(Color.YELLOW); // ADD THIS METHOD
-    String coinString = String.format("%04d", coins); // ADD THIS METHOD
+    final String coinString = String.format("%04d", coins); // ADD THIS METHOD
     backBufferGraphics.drawString(coinString, screen.getWidth() - 60, 52); // ADD THIS METHOD
     backBufferGraphics.drawString("COIN : ", screen.getWidth() - 115, 52);
   } // ADD THIS METHOD
@@ -567,12 +567,12 @@ public final class DrawManager {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.YELLOW);
 
-    String text = "COIN : " + String.format("%04d", coins);
+    final String text = "COIN : " + String.format("%04d", coins);
 
-    int padding = 10;
-    int textWidth = fontRegularMetrics.stringWidth(text);
-    int x = screen.getWidth() - padding - textWidth;
-    int y = padding + fontRegularMetrics.getAscent();
+    final int padding = 10;
+    final int textWidth = fontRegularMetrics.stringWidth(text);
+    final int x = screen.getWidth() - padding - textWidth;
+    final int y = padding + fontRegularMetrics.getAscent();
 
     backBufferGraphics.drawString(text, x, y);
   }
@@ -597,23 +597,23 @@ public final class DrawManager {
     } else {
       levelString = "Stage " + level;
     }
-    FontMetrics fontMetrics = backBufferGraphics.getFontMetrics();
+    final FontMetrics fontMetrics = backBufferGraphics.getFontMetrics();
     backBufferGraphics.drawString(
         levelString, screen.getWidth() / 2 - fontMetrics.stringWidth(levelString) / 2, 25);
   }
 
   public void drawShipCount(final Screen screen, final int shipCount) {
     backBufferGraphics.setColor(Color.GREEN);
-    Entity enemyIcon =
+    final Entity enemyIcon =
         new Entity(0, 0, 12 * 2, 8 * 2, Color.GREEN) {
           {
             this.spriteType = SpriteType.EnemyShipB2;
           }
         };
-    int iconX = screen.getWidth() - 252;
-    int iconY = 37;
+    final int iconX = screen.getWidth() - 252;
+    final int iconY = 37;
     drawEntity(enemyIcon, iconX, iconY);
-    String shipString = ": " + shipCount;
+    final String shipString = ": " + shipCount;
     backBufferGraphics.drawString(shipString, iconX + 30, 52);
   }
 
@@ -623,8 +623,8 @@ public final class DrawManager {
    * @param screen Screen to draw on.
    */
   public void drawTitle(final Screen screen) {
-    String titleString = "Invaders";
-    String instructionsString = "select with w+s / arrows, confirm with space";
+    final String titleString = "Invaders";
+    final String instructionsString = "select with w+s / arrows, confirm with space";
 
     backBufferGraphics.setColor(Color.GRAY);
     drawCenteredRegularString(screen, instructionsString, screen.getHeight() / 2);
@@ -641,13 +641,13 @@ public final class DrawManager {
    */
   public void drawMenu(
       final Screen screen, final int option, final Integer hoverOption, final int selectedIndex) {
-    String[] items = {"Play", "Achievements", "High scores", "Settings", "Exit"};
+    final String[] items = {"Play", "Achievements", "High scores", "Settings", "Exit"};
 
-    int baseY =
+    final int baseY =
         screen.getHeight() / 3 * 2 - 20; // Adjust spacing due to high society button addition
-    int spacing = (int) (fontRegularMetrics.getHeight() * 1.5);
+    final int spacing = (int) (fontRegularMetrics.getHeight() * 1.5);
     for (int i = 0; i < items.length; i++) {
-      boolean highlight = (hoverOption != null) ? (i == hoverOption) : (i == selectedIndex);
+      final boolean highlight = (hoverOption != null) ? (i == hoverOption) : (i == selectedIndex);
       backBufferGraphics.setColor(highlight ? Color.GREEN : Color.WHITE);
       drawCenteredRegularString(screen, items[i], baseY + spacing * i);
     }
@@ -689,14 +689,14 @@ public final class DrawManager {
       final float accuracy,
       final boolean isNewRecord,
       final boolean accuracy1P) {
-    String scoreString = String.format("score %04d", score);
-    String coinString = String.format("coins %04d", coins);
-    String livesRemainingString = String.format("lives remaining %d", livesRemaining);
-    String shipsDestroyedString = "enemies destroyed " + shipsDestroyed;
-    String accuracyString =
+    final String scoreString = String.format("score %04d", score);
+    final String coinString = String.format("coins %04d", coins);
+    final String livesRemainingString = String.format("lives remaining %d", livesRemaining);
+    final String shipsDestroyedString = "enemies destroyed " + shipsDestroyed;
+    final String accuracyString =
         String.format("accuracy %.2f%%", Float.isNaN(accuracy) ? 0.0 : accuracy * 100);
 
-    int height = 4;
+    final int height = 4;
 
     if (isNewRecord) {
       backBufferGraphics.setColor(Color.RED);
@@ -728,10 +728,10 @@ public final class DrawManager {
    * @param screen Screen to draw on.
    * @param name Current name inserted.
    */
-  public void drawNameInput(final Screen screen, final StringBuilder name, boolean isNewRecord) {
-    String newRecordString = "New Record!";
-    String introduceNameString = "Name: ";
-    String nameStr = name.toString();
+  public void drawNameInput(final Screen screen, final StringBuilder name, final boolean isNewRecord) {
+    final String newRecordString = "New Record!";
+    final String introduceNameString = "Name: ";
+    final String nameStr = name.toString();
 
     if (isNewRecord) {
       backBufferGraphics.setColor(Color.GREEN);
@@ -740,21 +740,21 @@ public final class DrawManager {
     }
 
     // Draw the current name with blinking cursor
-    String displayName = name.isEmpty() ? "" : nameStr;
+    final String displayName = name.isEmpty() ? "" : nameStr;
 
     // Cursor blinks every 500ms
-    boolean showCursor = (System.currentTimeMillis() / 500) % 2 == 0;
-    String cursor = showCursor ? "|" : " ";
+    final boolean showCursor = (System.currentTimeMillis() / 500) % 2 == 0;
+    final String cursor = showCursor ? "|" : " ";
 
-    String displayText = introduceNameString + displayName + cursor;
+    final String displayText = introduceNameString + displayName + cursor;
 
     backBufferGraphics.setColor(Color.WHITE);
     drawCenteredRegularString(
         screen, displayText, screen.getHeight() / 4 + fontRegularMetrics.getHeight() * 12);
   }
 
-  public void drawNameInputError(Screen screen) {
-    String alert = "Enter at least 3 chars!"; // "Name too short!"
+  public void drawNameInputError(final Screen screen) {
+    final String alert = "Enter at least 3 chars!"; // "Name too short!"
 
     backBufferGraphics.setColor(Color.YELLOW);
     drawCenteredRegularString(
@@ -768,10 +768,10 @@ public final class DrawManager {
    * @param acceptsInput If the screen accepts input.
    */
   public void drawGameOver(final Screen screen, final boolean acceptsInput) {
-    String gameOverString = "Game Over";
-    String continueOrExitString = "Press Space to play again, Escape to exit";
+    final String gameOverString = "Game Over";
+    final String continueOrExitString = "Press Space to play again, Escape to exit";
 
-    int height = 4;
+    final int height = 4;
 
     backBufferGraphics.setColor(Color.GREEN);
     drawCenteredBigString(
@@ -787,13 +787,13 @@ public final class DrawManager {
     backBufferGraphics.setColor(new Color(0, 0, 0, 200));
     backBufferGraphics.fillRect(0, 0, screen.getWidth(), screen.getHeight());
 
-    String pauseString = "PAUSED";
+    final String pauseString = "PAUSED";
     backBufferGraphics.setFont(fontBig);
     backBufferGraphics.setColor(Color.WHITE);
     drawCenteredBigString(screen, pauseString, screen.getHeight() - 400);
 
-    String returnMenu = "PRESS BACKSPACE TO RETURN TO TITLE";
-    String Mute = "press space to mute";
+    final String returnMenu = "PRESS BACKSPACE TO RETURN TO TITLE";
+    final String Mute = "press space to mute";
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.WHITE);
     drawCenteredRegularString(screen, returnMenu, screen.getHeight() - 50);
@@ -806,11 +806,11 @@ public final class DrawManager {
    * @param screen Screen to draw on.
    */
   public void drawHighScoreMenu(final Screen screen) {
-    String highScoreString = "High Scores";
-    String instructionsString = "Press ESC to return";
+    final String highScoreString = "High Scores";
+    final String instructionsString = "Press ESC to return";
 
-    int midX = screen.getWidth() / 2;
-    int startY = screen.getHeight() / 3;
+    final int midX = screen.getWidth() / 2;
+    final int startY = screen.getHeight() / 3;
 
     backBufferGraphics.setColor(Color.GREEN);
     drawCenteredBigString(screen, highScoreString, screen.getHeight() / 8);
@@ -844,11 +844,11 @@ public final class DrawManager {
     int i = 0;
     String scoreString = "";
 
-    int midX = screen.getWidth() / 2;
-    int startY = screen.getHeight() / 3 + fontBigMetrics.getHeight() + 20;
-    int lineHeight = fontRegularMetrics.getHeight() + 5;
+    final int midX = screen.getWidth() / 2;
+    final int startY = screen.getHeight() / 3 + fontBigMetrics.getHeight() + 20;
+    final int lineHeight = fontRegularMetrics.getHeight() + 5;
 
-    for (Score score : highScores) {
+    for (final Score score : highScores) {
       scoreString = String.format("%s        %04d", score.getName(), score.getScore());
       int x;
       if (mode.equals("1P")) {
@@ -871,15 +871,15 @@ public final class DrawManager {
    *     drawAchievementMenu method in DrawManager
    */
   public void drawAchievementMenu(
-      final Screen screen, Achievement achievement, List<String> completer) {
-    String achievementsTitle = "Achievements";
-    String instructionsString = "Press ESC to return";
-    String playerModeString =
+      final Screen screen, final Achievement achievement, final List<String> completer) {
+    final String achievementsTitle = "Achievements";
+    final String instructionsString = "Press ESC to return";
+    final String playerModeString =
         "              1P                                      2P              ";
-    String prevNextString =
+    final String prevNextString =
         "PREV                                                              NEXT";
-    String achievementName = achievement.getName();
-    String descriptionString = achievement.getDescription();
+    final String achievementName = achievement.getName();
+    final String descriptionString = achievement.getDescription();
 
     // Draw the title, achievement name, and description
     backBufferGraphics.setColor(Color.GREEN);
@@ -893,25 +893,25 @@ public final class DrawManager {
     drawCenteredRegularString(screen, instructionsString, (int) (screen.getHeight() * 0.9));
 
     // Starting Y position for player names
-    int startY = (int) (screen.getHeight() * 0.3);
-    int lineHeight = 25;
+    final int startY = (int) (screen.getHeight() * 0.3);
+    final int lineHeight = 25;
 
     // X positions for the 1P and 2P columns
-    int leftX = screen.getWidth() / 4; // 1P column
-    int rightX = screen.getWidth() * 2 / 3; // 2P column
+    final int leftX = screen.getWidth() / 4; // 1P column
+    final int rightX = screen.getWidth() * 2 / 3; // 2P column
 
-    List<String> team1 = new ArrayList<>();
-    List<String> team2 = new ArrayList<>();
+    final List<String> team1 = new ArrayList<>();
+    final List<String> team2 = new ArrayList<>();
 
     // Separate completers into 1P and 2P teams based on the mode prefix
     if (completer != null && !completer.isEmpty()) {
-      for (String entry : completer) {
-        String[] parts = entry.split(":");
+      for (final String entry : completer) {
+        final String[] parts = entry.split(":");
         if (parts.length == 2) {
-          String modeString = parts[0].trim(); // e.g., "2P"
-          String numericPart = modeString.replaceAll("[^0-9]", ""); // Extract numeric part: "2"
-          int mode = Integer.parseInt(numericPart);
-          String name = parts[1].trim();
+          final String modeString = parts[0].trim(); // e.g., "2P"
+          final String numericPart = modeString.replaceAll("[^0-9]", ""); // Extract numeric part: "2"
+          final int mode = Integer.parseInt(numericPart);
+          final String name = parts[1].trim();
           if (mode == 1) {
             team1.add(name);
           } else if (mode == 2) {
@@ -921,9 +921,9 @@ public final class DrawManager {
       }
 
       // Draw names in each column, up to the max number of lines
-      int maxLines = Math.max(team1.size(), team2.size());
+      final int maxLines = Math.max(team1.size(), team2.size());
       for (int i = 0; i < maxLines; i++) {
-        int y = startY + i * lineHeight;
+        final int y = startY + i * lineHeight;
         if (i < team1.size()) {
           backBufferGraphics.setColor(Color.WHITE);
           backBufferGraphics.drawString(team1.get(i), leftX, y);
@@ -954,31 +954,31 @@ public final class DrawManager {
       fontRegularMetrics = backBufferGraphics.getFontMetrics(fontRegular);
     }
 
-    String fullText = "PREV                                                              NEXT";
-    int baseY = (int) (screen.getHeight() * 0.8);
+    final String fullText = "PREV                                                              NEXT";
+    final int baseY = (int) (screen.getHeight() * 0.8);
 
-    int fullWidth = fontRegularMetrics.stringWidth(fullText);
-    int textHeight = fontRegularMetrics.getHeight();
+    final int fullWidth = fontRegularMetrics.stringWidth(fullText);
+    final int textHeight = fontRegularMetrics.getHeight();
 
-    int startX = screen.getWidth() / 2 - fullWidth / 2;
+    final int startX = screen.getWidth() / 2 - fullWidth / 2;
 
-    int prevWidth = fontRegularMetrics.stringWidth("PREV");
-    int nextWidth = fontRegularMetrics.stringWidth("NEXT");
+    final int prevWidth = fontRegularMetrics.stringWidth("PREV");
+    final int nextWidth = fontRegularMetrics.stringWidth("NEXT");
 
-    int prevX = startX;
-    int nextX = startX + fullWidth - nextWidth;
+    final int prevX = startX;
+    final int nextX = startX + fullWidth - nextWidth;
 
-    int paddingX = 10;
-    int paddingY = 3;
+    final int paddingX = 10;
+    final int paddingY = 3;
 
-    Rectangle prevBox =
+    final Rectangle prevBox =
         new Rectangle(
             prevX - paddingX,
             baseY - textHeight / 2 + 20,
             prevWidth + paddingX * 2,
             textHeight + paddingY);
 
-    Rectangle nextBox =
+    final Rectangle nextBox =
         new Rectangle(
             nextX - paddingX,
             baseY - textHeight / 2 + 20,
@@ -988,9 +988,9 @@ public final class DrawManager {
   }
 
   public void drawSettingMenu(final Screen screen) {
-    String settingsString = "Settings";
-    String instructionsString = "Press ESC to return, Space to select";
-    String instructionsString2 = "Backspace to unselect";
+    final String settingsString = "Settings";
+    final String instructionsString = "Press ESC to return, Space to select";
+    final String instructionsString2 = "Backspace to unselect";
 
     backBufferGraphics.setColor(Color.GREEN);
     drawCenteredBigString(screen, settingsString, screen.getHeight() / 8);
@@ -1002,21 +1002,21 @@ public final class DrawManager {
 
   public void drawKeysettings(
       final Screen screen,
-      int playerNum,
-      int selectedSection,
-      int selectedKeyIndex,
-      boolean[] keySelected,
-      int[] currentKeys) {
-    int panelWidth = 220;
-    int panelHeight = 180;
-    int x = screen.getWidth() - panelWidth - 50;
-    int y = screen.getHeight() / 4;
+      final int playerNum,
+      final int selectedSection,
+      final int selectedKeyIndex,
+      final boolean[] keySelected,
+      final int[] currentKeys) {
+    final int panelWidth = 220;
+    final int panelHeight = 180;
+    final int x = screen.getWidth() - panelWidth - 50;
+    final int y = screen.getHeight() / 4;
 
-    String[] labels = {"MOVE LEFT :", "MOVE RIGHT:", "ATTACK :"};
+    final String[] labels = {"MOVE LEFT :", "MOVE RIGHT:", "ATTACK :"};
     String[] keys = new String[3];
 
     for (int i = 0; i < labels.length; i++) {
-      int textY = y + 70 + (i * 50);
+      final int textY = y + 70 + (i * 50);
       keys[i] = KeyEvent.getKeyText(currentKeys[i]); // Convert set key codes to characters
       // draw the dividing line
       if (i < labels.length - 1) {
@@ -1088,12 +1088,12 @@ public final class DrawManager {
    */
   public void drawCountDown(
       final Screen screen, final int level, final int number, final boolean bonusLife) {
-    int rectWidth = screen.getWidth();
-    int rectHeight = screen.getHeight() / 6;
+    final int rectWidth = screen.getWidth();
+    final int rectHeight = screen.getHeight() / 6;
     backBufferGraphics.setColor(Color.BLACK);
     backBufferGraphics.fillRect(0, screen.getHeight() / 2 - rectHeight / 2, rectWidth, rectHeight);
     backBufferGraphics.setColor(Color.GREEN);
-    String message = getCountdownMessage(level, number, bonusLife);
+    final String message = getCountdownMessage(level, number, bonusLife);
 
     if (message != null) {
       drawCenteredBigString(
@@ -1154,19 +1154,19 @@ public final class DrawManager {
       return;
     }
 
-    Achievement achievement = toasts.get(toasts.size() - 1);
+    final Achievement achievement = toasts.get(toasts.size() - 1);
 
-    Graphics2D g2d = (Graphics2D) backBufferGraphics.create();
+    final Graphics2D g2d = (Graphics2D) backBufferGraphics.create();
 
     try {
-      int boxWidth = 350;
-      int boxHeight = 110;
-      int cornerRadius = 15;
+      final int boxWidth = 350;
+      final int boxHeight = 110;
+      final int cornerRadius = 15;
 
-      int x = (screen.getWidth() - boxWidth) / 2;
-      int y = (screen.getHeight() - boxHeight) / 2;
+      final int x = (screen.getWidth() - boxWidth) / 2;
+      final int y = (screen.getHeight() - boxHeight) / 2;
 
-      boolean unlocked = achievement.isUnlocked();
+      final boolean unlocked = achievement.isUnlocked();
 
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
@@ -1183,56 +1183,56 @@ public final class DrawManager {
 
       if (unlocked) {
         g2d.setColor(Color.YELLOW);
-        FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
-        int titleWidth = bigMetrics.stringWidth("Achievement Clear!");
+        final FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
+        final int titleWidth = bigMetrics.stringWidth("Achievement Clear!");
         g2d.drawString("Achievement Clear!", (screen.getWidth() - titleWidth) / 2, y + 35);
 
         g2d.setFont(fontRegular);
         g2d.setColor(Color.WHITE);
-        FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
-        int nameWidth = regularMetrics.stringWidth(achievement.getName());
+        final FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
+        final int nameWidth = regularMetrics.stringWidth(achievement.getName());
         g2d.drawString(achievement.getName(), (screen.getWidth() - nameWidth) / 2, y + 60);
 
         g2d.setColor(Color.LIGHT_GRAY);
 
         if (achievement.getDescription().length() < 30) {
-          int descWidth = regularMetrics.stringWidth(achievement.getDescription());
+          final int descWidth = regularMetrics.stringWidth(achievement.getDescription());
           g2d.drawString(
               achievement.getDescription(),
               (screen.getWidth() - descWidth) / 2,
               y + 80 + regularMetrics.getHeight() / 2);
         } else {
           // 30 characters or more to handle the wrap
-          String line1 =
+          final String line1 =
               achievement.getDescription().substring(0, achievement.getDescription().length() / 2);
-          String line2 =
+          final String line2 =
               achievement.getDescription().substring(achievement.getDescription().length() / 2);
 
           // first line
-          int line1Widgh = regularMetrics.stringWidth(line1);
+          final int line1Widgh = regularMetrics.stringWidth(line1);
           g2d.drawString(line1, (screen.getWidth() - line1Widgh) / 2, y + 80);
 
           // second line
-          int line2Widgh = regularMetrics.stringWidth(line2);
+          final int line2Widgh = regularMetrics.stringWidth(line2);
           g2d.drawString(
               line2, (screen.getWidth() - line2Widgh) / 2, y + 80 + regularMetrics.getHeight());
         }
       } else {
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
         g2d.setColor(Color.YELLOW);
-        FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
-        String title = achievement.getName();
-        int titleWidth = bigMetrics.stringWidth(title);
+        final FontMetrics bigMetrics = g2d.getFontMetrics(fontBig);
+        final String title = achievement.getName();
+        final int titleWidth = bigMetrics.stringWidth(title);
         g2d.drawString(title, (screen.getWidth() - titleWidth) / 2, y + 65);
 
         g2d.setFont(fontRegular);
         g2d.setColor(Color.LIGHT_GRAY);
-        FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
+        final FontMetrics regularMetrics = g2d.getFontMetrics(fontRegular);
 
-        String[] lines = achievement.getDescription().split("\n");
+        final String[] lines = achievement.getDescription().split("\n");
         int lineY = y + 60;
-        for (String line : lines) {
-          int w = regularMetrics.stringWidth(line);
+        for (final String line : lines) {
+          final int w = regularMetrics.stringWidth(line);
           g2d.drawString(line, (screen.getWidth() - w) / 2, lineY);
           lineY += regularMetrics.getHeight();
         }
@@ -1251,7 +1251,7 @@ public final class DrawManager {
   // Modify to accept hoverIndex for highlighting
   public void drawPlayMenu(
       final Screen screen, final Integer hoverOption, final int selectedIndex) {
-    String[] items = {"1P mode", "2P mode"};
+    final String[] items = {"1P mode", "2P mode"};
     // Removed center back button
 
     backBufferGraphics.setColor(Color.GREEN);
@@ -1266,9 +1266,9 @@ public final class DrawManager {
     // draw back button at top-left corner\, Set the selectedIndex to Highlight the Back Button
     drawBackButton(screen, selectedIndex == 2);
 
-    int baseY = screen.getHeight() / 2 - 20; // Modified the position with the choice reduced to two
+    final int baseY = screen.getHeight() / 2 - 20; // Modified the position with the choice reduced to two
     for (int i = 0; i < items.length; i++) {
-      boolean highlight = (hoverOption != null) ? (i == hoverOption) : (i == selectedIndex);
+      final boolean highlight = (hoverOption != null) ? (i == hoverOption) : (i == selectedIndex);
       backBufferGraphics.setColor(highlight ? Color.GREEN : Color.WHITE);
       drawCenteredRegularString(screen, items[i], baseY + fontRegularMetrics.getHeight() * 3 * i);
     }
@@ -1279,8 +1279,8 @@ public final class DrawManager {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(highlighted ? Color.GREEN : Color.WHITE);
 
-    int margin = 12;
-    int ascent = fontRegularMetrics.getAscent();
+    final int margin = 12;
+    final int ascent = fontRegularMetrics.getAscent();
     backBufferGraphics.drawString(BACK_LABEL, margin, margin + ascent);
   }
 
@@ -1295,12 +1295,12 @@ public final class DrawManager {
 
     final String[] buttons = {"Play", "Achievement", "High scores", "Settings", "Exit"};
 
-    int baseY = screen.getHeight() / 3 * 2 - 20;
-    int spacing = (int) (fontRegularMetrics.getHeight() * 1.5);
+    final int baseY = screen.getHeight() / 3 * 2 - 20;
+    final int spacing = (int) (fontRegularMetrics.getHeight() * 1.5);
     Rectangle[] boxes = new Rectangle[buttons.length];
 
     for (int i = 0; i < buttons.length; i++) {
-      int baseline = baseY + spacing * i;
+      final int baseline = baseY + spacing * i;
       boxes[i] = centeredStringBounds(screen, buttons[i], baseline);
     }
 
@@ -1314,14 +1314,14 @@ public final class DrawManager {
       fontRegularMetrics = backBufferGraphics.getFontMetrics(fontRegular);
     }
 
-    int margin = 12;
-    int ascent = fontRegularMetrics.getAscent();
-    int descent = fontRegularMetrics.getDescent();
-    int padTop = 2;
+    final int margin = 12;
+    final int ascent = fontRegularMetrics.getAscent();
+    final int descent = fontRegularMetrics.getDescent();
+    final int padTop = 2;
 
-    int y = margin - padTop;
-    int w = fontRegularMetrics.stringWidth(BACK_LABEL);
-    int h = ascent + descent + 25;
+    final int y = margin - padTop;
+    final int w = fontRegularMetrics.stringWidth(BACK_LABEL);
+    final int h = ascent + descent + 25;
 
     return new Rectangle(margin, y, w, h);
   }
@@ -1333,11 +1333,11 @@ public final class DrawManager {
     }
 
     final String[] items = {"1 Player", "2 Players"};
-    int baseY = screen.getHeight() / 2 - 20;
+    final int baseY = screen.getHeight() / 2 - 20;
     Rectangle[] boxes = new Rectangle[items.length];
 
     for (int i = 0; i < items.length; i++) {
-      int baselineY = baseY + fontRegularMetrics.getHeight() * 3 * i;
+      final int baselineY = baseY + fontRegularMetrics.getHeight() * 3 * i;
       boxes[i] = centeredStringBounds(screen, items[i], baselineY);
     }
 
@@ -1351,21 +1351,21 @@ public final class DrawManager {
       final int playerIndex,
       final boolean[] unlockedStates) {
 
-    String screenTitle = "PLAYER " + playerIndex + " : CHOOSE YOUR SHIP";
+    final String screenTitle = "PLAYER " + playerIndex + " : CHOOSE YOUR SHIP";
 
     // Ship Type Info
-    String[] shipNames = {"Bronze", "Silver", "Gold", "Platinum"};
-    String[] shipSpeeds = {"SPEED: ■□□□□", "SPEED: ■■□□□", "SPEED: ■■■□□", "SPEED: ■■■■□"};
-    String[] shipFireRates = {
+    final String[] shipNames = {"Bronze", "Silver", "Gold", "Platinum"};
+    final String[] shipSpeeds = {"SPEED: ■□□□□", "SPEED: ■■□□□", "SPEED: ■■■□□", "SPEED: ■■■■□"};
+    final String[] shipFireRates = {
       "FIRE RATE: ■□□□□", "FIRE RATE: ■■□□□", "FIRE RATE: ■■□□□", "FIRE RATE: ■■■■□"
     };
 
     for (int i = 0; i < shipExamples.length; i++) {
-      Ship s = shipExamples[i];
-      int x = s.getPositionX() - s.getWidth() / 2;
-      int y = s.getPositionY();
+      final Ship s = shipExamples[i];
+      final int x = s.getPositionX() - s.getWidth() / 2;
+      final int y = s.getPositionY();
 
-      boolean unlocked = unlockedStates != null && unlockedStates.length > i && unlockedStates[i];
+      final boolean unlocked = unlockedStates != null && unlockedStates.length > i && unlockedStates[i];
 
       Color shipColor;
       if (!unlocked) {
@@ -1381,11 +1381,11 @@ public final class DrawManager {
 
       if (i == selectedShipIndex) {
 
-        int padding = 5;
-        int frameX = x - padding;
-        int frameY = y - padding;
-        int frameW = s.getWidth() + padding * 2;
-        int frameH = s.getHeight() + padding * 2;
+        final int padding = 5;
+        final int frameX = x - padding;
+        final int frameY = y - padding;
+        final int frameW = s.getWidth() + padding * 2;
+        final int frameH = s.getHeight() + padding * 2;
 
         drawFrame(frameX, frameY, frameW, frameH, Color.WHITE, 8, 1);
       }
@@ -1400,19 +1400,19 @@ public final class DrawManager {
         screen, " > " + shipNames[selectedShipIndex] + " < ", screen.getHeight() / 2 - 40);
 
     // Temporarily changes the font that support the Unicode
-    Font original = backBufferGraphics.getFont();
-    Font statFont = new Font("Dialog", Font.PLAIN, 18);
+    final Font original = backBufferGraphics.getFont();
+    final Font statFont = new Font("Dialog", Font.PLAIN, 18);
     backBufferGraphics.setFont(statFont);
-    java.awt.FontMetrics fm = backBufferGraphics.getFontMetrics(statFont);
+    final java.awt.FontMetrics fm = backBufferGraphics.getFontMetrics(statFont);
 
-    String speedStr = shipSpeeds[selectedShipIndex];
-    String fireStr = shipFireRates[selectedShipIndex];
+    final String speedStr = shipSpeeds[selectedShipIndex];
+    final String fireStr = shipFireRates[selectedShipIndex];
 
-    int speedY = screen.getHeight() / 2 + 60;
-    int fireY = screen.getHeight() / 2 + 80;
+    final int speedY = screen.getHeight() / 2 + 60;
+    final int fireY = screen.getHeight() / 2 + 80;
 
-    int speedX = screen.getWidth() / 2 - fm.stringWidth(speedStr) / 2;
-    int fireX = screen.getWidth() / 2 - fm.stringWidth(fireStr) / 2;
+    final int speedX = screen.getWidth() / 2 - fm.stringWidth(speedStr) / 2;
+    final int fireX = screen.getWidth() / 2 - fm.stringWidth(fireStr) / 2;
 
     backBufferGraphics.setColor(Color.WHITE);
     backBufferGraphics.drawString(speedStr, speedX, speedY);
@@ -1422,7 +1422,7 @@ public final class DrawManager {
     backBufferGraphics.setFont(original);
 
     // show unlock status and costs
-    boolean selectedUnlocked =
+    final boolean selectedUnlocked =
         (unlockedStates == null)
             || (selectedShipIndex >= 0
                 && selectedShipIndex < unlockedStates.length
@@ -1430,8 +1430,8 @@ public final class DrawManager {
 
     backBufferGraphics.setFont(fontRegular);
 
-    int statusY = screen.getHeight() / 2 + 115;
-    int costY = statusY + fontRegularMetrics.getHeight();
+    final int statusY = screen.getHeight() / 2 + 115;
+    final int costY = statusY + fontRegularMetrics.getHeight();
 
     if (selectedUnlocked) {
       backBufferGraphics.setColor(Color.GREEN);
@@ -1442,7 +1442,7 @@ public final class DrawManager {
       drawCenteredRegularString(screen, "STATUS: LOCKED", statusY);
 
       backBufferGraphics.setColor(Color.YELLOW);
-      String costText = "COST: " + getShipUnlockCost(selectedShipIndex) + " Coins";
+      final String costText = "COST: " + getShipUnlockCost(selectedShipIndex) + " Coins";
       drawCenteredRegularString(screen, costText, costY);
     }
 
@@ -1451,7 +1451,7 @@ public final class DrawManager {
         screen, "Press Esc to return, Confirm with Space", screen.getHeight() - 50);
   }
 
-  private int getShipUnlockCost(int index) {
+  private int getShipUnlockCost(final int index) {
     switch (index) {
       case 0: // Bronze
         return 0;
@@ -1475,13 +1475,13 @@ public final class DrawManager {
     backBufferGraphics.setFont(fontRegular);
     final int pad = 4;
 
-    int textWidth = fontRegularMetrics.stringWidth(string);
-    int ascent = fontRegularMetrics.getAscent();
-    int descent = fontRegularMetrics.getDescent();
+    final int textWidth = fontRegularMetrics.stringWidth(string);
+    final int ascent = fontRegularMetrics.getAscent();
+    final int descent = fontRegularMetrics.getDescent();
 
-    int x = screen.getWidth() / 2 - textWidth / 2;
-    int y = baselineY - ascent + menuHitboxOffset - pad / 2;
-    int h = ascent + descent + pad;
+    final int x = screen.getWidth() / 2 - textWidth / 2;
+    final int y = baselineY - ascent + menuHitboxOffset - pad / 2;
+    final int h = ascent + descent + pad;
 
     return new Rectangle(x, y, textWidth, h);
   }
@@ -1493,21 +1493,21 @@ public final class DrawManager {
       final boolean dragging,
       final int index,
       final String title,
-      int selectedSection,
-      int volumetype) {
+      final int selectedSection,
+      final int volumetype) {
     final int space = 70;
     final int baseY = screen.getHeight() * 3 / 10;
     final int presentY = baseY + (index * space);
 
-    int bar_startWidth = screen.getWidth() / 2 - 10;
-    int bar_endWidth = screen.getWidth() - 50;
+    final int bar_startWidth = screen.getWidth() / 2 - 10;
+    final int bar_endWidth = screen.getWidth() - 50;
 
-    int iconSize = 16;
-    int iconBoxW = 24;
-    int iconX = bar_startWidth - iconBoxW - 25;
-    int iconY = presentY - iconSize / 2;
+    final int iconSize = 16;
+    final int iconBoxW = 24;
+    final int iconX = bar_startWidth - iconBoxW - 25;
+    final int iconY = presentY - iconSize / 2;
 
-    boolean mutedVisual = (volumelevel == 0 || SoundControl.isMuted(index));
+    final boolean mutedVisual = (volumelevel == 0 || SoundControl.isMuted(index));
     drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
 
     backBufferGraphics.setColor(Color.WHITE);
@@ -1522,19 +1522,19 @@ public final class DrawManager {
     backBufferGraphics.drawString(title, bar_startWidth - 60, presentY - 20);
 
     //		change this line to get indicator center position
-    int size = 14;
-    double ratio = volumelevel / 100.0;
-    int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
-    int indicatorX = centerX - size / 2 - 3;
-    int indicatorY = presentY - size / 2;
+    final int size = 14;
+    final double ratio = volumelevel / 100.0;
+    final int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
+    final int indicatorX = centerX - size / 2 - 3;
+    final int indicatorY = presentY - size / 2;
 
-    int rawX = Core.getInputManager().getMouseX();
-    int rawY = Core.getInputManager().getMouseY();
-    Insets insets = frame.getInsets();
-    int mouseX = rawX - insets.left;
-    int mouseY = rawY - insets.top;
+    final int rawX = Core.getInputManager().getMouseX();
+    final int rawY = Core.getInputManager().getMouseY();
+    final Insets insets = frame.getInsets();
+    final int mouseX = rawX - insets.left;
+    final int mouseY = rawY - insets.top;
 
-    boolean hoverIndicator =
+    final boolean hoverIndicator =
         mouseX >= indicatorX
             && mouseX <= indicatorX + size
             && mouseY >= indicatorY
@@ -1549,15 +1549,15 @@ public final class DrawManager {
     backBufferGraphics.fillRect(indicatorX, indicatorY, size, size);
 
     backBufferGraphics.setColor(Color.WHITE);
-    String volumeText = Integer.toString(volumelevel);
+    final String volumeText = Integer.toString(volumelevel);
     backBufferGraphics.drawString(volumeText, bar_endWidth + 10, presentY + 7);
   }
 
   public void drawSettingLayout(
       final Screen screen, final String[] menuItems, final int selectedmenuItems) {
-    int splitPointX = screen.getWidth() * 3 / 10;
+    final int splitPointX = screen.getWidth() * 3 / 10;
     backBufferGraphics.setFont(fontRegular);
-    int menuY = screen.getHeight() * 3 / 10;
+    final int menuY = screen.getHeight() * 3 / 10;
     for (int i = 0; i < menuItems.length; i++) {
       if (i == selectedmenuItems) {
         backBufferGraphics.setColor(Color.GREEN);
@@ -1575,28 +1575,28 @@ public final class DrawManager {
     return getVolumeBarHitbox(screen, 0);
   }
 
-  public Rectangle getVolumeBarHitbox(final Screen screen, int index) {
+  public Rectangle getVolumeBarHitbox(final Screen screen, final int index) {
     final int space = 70;
     final int baseY = screen.getHeight() * 3 / 10 + 30;
     final int presentY = baseY + (index * space);
 
-    int bar_startWidth = screen.getWidth() / 2 - 10;
-    int bar_endWidth = screen.getWidth() - 50;
+    final int bar_startWidth = screen.getWidth() / 2 - 10;
+    final int bar_endWidth = screen.getWidth() - 50;
 
-    int barThickness = 20;
+    final int barThickness = 20;
 
-    int x = bar_startWidth;
-    int y = presentY - barThickness / 2;
-    int width = bar_endWidth - bar_startWidth;
-    int height = barThickness;
+    final int x = bar_startWidth;
+    final int y = presentY - barThickness / 2;
+    final int width = bar_endWidth - bar_startWidth;
+    final int height = barThickness;
 
     return new Rectangle(x, y, width, height);
   }
 
   // draw Corner Frame at ship selection screen
   private void drawFrame(
-      int x, int y, int width, int height, Color color, int cornerLength, int thickness) {
-    Graphics2D g2d = (Graphics2D) backBufferGraphics;
+          final int x, final int y, final int width, final int height, final Color color, final int cornerLength, final int thickness) {
+    final Graphics2D g2d = (Graphics2D) backBufferGraphics;
     g2d.setColor(color);
     g2d.setStroke(new BasicStroke(thickness));
 
@@ -1620,35 +1620,35 @@ public final class DrawManager {
   public Rectangle[] getShipSelectionHitboxes(final Screen screen, final Ship[] ships) {
     Rectangle[] boxes = new Rectangle[ships.length];
     for (int i = 0; i < ships.length; i++) {
-      Ship s = ships[i];
-      int x = s.getPositionX() - s.getWidth() / 2;
-      int y = s.getPositionY() + 30;
+      final Ship s = ships[i];
+      final int x = s.getPositionX() - s.getWidth() / 2;
+      final int y = s.getPositionY() + 30;
       boxes[i] = new Rectangle(x - 10, y - 10, s.getWidth() + 20, s.getHeight() + 20);
     }
     return boxes;
   }
 
-  private void drawSpeakerIcon(int x, int y, int size, boolean muted) {
-    Graphics2D g = (Graphics2D) backBufferGraphics;
+  private void drawSpeakerIcon(final int x, final int y, final int size, final boolean muted) {
+    final Graphics2D g = (Graphics2D) backBufferGraphics;
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    int squareW = size;
-    int squareH = size;
-    int squareX = x + 10;
-    int squareY = y;
+    final int squareW = size;
+    final int squareH = size;
+    final int squareX = x + 10;
+    final int squareY = y;
     g.setColor(Color.WHITE);
     g.fillRect(squareX, squareY, squareW, squareH);
 
-    int x1 = x + squareW;
-    int x2 = x1 + 10;
-    int y1 = squareY + squareH;
-    int y2 = y1 + 5;
-    int y4 = squareY;
-    int y3 = y4 - 5;
+    final int x1 = x + squareW;
+    final int x2 = x1 + 10;
+    final int y1 = squareY + squareH;
+    final int y2 = y1 + 5;
+    final int y4 = squareY;
+    final int y3 = y4 - 5;
 
-    int[] xpoints = {x1, x2, x2, x1};
-    int[] ypoints = {y1, y2, y3, y4};
-    Polygon trapezoid = new Polygon(xpoints, ypoints, 4);
+    final int[] xpoints = {x1, x2, x2, x1};
+    final int[] ypoints = {y1, y2, y3, y4};
+    final Polygon trapezoid = new Polygon(xpoints, ypoints, 4);
     g.setColor(Color.WHITE);
     g.fillPolygon(trapezoid);
 
@@ -1660,12 +1660,12 @@ public final class DrawManager {
     } else {
       g.setColor(Color.WHITE);
 
-      int cx = x2 + 6;
-      int cy = y + size / 2;
+      final int cx = x2 + 6;
+      final int cy = y + size / 2;
 
-      int r1 = (int) (size * 0.28);
+      final int r1 = (int) (size * 0.28);
 
-      int r3 = (int) (size * 0.56);
+      final int r3 = (int) (size * 0.56);
 
       g.drawArc(cx - r1, cy - r1, 2 * r1, 2 * r1, -60, 120);
       g.drawArc(cx - r3, cy - r3, 2 * r3, 2 * r3, -60, 120);
@@ -1677,17 +1677,17 @@ public final class DrawManager {
      This method creates and returns a clickable rectangular area for each speaker icon
      drawn in the Volume settings screen.
   */
-  public Rectangle getSpeakerHitbox(final Screen screen, int index) {
+  public Rectangle getSpeakerHitbox(final Screen screen, final int index) {
     final int space = 70;
     final int baseY = screen.getHeight() * 3 / 10;
     final int presentY = baseY + (index * space);
 
-    int bar_startWidth = screen.getWidth() / 2 - 10;
-    int iconBoxW = 24;
-    int iconX = bar_startWidth - iconBoxW - 25;
-    int iconY = presentY - 16 / 2;
+    final int bar_startWidth = screen.getWidth() / 2 - 10;
+    final int iconBoxW = 24;
+    final int iconX = bar_startWidth - iconBoxW - 25;
+    final int iconY = presentY - 16 / 2;
 
-    int iconSize = 16;
+    final int iconSize = 16;
 
     return new Rectangle(iconX + 10, iconY + 30, iconSize + 10, iconSize);
   }
@@ -1697,17 +1697,17 @@ public final class DrawManager {
      This method creates and returns a rectangular clickable area for each menu item in the Settings screen.
      It's mainly used to detect mouse clicks on different setting options such as Volumne, 1P Keyset, 2P Keyset.
   */
-  public Rectangle getSettingMenuHitbox(final Screen screen, int index) {
-    int screenWidth = screen.getWidth();
-    int screenHeight = screen.getHeight();
+  public Rectangle getSettingMenuHitbox(final Screen screen, final int index) {
+    final int screenWidth = screen.getWidth();
+    final int screenHeight = screen.getHeight();
 
-    int baseY = screenHeight / 3;
-    int itemGap = 60;
+    final int baseY = screenHeight / 3;
+    final int itemGap = 60;
 
-    int x = screenWidth / 2 - 290;
-    int y = baseY + (index * itemGap) - 10;
-    int width = 200;
-    int height = 27;
+    final int x = screenWidth / 2 - 290;
+    final int y = baseY + (index * itemGap) - 10;
+    final int width = 200;
+    final int height = 27;
 
     return new Rectangle(x, y, width, height);
   }
@@ -1718,21 +1718,21 @@ public final class DrawManager {
       final boolean dragging,
       final int index,
       final String title,
-      int selectedSection,
-      int ingamevolumetype) {
+      final int selectedSection,
+      final int ingamevolumetype) {
     final int space = 100;
     final int baseY = screen.getHeight() * 3 / 10 + 50;
     final int presentY = baseY + (index * space);
 
-    int bar_startWidth = screen.getWidth() / 2 - 85;
-    int bar_endWidth = screen.getWidth() - 125;
+    final int bar_startWidth = screen.getWidth() / 2 - 85;
+    final int bar_endWidth = screen.getWidth() - 125;
 
-    int iconSize = 16;
-    int iconBoxW = 24;
-    int iconX = bar_startWidth - iconBoxW - 25;
-    int iconY = presentY - iconSize / 2;
+    final int iconSize = 16;
+    final int iconBoxW = 24;
+    final int iconX = bar_startWidth - iconBoxW - 25;
+    final int iconY = presentY - iconSize / 2;
 
-    boolean mutedVisual = (ingamevolumelevel == 0 || SoundControl.isIngameMuted(index));
+    final boolean mutedVisual = (ingamevolumelevel == 0 || SoundControl.isIngameMuted(index));
     drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
 
     backBufferGraphics.setColor(Color.WHITE);
@@ -1747,19 +1747,19 @@ public final class DrawManager {
     drawCenteredRegularString(screen, title, presentY - 30);
 
     //		change this line to get indicator center position
-    int size = 14;
-    double ratio = ingamevolumelevel / 100.0;
-    int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
-    int indicatorX = centerX - size / 2 - 3;
-    int indicatorY = presentY - size / 2;
+    final int size = 14;
+    final double ratio = ingamevolumelevel / 100.0;
+    final int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
+    final int indicatorX = centerX - size / 2 - 3;
+    final int indicatorY = presentY - size / 2;
 
-    int rawX = Core.getInputManager().getMouseX();
-    int rawY = Core.getInputManager().getMouseY();
-    Insets insets = frame.getInsets();
-    int mouseX = rawX - insets.left;
-    int mouseY = rawY - insets.top;
+    final int rawX = Core.getInputManager().getMouseX();
+    final int rawY = Core.getInputManager().getMouseY();
+    final Insets insets = frame.getInsets();
+    final int mouseX = rawX - insets.left;
+    final int mouseY = rawY - insets.top;
 
-    boolean hoverIndicator =
+    final boolean hoverIndicator =
         mouseX >= indicatorX
             && mouseX <= indicatorX + size
             && mouseY >= indicatorY
@@ -1774,39 +1774,39 @@ public final class DrawManager {
     backBufferGraphics.fillRect(indicatorX, indicatorY, size, size);
 
     backBufferGraphics.setColor(Color.WHITE);
-    String volumeText = Integer.toString(ingamevolumelevel);
+    final String volumeText = Integer.toString(ingamevolumelevel);
     backBufferGraphics.drawString(volumeText, bar_endWidth + 10, presentY + 7);
   }
 
-  public Rectangle getpauseVolumeBarHitbox(final Screen screen, int index) {
+  public Rectangle getpauseVolumeBarHitbox(final Screen screen, final int index) {
     final int space = 100;
     final int baseY = screen.getHeight() * 3 / 10 + 80;
     final int presentY = baseY + (index * space);
 
-    int bar_startWidth = screen.getWidth() / 2 - 85;
-    int bar_endWidth = screen.getWidth() - 125;
+    final int bar_startWidth = screen.getWidth() / 2 - 85;
+    final int bar_endWidth = screen.getWidth() - 125;
 
-    int barThickness = 20;
+    final int barThickness = 20;
 
-    int x = bar_startWidth;
-    int y = presentY - barThickness / 2;
-    int width = bar_endWidth - bar_startWidth;
-    int height = barThickness;
+    final int x = bar_startWidth;
+    final int y = presentY - barThickness / 2;
+    final int width = bar_endWidth - bar_startWidth;
+    final int height = barThickness;
 
     return new Rectangle(x, y, width, height);
   }
 
-  public Rectangle getPauseSpeakerHitbox(final Screen screen, int index) {
+  public Rectangle getPauseSpeakerHitbox(final Screen screen, final int index) {
     final int space = 100;
     final int baseY = screen.getHeight() * 3 / 10 + 80;
     final int presentY = baseY + (index * space);
 
-    int bar_startWidth = screen.getWidth() / 2 - 85;
+    final int bar_startWidth = screen.getWidth() / 2 - 85;
 
-    int iconSize = 16;
-    int iconBoxW = 24;
-    int iconX = bar_startWidth - iconBoxW - 15;
-    int iconY = presentY - iconSize / 2;
+    final int iconSize = 16;
+    final int iconBoxW = 24;
+    final int iconX = bar_startWidth - iconBoxW - 15;
+    final int iconY = presentY - iconSize / 2;
 
     return new Rectangle(iconX, iconY, iconBoxW, iconSize);
   }
