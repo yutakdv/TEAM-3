@@ -9,7 +9,7 @@ import engine.DrawManager.SpriteType;
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
-public class Entity {
+public class Entity { // NOPMD
 
   /** Position in the x-axis of the upper left corner of the entity. */
   protected int positionX;
@@ -71,7 +71,7 @@ public class Entity {
     return color;
   }
 
-  public final void changeColor(Color color) {
+  public final void changeColor(final Color color) {
     this.color = color;
   }
 
@@ -144,7 +144,7 @@ public class Entity {
     return team;
   }
 
-  public void setTeam(Team t) {
-    this.team = (t == null ? Team.NEUTRAL : t);
+  public void setTeam(final Team t) {
+    this.team = t == null ? Team.NEUTRAL : t;
   }
 }

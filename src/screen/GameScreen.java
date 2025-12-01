@@ -759,7 +759,7 @@ public class GameScreen extends Screen {
         for (EnemyShip enemyShip : this.enemyShipFormation) {
           if (!enemyShip.isDestroyed() && checkCollision(bullet, enemyShip)) {
             recyclable.add(bullet);
-            enemyShip.hit();
+            enemyShip.getDamage(1);
 
             if (enemyShip.isDestroyed()) {
               int points = enemyShip.getPointValue();

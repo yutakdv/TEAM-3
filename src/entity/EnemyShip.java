@@ -5,6 +5,7 @@ import java.awt.Color;
 import engine.Cooldown;
 import engine.Core;
 import engine.DrawManager.SpriteType;
+import engine.EnemyAnimator;
 import engine.GameSettings;
 
 /**
@@ -35,7 +36,7 @@ public class EnemyShip extends Entity {
   private Cooldown animationCooldown;
 
   /** Checks if the ship has been hit by a bullet. */
-  private boolean isDestroyed;
+  private boolean destroyed;
 
   /** Values of the ship, in points, when destroyed. */
   private int pointValue;
@@ -46,6 +47,10 @@ public class EnemyShip extends Entity {
   private int health;
 
   private int initialHealth;
+
+  private final EnemyAnimator animator = new EnemyAnimator();
+
+    Color c = this.getColor();
 
   /**
    * Constructor, establishes the ship's properties.
@@ -59,7 +64,7 @@ public class EnemyShip extends Entity {
 
     this.spriteType = spriteType;
     this.animationCooldown = Core.getCooldown(500);
-    this.isDestroyed = false;
+    this.destroyed = false;
 
     switch (this.spriteType) {
       case EnemyShipA1:
@@ -90,7 +95,7 @@ public class EnemyShip extends Entity {
     this.initialHealth = this.health;
   }
 
-  public void changeShip(GameSettings.ChangeData changeData) {
+  public void changeShip(final GameSettings.ChangeData changeData) {
     this.health *= changeData.hp;
     this.initialHealth = this.health;
 
@@ -108,7 +113,7 @@ public class EnemyShip extends Entity {
     super(-32, 80, 16 * 2, 7 * 2, Color.RED);
 
     this.spriteType = SpriteType.EnemyShipSpecial;
-    this.isDestroyed = false;
+    this.destroyed = false;
     this.pointValue = BONUS_TYPE_POINTS;
     this.coinValue = BONUS_TYPE_COINS;
     this.health = 1;
@@ -138,29 +143,7 @@ public class EnemyShip extends Entity {
   public final void update() {
     if (this.animationCooldown.checkFinished()) {
       this.animationCooldown.reset();
-
-      switch (this.spriteType) {
-        case EnemyShipA1:
-          this.spriteType = SpriteType.EnemyShipA2;
-          break;
-        case EnemyShipA2:
-          this.spriteType = SpriteType.EnemyShipA1;
-          break;
-        case EnemyShipB1:
-          this.spriteType = SpriteType.EnemyShipB2;
-          break;
-        case EnemyShipB2:
-          this.spriteType = SpriteType.EnemyShipB1;
-          break;
-        case EnemyShipC1:
-          this.spriteType = SpriteType.EnemyShipC2;
-          break;
-        case EnemyShipC2:
-          this.spriteType = SpriteType.EnemyShipC1;
-          break;
-        default:
-          break;
-      }
+      this.spriteType = animator.nextFrame(this.spriteType);
     }
   }
 
@@ -169,40 +152,9 @@ public class EnemyShip extends Entity {
     return this.health;
   }
 
-  /** Reduces enemy health by 1 and handles destruction or damage animation if health drops to 0 */
-  public final void hit() {
-    this.health--;
-    if (this.health <= 0) {
-      this.isDestroyed = true;
-      this.spriteType = SpriteType.Explosion;
-      Color color = this.getColor();
-      color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 255);
-      changeColor(color);
-    } else {
-      switch (this.spriteType) {
-        case EnemyShipA1:
-        case EnemyShipA2:
-          this.spriteType = SpriteType.EnemyShipA2;
-          break;
-        case EnemyShipB1:
-        case EnemyShipB2:
-          this.spriteType = SpriteType.EnemyShipB2;
-          break;
-        case EnemyShipC1:
-        case EnemyShipC2:
-          this.spriteType = SpriteType.EnemyShipC2;
-          break;
-        default:
-          break;
-      }
-
-      this.refreshAlpha();
-    }
-  }
-
   /** Destroys the ship, causing an explosion. */
   public final void destroy() {
-    this.isDestroyed = true;
+    this.destroyed = true;
     this.spriteType = SpriteType.Explosion;
   }
 
@@ -212,7 +164,7 @@ public class EnemyShip extends Entity {
    * @return True if the ship has been destroyed.
    */
   public final boolean isDestroyed() {
-    return this.isDestroyed;
+    return this.destroyed;
   }
 
   public int getCoinValue() {
@@ -220,38 +172,44 @@ public class EnemyShip extends Entity {
   }
 
   // make alpha value always in 0~255 value
-  private static int clamp(int v, int lo, int hi) {
-    return Math.max(lo, Math.min(hi, v));
+  private static int clamp(final int v) {
+    return Math.max(100, Math.min(255, v));
   }
 
-  private void refreshAlpha() {
-    float t = (initialHealth > 0) ? (this.health / (float) initialHealth) : 1f;
-
-    final int Min_Alpha = 100;
-    final int One_Hp_Alpha = 100;
-
-    int alpha = clamp(Min_Alpha + (int) Math.round((255 - Min_Alpha) * t), Min_Alpha, 255);
-
-    if (this.health == 1 && this.initialHealth > 1) {
-      alpha = Math.max(alpha, One_Hp_Alpha);
+  private void applyColorWithAlpha(final int alpha) {
+    if (c == null) {
+      c = Color.WHITE;
     }
 
-    Color c = this.getColor();
-    if (c == null) c = Color.WHITE;
-    Color withAlpha = new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
+    final int r = c.getRed();
+    final int g = c.getGreen();
+    final int b = c.getBlue();
+    final Color withAlpha = new Color(r, g, b, alpha);
     this.changeColor(withAlpha);
   }
 
+  private void refreshAlpha() {
+    final float t = initialHealth > 0 ? this.health / (float) initialHealth : 1f;
+
+    final int minAlpha = 100;
+    final int oneHPAlpha = 100;
+
+    int alpha = clamp(minAlpha + Math.round((255 - minAlpha) * t));
+
+    if (this.health == 1 && this.initialHealth > 1) {
+      alpha = Math.max(alpha, oneHPAlpha);
+    }
+    applyColorWithAlpha(alpha);
+  }
+
   // fixed getDamage() for new alpha
-  public final int getDamage(int dmg) {
+  public final int getDamage(final int dmg) {
     this.health -= dmg;
 
     if (this.health <= 0) {
-      this.isDestroyed = true;
+      this.destroyed = true;
       this.spriteType = SpriteType.Explosion;
-      Color c = this.getColor();
-      if (c == null) c = Color.WHITE;
-      this.changeColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 255));
+      applyColorWithAlpha(255);
     } else {
       this.refreshAlpha();
     }

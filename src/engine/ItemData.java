@@ -3,7 +3,7 @@ package engine;
 /**
  * Represents the data for an item, including its type, sprite, tier, effect value, and duration.
  */
-public class ItemData {
+public class ItemData { //NOPMD
   /** Unique identifier for the item (e.g. "COIN", "HEAL", "SCORE"). */
   private final String type;
 
