@@ -79,7 +79,7 @@ public final class ItemManager {
    * @param enemy enemy ship that was defeated.
    * @return dropped Item, or null if no item is dropped.
    */
-  public Item obtainDrop(final EnemyShip enemy) {
+  public Item obtainDrop(final EnemyShip enemy) { //NOPMD
     if (enemy == null) {
       return null;
     }
@@ -127,7 +127,7 @@ public final class ItemManager {
     final java.util.List<ItemData> candidates = new java.util.ArrayList<>();
     final java.util.Collection<ItemData> allItems = itemDB.getAllItems();
     for (final ItemData data : allItems) {
-      if (data.getDropTier().equalsIgnoreCase(chosenTier.name())) {
+      if (data.getDropTier().equalsIgnoreCase(chosenTier.name())) { //NOPMD
         candidates.add(data);
       }
     }
