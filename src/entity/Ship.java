@@ -8,12 +8,17 @@ import engine.Core;
 import engine.GameState;
 import engine.DrawManager.SpriteType;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Implements a ship, to be controlled by the player.
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
 public class Ship extends Entity {
+
+  private static final Logger LOGGER = Core.getLogger();
 
   /** Bullet Variables * */
   // default bullet variables
@@ -41,23 +46,23 @@ public class Ship extends Entity {
   /** Types of ships. */
   public enum ShipType {
     NORMAL(BASE_SPEED, BASE_SHOOTING_INTERVAL, SpriteType.Ship1) {
-      void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY) {
+      void shoot(final Ship ship, final Set<Bullet> bullets, final int centerX, final int bulletY) {
         ship.addBullet(bullets, centerX, bulletY);
       }
     },
     BIG_SHOT(3, 700, SpriteType.Ship2) {
-      void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY) {
+      void shoot(final Ship ship, final Set<Bullet> bullets, final int centerX, final int bulletY) {
         ship.addBullet(bullets, centerX, bulletY);
       }
     },
     DOUBLE_SHOT(4, 700, SpriteType.Ship3) {
-      void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY) {
+      void shoot(final Ship ship, final Set<Bullet> bullets, final int centerX, final int bulletY) {
         ship.addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
         ship.addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
       }
     },
     MOVE_FAST(5, 500, SpriteType.Ship4) {
-      void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY) {
+      void shoot(final Ship ship, final Set<Bullet> bullets, final int centerX, final int bulletY) {
         ship.addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
         ship.addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
       }
@@ -67,13 +72,13 @@ public class Ship extends Entity {
     private final int shootingInterval;
     private final SpriteType spriteType;
 
-    ShipType(int moveSpeed, int shootingInterval, SpriteType spriteType) {
+    ShipType(final int moveSpeed, final int shootingInterval, final SpriteType spriteType) {
       this.moveSpeed = moveSpeed;
       this.shootingInterval = shootingInterval;
       this.spriteType = spriteType;
     }
 
-    void applyStats(Ship ship) {
+    void applyStats(final Ship ship) {
       ship.moveSpeed = this.moveSpeed;
       ship.shootingInterval = this.shootingInterval;
       ship.spriteType = this.spriteType;
@@ -86,7 +91,7 @@ public class Ship extends Entity {
   }
 
   /** Game state and Ship type * */
-  private final GameState gameState;
+  private final GameState gameState; // NOPMD
 
   private final ShipType type;
 
@@ -103,9 +108,9 @@ public class Ship extends Entity {
   private final Cooldown destructionCooldown;
 
   // Identify player in index: 0 = P1, 1 = P2
-  private int playerIndex = 0;
+  private int playerIndex;
 
-  private int hits;
+  private int hits; // NOPMD
 
   /**
    * Constructor, establishes the ship's properties.
@@ -134,7 +139,7 @@ public class Ship extends Entity {
     this.destructionCooldown = Core.getCooldown(DESTRUCTION_COOLDOWN);
 
     // apply entity
-    Team playerID = (team != null) ? team : Team.PLAYER1;
+    final Team playerID = (team != null) ? team : Team.PLAYER1;
     this.setTeam(playerID);
     this.playerIndex = (playerID == Team.PLAYER1) ? 0 : (playerID == Team.PLAYER2) ? 1 : 0;
 
@@ -164,10 +169,11 @@ public class Ship extends Entity {
     }
 
     this.shootingCooldown.reset();
-    Core.getLogger().info("[Ship] Shooting :" + this.type);
-
-    int bulletX = positionX + this.width / 2;
-    int bulletY = this.positionY - this.bulletHeight;
+    if (LOGGER.isLoggable(Level.FINE)) {
+      LOGGER.fine("[Ship] Shooting :" + this.type);
+    }
+    final int bulletX = positionX + this.width / 2;
+    final int bulletY = this.positionY - this.bulletHeight;
 
     // Default shooting based on ship type
     this.type.shoot(this, bullets, bulletX, bulletY);
@@ -176,10 +182,10 @@ public class Ship extends Entity {
 
   /** Updates status of the ship. */
   public final void update() {
-    if (!this.destructionCooldown.checkFinished()) {
-      setDestroyedSprite();
-    } else {
+    if (this.destructionCooldown.checkFinished()) {
       resetToNormalSprite();
+    } else {
+      setDestroyedSprite();
     }
   }
 
@@ -240,7 +246,7 @@ public class Ship extends Entity {
     final Bullet bullet =
         BulletPool.getBullet(
             x, y, this.bulletSpeed, this.bulletWidth, this.bulletHeight, this.getTeam());
-    bullet.setOwnerPlayerId(this.getPlayerId());
+    bullet.setOwnerPlayerId(this.getPlayerId()); //NOPMD
     bullets.add(bullet);
   }
 

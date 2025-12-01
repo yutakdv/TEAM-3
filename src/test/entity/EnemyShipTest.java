@@ -92,7 +92,7 @@ public class EnemyShipTest {
     EnemyShip ship = new EnemyShip(0, 0, SpriteType.EnemyShipA1);
     int h = ship.getHealth();
 
-    ship.hit();
+    ship.getDamage(1);
     assertEquals(h - 1, ship.getHealth());
     assertFalse(ship.isDestroyed());
   }
@@ -100,7 +100,7 @@ public class EnemyShipTest {
   @Test
   void testHit_Destruction() {
     EnemyShip ship = new EnemyShip(0, 0, SpriteType.EnemyShipB1); // health=1
-    ship.hit();
+    ship.getDamage(1);
 
     assertTrue(ship.isDestroyed());
     assertEquals(SpriteType.Explosion, ship.getSpriteType());

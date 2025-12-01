@@ -114,6 +114,10 @@ public class Item extends Entity {
     if (data == null) {
       return;
     }
+    applyEffect(gameState, playerId, data);
+  }
+
+  private void applyEffect(final GameState gameState, final int playerId, final ItemData data) {
 
     final int value = data.getEffectValue();
 
@@ -139,7 +143,7 @@ public class Item extends Entity {
           }
         };
 
-    if (!applied && LOGGER.isLoggable(Level.WARNING)) {
+    if (!applied && LOGGER.isLoggable(Level.INFO)) {
       LOGGER.info("[Item]: Player " + playerId + " couldn't afford or use " + this.type);
     }
   }

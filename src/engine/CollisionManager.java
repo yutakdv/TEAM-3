@@ -112,7 +112,7 @@ public class CollisionManager {
       if (!enemyShip.isDestroyed() && checkCollision(bullet, enemyShip)) {
         recyclable.add(bullet);
         bulletAbsorbed = true;
-        enemyShip.hit();
+        enemyShip.getDamage(1);
 
         if (enemyShip.isDestroyed()) {
           handleEnemyDestruction(enemyShip, pIdx, finalShip, items);
