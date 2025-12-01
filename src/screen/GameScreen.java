@@ -274,9 +274,16 @@ public class GameScreen extends Screen { // NOPMD
     // Countdown beep once during pre-start
     if (!this.inputDelay.checkFinished() && !countdownSoundPlayed) {
       final long elapsed = System.currentTimeMillis() - this.gameStartTime;
-      if (elapsed > 1750) {
-        SoundManager.ingameeffect("sound/CountDownSound.wav");
-        countdownSoundPlayed = true;
+      if (this.hasCountdownMessage) {
+        if (elapsed > 1750) {
+          SoundManager.ingameeffect("sound/CountDownSound.wav");
+          countdownSoundPlayed = true;
+        }
+      } else {
+        if (elapsed > 1) {
+          SoundManager.ingameeffect("sound/CountDownSound.wav");
+          countdownSoundPlayed = true;
+        }
       }
     }
 
