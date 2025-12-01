@@ -152,7 +152,7 @@ public class InputHandler { // NOPMD
       final int draggingIdx) {
 
     if (pressed) {
-      final Rectangle sliderBox = drawManager.getpauseVolumeBarHitbox(screen, draggingIdx);
+      final Rectangle sliderBox = drawManager.settings().getpauseVolumeBarHitbox(screen, draggingIdx);
       setVolumeFromX(sliderBox, mx, draggingIdx);
 
       if (handler.getVolumeType() != draggingIdx) {
@@ -174,7 +174,7 @@ public class InputHandler { // NOPMD
 
     if (handler.getSelectedSection() != 1) {
       for (int i = 0; i < numSliders; i++) {
-        if (drawManager.getpauseVolumeBarHitbox(screen, i).contains(mx, my)) { // NOPMD
+        if (drawManager.settings().getpauseVolumeBarHitbox(screen, i).contains(mx, my)) { // NOPMD
           handler.setSelectedSection(1);
           break;
         }
@@ -193,8 +193,8 @@ public class InputHandler { // NOPMD
       final int numSliders) {
 
     for (int i = 0; i < numSliders; i++) {
-      final Rectangle iconBox = drawManager.getPauseSpeakerHitbox(screen, i);
-      final Rectangle sliderBox = drawManager.getpauseVolumeBarHitbox(screen, i); // NOPMD
+      final Rectangle iconBox = drawManager.settings().getPauseSpeakerHitbox(screen, i);
+      final Rectangle sliderBox = drawManager.settings().getpauseVolumeBarHitbox(screen, i); // NOPMD
 
       if (clicked && iconBox.contains(mx, my)) { // NOPMD
         handler.setVolumeType(i);

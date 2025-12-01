@@ -17,9 +17,9 @@ public class PauseMenuHandler {
   }
 
   public void draw(final DrawManager drawManager, final Screen screen) {
-    drawManager.drawPauseOverlay(screen);
+    drawManager.hud().drawPauseOverlay(screen);
     for (int i = 0; i < numPauseSliders; i++) {
-      drawManager.drawpauseVolumeBar(
+      drawManager.settings().drawpauseVolumeBar(
           screen,
           SoundControl.getIngameVolumeLevel(i),
           pauseDraggingIndex == i,
