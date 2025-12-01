@@ -34,13 +34,13 @@ public final class Core {
     initializeLogger();
 
     /* Frame to draw the screen on. */
-    Frame frame = new Frame(WIDTH, HEIGHT);
+    final Frame frame = new Frame(WIDTH, HEIGHT);
     final InputManager input = getInputManager();
     frame.addKeyListener(
         input); // Register an instance to allow the window to receive keyboard event information
     getDrawManager().setFrame(frame); // NOPMD - LawOfDemeter
 
-    List<GameSettings> gameSettings = GameSettings.getGameSettings();
+    final List<GameSettings> gameSettings = GameSettings.getGameSettings();
 
     final ScreenControl screencontrol = new ScreenControl(frame, gameSettings);
 
@@ -65,7 +65,7 @@ public final class Core {
       LOGGER.setUseParentHandlers(false);
       fileHandler = new FileHandler("log");
       fileHandler.setFormatter(new MinimalFormatter());
-      ConsoleHandler consoleHandler = new ConsoleHandler();
+      final ConsoleHandler consoleHandler = new ConsoleHandler();
       consoleHandler.setFormatter(new MinimalFormatter());
       LOGGER.addHandler(fileHandler);
       LOGGER.addHandler(consoleHandler);
@@ -144,5 +144,9 @@ public final class Core {
    */
   public static Cooldown getVariableCooldown(final int milliseconds, final int variance) {
     return new Cooldown(milliseconds, variance);
+  }
+
+  public static ItemManager getItemManager() {
+    return ItemManager.getInstance();
   }
 }
