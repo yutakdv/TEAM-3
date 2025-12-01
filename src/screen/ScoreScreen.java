@@ -10,7 +10,8 @@ import engine.*; // NOPMD - false positive, engine classes used implicitly
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
-@SuppressWarnings("PMD.OnlyOneReturn")
+@SuppressWarnings({"PMD.OnlyOneReturn", "PMD.LawOfDemeter"})
+
 public class ScoreScreen extends Screen {
 
   /** Milliseconds between changes in user selection. */
@@ -103,7 +104,7 @@ public class ScoreScreen extends Screen {
     this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
     this.selectionCooldown.reset();
     this.achievementManager = achievementManager;
-    this.mode = gameState.getCoop() ? "2P" : "1P";
+    this.mode = gameState.isCoop() ? "2P" : "1P";
 
     try {
       this.highScores = Core.getFileManager().loadHighScores(this.mode);
@@ -219,7 +220,7 @@ public class ScoreScreen extends Screen {
    */
   private void saveScore() {
     final String mode =
-        (gameState != null && gameState.isCoop())
+        gameState != null && gameState.isCoop()
             ? "2P"
             : "1P"; // NOPMD - parentheses intentional for clarity
     final String newName = this.name.toString();
@@ -262,12 +263,12 @@ public class ScoreScreen extends Screen {
   private void draw() {
     drawManager.initDrawing(this);
 
-    drawManager.drawGameOver(this, this.inputDelay.checkFinished());
+    drawManager.hud().drawGameOver(this, this.inputDelay.checkFinished());
 
     // 2P mode: edit to include co-op + individual score/coins
     if (this.gameState != null && this.gameState.isCoop()) {
       // team summary
-      drawManager.drawResults(
+      drawManager.hud().drawResults(
           this,
           this.gameState.getScore(),
           this.gameState.getCoins(), // team score
@@ -306,7 +307,7 @@ public class ScoreScreen extends Screen {
     } else {
       // 1P legacy summary with accuracy
       final float acc = this.bulletsShot > 0 ? (float) this.shipsDestroyed / this.bulletsShot : 0f;
-      drawManager.drawResults(
+      drawManager.hud().drawResults(
           this,
           this.score,
           this.coins,
@@ -317,9 +318,9 @@ public class ScoreScreen extends Screen {
           true); // Draw accuracy for 1P mode
     }
 
-    drawManager.drawNameInput(this, this.name, this.isNewRecord);
+    drawManager.hud().drawNameInput(this, this.name, this.isNewRecord);
     if (showNameError) {
-      drawManager.drawNameInputError(this);
+      drawManager.hud().drawNameInputError(this);
     }
 
     drawManager.completeDrawing(this);
