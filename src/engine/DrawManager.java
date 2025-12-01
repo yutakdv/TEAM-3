@@ -15,12 +15,12 @@ import java.util.ArrayList;
 import java.util.*;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import Animations.BasicGameSpace;
 import Animations.Explosion;
 import Animations.MenuSpace;
-import com.sun.tools.javac.Main;
 import screen.Screen;
 import entity.Entity;
 import entity.Ship;
@@ -40,10 +40,10 @@ public final class DrawManager {
   private Frame frame;
 
   /** FileManager instance. */
-  private FileManager fileManager;
+  private final FileManager fileManager; // NOPMD - used across methods
 
   /** Application logger. */
-  private Logger logger;
+  private final Logger logger;
 
   /** Graphics context. */
   private Graphics graphics;
@@ -69,9 +69,9 @@ public final class DrawManager {
   /** Sprite types mapped to their images. */
   private Map<SpriteType, boolean[][]> spriteMap;
 
-  private final java.util.List<Explosion> explosions = new java.util.ArrayList<>();
+  private final List<Explosion> explosions = new ArrayList<>();
 
-  private final java.util.Random explosionRandom = new java.util.Random();
+  private final Random explosionRandom = new Random();
 
   /** Stars background animations for both game and main menu Star density specified as argument. */
   BasicGameSpace basicGameSpace = new BasicGameSpace(100);
@@ -80,13 +80,15 @@ public final class DrawManager {
   int explosion_size = 2;
 
   // Variables for hitbox fine-tuning
-  private int menuHitboxOffset = 20; // add this line
+  private static final int menuHitboxOffset = 20; // add this line
 
   // Label for back button
   private static final String BACK_LABEL = "< Back";
 
+  private static final String FOUR_DIGIT_FORMAT = "%04d";
+
   /** Sprite types. */
-  public static enum SpriteType {
+  public enum SpriteType {
     /** Player ship. */
     Ship1,
     Ship2,
@@ -126,7 +128,7 @@ public final class DrawManager {
     ItemTripleShot,
     ItemScoreBooster,
     ItemBulletSpeedUp
-  };
+  }
 
   /** Private constructor. */
   private DrawManager() {
@@ -135,7 +137,7 @@ public final class DrawManager {
     logger.info("Started loading resources.");
 
     try {
-      spriteMap = new LinkedHashMap<SpriteType, boolean[][]>();
+      spriteMap = new LinkedHashMap<>();
 
       spriteMap.put(SpriteType.Ship1, new boolean[13][8]);
       spriteMap.put(SpriteType.Ship2, new boolean[13][8]);
@@ -185,8 +187,10 @@ public final class DrawManager {
    *
    * @return Shared instance of DrawManager.
    */
-  protected static DrawManager getInstance() {
-    if (instance == null) instance = new DrawManager();
+  static DrawManager getInstance() {
+    if (instance == null) {
+      instance = new DrawManager();
+    }
     return instance;
   }
 
@@ -225,7 +229,8 @@ public final class DrawManager {
    * @param screen Screen to draw on.
    */
   public void completeDrawing(final Screen screen) {
-    this.graphics.drawImage(this.backBuffer, this.frame.getInsets().left, this.frame.getInsets().top, this.frame);
+    this.graphics.drawImage(
+        this.backBuffer, this.frame.getInsets().left, this.frame.getInsets().top, this.frame);
   }
 
   /**
@@ -250,16 +255,26 @@ public final class DrawManager {
       // Color-code by player when applicable
       if (entity instanceof Ship) {
         final Ship ship = (Ship) entity;
-        final int pid = ship.getPlayerId(); // requires Ship.getPlayerId()
-        if (pid == 1) color = Color.BLUE; // P1 ship
-        else if (pid == 2) color = Color.RED; // P2 ship
+        final int pid = ship.getPlayerId(); // NOPMD - LawOfDemeter: direct collaborator  requires
+        // Ship.getPlayerId()
+        if (pid == 1) {
+          color = Color.BLUE;
+        } // P1 ship
+        else if (pid == 2) {
+          color = Color.RED;
+        } // P2 ship
 
         // else leave default (e.g., green) for legacy/unknown
       } else if (entity instanceof Bullet) {
         final Bullet bullet = (Bullet) entity;
-        final int pid = bullet.getPlayerId(); // requires Bullet.getPlayerId()
-        if (pid == 1) color = Color.CYAN; // P1 bullet
-        else if (pid == 2) color = Color.MAGENTA; // P2 bullet
+        final int pid = bullet.getPlayerId(); // NOPMD - LawOfDemeter: direct collaborator  requires
+        // Bullet.getPlayerId()
+        if (pid == 1) {
+          color = Color.CYAN;
+        } // P1 bullet
+        else if (pid == 2) {
+          color = Color.MAGENTA;
+        } // P2 bullet
         // enemy bullets will keep their default color from the entity
       }
     }
@@ -307,12 +322,16 @@ public final class DrawManager {
     menuSpace.setSpeed(state == 4);
   }
 
-  public void triggerExplosion(final int x, final int y, final boolean enemy, final boolean finalExplosion) {
-    logger.info("Enemy: " + enemy);
-    logger.info("final: " + finalExplosion);
+  public void triggerExplosion(
+      final int x, final int y, final boolean enemy, final boolean finalExplosion) {
+    if (logger.isLoggable(Level.INFO)) {
+      logger.info("Enemy: " + enemy);
+      logger.info("final: " + finalExplosion);
+    }
     explosions.add(new Explosion(x, y, enemy, finalExplosion));
   }
 
+  @SuppressWarnings({"PMD.LawOfDemeter", "PMD.AvoidInstantiatingObjectsInLoops"})
   public void drawExplosions() {
 
     final Graphics2D g2d = (Graphics2D) backBufferGraphics;
@@ -338,12 +357,14 @@ public final class DrawManager {
 
         int baseSize;
 
-
-        if (e.getSize() == 4) baseSize = explosionRandom.nextInt(5) + 2;
-        else baseSize = explosionRandom.nextInt(6) + 18;
+        if (e.getSize() == 4) {
+          baseSize = explosionRandom.nextInt(5) + 2;
+        } else {
+          baseSize = explosionRandom.nextInt(6) + 18;
+        }
 
         final int flickerAlpha =
-            Math.max(0, Math.min(255, p.color.getAlpha() -  explosionRandom.nextInt(50)));
+            Math.max(0, Math.min(255, p.color.getAlpha() - explosionRandom.nextInt(50)));
 
         final float[] dist = {0.0f, 0.3f, 0.7f, 1.0f};
         Color[] colors;
@@ -376,20 +397,19 @@ public final class DrawManager {
         final double halfSize = baseSize / 2.0;
 
         g2d.fillOval(
-            (int) (p.x - halfSize + offsetX),
-            (int) (p.y - halfSize + offsetY),
-            baseSize,
-            baseSize);
+            (int) (p.x - halfSize + offsetX), (int) (p.y - halfSize + offsetY), baseSize, baseSize);
       }
     }
   }
 
   /** Draws the main menu stars background animation */
+  @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
   public void updateMenuSpace() {
     menuSpace.updateStars();
 
     final Graphics2D g2d = (Graphics2D) backBufferGraphics;
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setRenderingHint( // NOPMD - LawofDemeter
+        RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); // NOPMD - LawofDemeter
 
     backBufferGraphics.setColor(Color.WHITE);
     final int[][] positions = menuSpace.getStarLocations();
@@ -417,22 +437,27 @@ public final class DrawManager {
   }
 
   public void setDeath(final boolean status) {
-    if (status) explosion_size = 20;
-    else explosion_size = 2;
+    if (status) {
+      explosion_size = 20;
+    } else {
+      explosion_size = 2;
+    }
   }
 
   /** Draws the stars background animation during the game */
+  @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
   public void updateGameSpace() {
     basicGameSpace.update();
 
     final Graphics2D g2d = (Graphics2D) backBufferGraphics;
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setRenderingHint( // NOPMD - LawofDemeter
+        RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); // NOPMD - LawofDemeter
 
     backBufferGraphics.setColor(Color.WHITE);
     final int[][] positions = basicGameSpace.getStarLocations();
     for (int i = 0; i < basicGameSpace.getNumStars(); i++) {
 
-      final int size = (positions[i][2] < 2) ? 2 : 1;
+      final int size = positions[i][2] < 2 ? 2 : 1;
       final int radius = size * 2;
 
       final float[] dist = {0.0f, 1.0f};
@@ -482,10 +507,12 @@ public final class DrawManager {
   @SuppressWarnings("unused")
   private void drawGrid(final Screen screen) {
     backBufferGraphics.setColor(Color.DARK_GRAY);
-    for (int i = 0; i < screen.getHeight() - 1; i += 2)
+    for (int i = 0; i < screen.getHeight() - 1; i += 2) {
       backBufferGraphics.drawLine(0, i, screen.getWidth() - 1, i);
-    for (int j = 0; j < screen.getWidth() - 1; j += 2)
+    }
+    for (int j = 0; j < screen.getWidth() - 1; j += 2) {
       backBufferGraphics.drawLine(j, 0, j, screen.getHeight() - 1);
+    }
   }
 
   /**
@@ -497,7 +524,7 @@ public final class DrawManager {
   public void drawScore(final Screen screen, final int score) {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.WHITE);
-    final String scoreString = String.format("%04d", score);
+    final String scoreString = String.format(FOUR_DIGIT_FORMAT, score);
     backBufferGraphics.drawString(scoreString, screen.getWidth() - 60, 25);
   }
 
@@ -511,12 +538,8 @@ public final class DrawManager {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.WHITE);
 
-    final Entity heart =
-        new Entity(0, 0, 11 * 2, 10 * 2, Color.RED) {
-          {
-            this.spriteType = SpriteType.Heart;
-          }
-        };
+    final Entity heart = new Entity(0, 0, 11 * 2, 10 * 2, Color.RED);
+    heart.setSpriteType(SpriteType.Heart);
 
     if (isCoop) {
       backBufferGraphics.drawString(Integer.toString(lives), 20, 25);
@@ -547,7 +570,7 @@ public final class DrawManager {
   public void drawCoins(final Screen screen, final int coins) { // ADD THIS METHOD
     backBufferGraphics.setFont(fontRegular); // ADD THIS METHOD
     backBufferGraphics.setColor(Color.YELLOW); // ADD THIS METHOD
-    final String coinString = String.format("%04d", coins); // ADD THIS METHOD
+    final String coinString = String.format(FOUR_DIGIT_FORMAT, coins); // ADD THIS METHOD
     backBufferGraphics.drawString(coinString, screen.getWidth() - 60, 52); // ADD THIS METHOD
     backBufferGraphics.drawString("COIN : ", screen.getWidth() - 115, 52);
   } // ADD THIS METHOD
@@ -558,16 +581,16 @@ public final class DrawManager {
     backBufferGraphics.setColor(Color.YELLOW);
 
     backBufferGraphics.drawString(
-        "P1: " + String.format("%04d", coinsP1), screen.getWidth() - 200, 25);
+        "P1: " + String.format(FOUR_DIGIT_FORMAT, coinsP1), screen.getWidth() - 200, 25);
     backBufferGraphics.drawString(
-        "P2: " + String.format("%04d", coinsP2), screen.getWidth() - 100, 25);
+        "P2: " + String.format(FOUR_DIGIT_FORMAT, coinsP2), screen.getWidth() - 100, 25);
   }
 
   public void drawShipSelectionCoins(final Screen screen, final int coins) {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.YELLOW);
 
-    final String text = "COIN : " + String.format("%04d", coins);
+    final String text = "COIN : " + String.format(FOUR_DIGIT_FORMAT, coins);
 
     final int padding = 10;
     final int textWidth = fontRegularMetrics.stringWidth(text);
@@ -599,17 +622,15 @@ public final class DrawManager {
     }
     final FontMetrics fontMetrics = backBufferGraphics.getFontMetrics();
     backBufferGraphics.drawString(
-        levelString, screen.getWidth() / 2 - fontMetrics.stringWidth(levelString) / 2, 25);
+        levelString,
+        screen.getWidth() / 2 - fontMetrics.stringWidth(levelString) / 2, // NOPMD - LawofDemeter
+        25);
   }
 
   public void drawShipCount(final Screen screen, final int shipCount) {
     backBufferGraphics.setColor(Color.GREEN);
-    final Entity enemyIcon =
-        new Entity(0, 0, 12 * 2, 8 * 2, Color.GREEN) {
-          {
-            this.spriteType = SpriteType.EnemyShipB2;
-          }
-        };
+    final Entity enemyIcon = new Entity(0, 0, 12 * 2, 8 * 2, Color.GREEN);
+    enemyIcon.setSpriteType(SpriteType.EnemyShipB2);
     final int iconX = screen.getWidth() - 252;
     final int iconY = 37;
     drawEntity(enemyIcon, iconX, iconY);
@@ -647,7 +668,7 @@ public final class DrawManager {
         screen.getHeight() / 3 * 2 - 20; // Adjust spacing due to high society button addition
     final int spacing = (int) (fontRegularMetrics.getHeight() * 1.5);
     for (int i = 0; i < items.length; i++) {
-      final boolean highlight = (hoverOption != null) ? (i == hoverOption) : (i == selectedIndex);
+      final boolean highlight = hoverOption != null ? i == hoverOption : i == selectedIndex;
       backBufferGraphics.setColor(highlight ? Color.GREEN : Color.WHITE);
       drawCenteredRegularString(screen, items[i], baseY + spacing * i);
     }
@@ -728,7 +749,8 @@ public final class DrawManager {
    * @param screen Screen to draw on.
    * @param name Current name inserted.
    */
-  public void drawNameInput(final Screen screen, final StringBuilder name, final boolean isNewRecord) {
+  public void drawNameInput(
+      final Screen screen, final StringBuilder name, final boolean isNewRecord) {
     final String newRecordString = "New Record!";
     final String introduceNameString = "Name: ";
     final String nameStr = name.toString();
@@ -777,8 +799,11 @@ public final class DrawManager {
     drawCenteredBigString(
         screen, gameOverString, screen.getHeight() / height - fontBigMetrics.getHeight() * 2);
 
-    if (acceptsInput) backBufferGraphics.setColor(Color.GREEN);
-    else backBufferGraphics.setColor(Color.GRAY);
+    if (acceptsInput) {
+      backBufferGraphics.setColor(Color.GREEN);
+    } else {
+      backBufferGraphics.setColor(Color.GRAY);
+    }
     drawCenteredRegularString(
         screen, continueOrExitString, screen.getHeight() / 2 + fontRegularMetrics.getHeight() * 10);
   }
@@ -793,11 +818,11 @@ public final class DrawManager {
     drawCenteredBigString(screen, pauseString, screen.getHeight() - 400);
 
     final String returnMenu = "PRESS BACKSPACE TO RETURN TO TITLE";
-    final String Mute = "press space to mute";
+    final String mute = "press space to mute";
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.setColor(Color.WHITE);
     drawCenteredRegularString(screen, returnMenu, screen.getHeight() - 50);
-    drawCenteredRegularString(screen, Mute, screen.getHeight() - 70);
+    drawCenteredRegularString(screen, mute, screen.getHeight() - 70);
   } // ADD This Screen
 
   /**
@@ -842,7 +867,7 @@ public final class DrawManager {
       final String mode) { // add mode to parameter
     backBufferGraphics.setColor(Color.WHITE);
     int i = 0;
-    String scoreString = "";
+    String scoreString;
 
     final int midX = screen.getWidth() / 2;
     final int startY = screen.getHeight() / 3 + fontBigMetrics.getHeight() + 20;
@@ -851,7 +876,7 @@ public final class DrawManager {
     for (final Score score : highScores) {
       scoreString = String.format("%s        %04d", score.getName(), score.getScore());
       int x;
-      if (mode.equals("1P")) {
+      if ("1p".equals(mode)) {
         // Left column(1P)
         x = midX / 2 - fontRegularMetrics.stringWidth(scoreString) / 2;
       } else {
@@ -909,7 +934,9 @@ public final class DrawManager {
         final String[] parts = entry.split(":");
         if (parts.length == 2) {
           final String modeString = parts[0].trim(); // e.g., "2P"
-          final String numericPart = modeString.replaceAll("[^0-9]", ""); // Extract numeric part: "2"
+          final String numericPart =
+              modeString.replaceAll( // NOPMD - LawofDemeter
+                  "[^0-9]", ""); //  Extract numeric part: "2"
           final int mode = Integer.parseInt(numericPart);
           final String name = parts[1].trim();
           if (mode == 1) {
@@ -954,7 +981,8 @@ public final class DrawManager {
       fontRegularMetrics = backBufferGraphics.getFontMetrics(fontRegular);
     }
 
-    final String fullText = "PREV                                                              NEXT";
+    final String fullText =
+        "PREV                                                              NEXT";
     final int baseY = (int) (screen.getHeight() * 0.8);
 
     final int fullWidth = fontRegularMetrics.stringWidth(fullText);
@@ -1006,9 +1034,8 @@ public final class DrawManager {
       final int selectedSection,
       final int selectedKeyIndex,
       final boolean[] keySelected,
-      final int[] currentKeys) {
+      final int[] currentKeys) { // NOPMD - do not need varargs
     final int panelWidth = 220;
-    final int panelHeight = 180;
     final int x = screen.getWidth() - panelWidth - 50;
     final int y = screen.getHeight() / 4;
 
@@ -1100,14 +1127,10 @@ public final class DrawManager {
           screen, message, screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
       return;
     }
-    if (number != 0) {
-      drawCenteredBigString(
-          screen,
-          Integer.toString(number),
-          screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
-    } else {
-      drawCenteredBigString(screen, "GO!", screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3);
-    }
+    final int y = screen.getHeight() / 2 + fontBigMetrics.getHeight() / 3;
+    final String text = (number == 0) ? "GO!" : Integer.toString(number);
+
+    drawCenteredBigString(screen, text, y);
   }
 
   public static String getCountdownMessage(
@@ -1149,6 +1172,7 @@ public final class DrawManager {
    * @param screen Screen to draw on.
    * @param toasts List of toasts to draw.
    */
+  @SuppressWarnings("PMD.LawOfDemeter")
   public void drawAchievementToasts(final Screen screen, final List<Achievement> toasts) {
     if (toasts == null || toasts.isEmpty()) {
       return;
@@ -1266,9 +1290,10 @@ public final class DrawManager {
     // draw back button at top-left corner\, Set the selectedIndex to Highlight the Back Button
     drawBackButton(screen, selectedIndex == 2);
 
-    final int baseY = screen.getHeight() / 2 - 20; // Modified the position with the choice reduced to two
+    final int baseY =
+        screen.getHeight() / 2 - 20; // Modified the position with the choice reduced to two
     for (int i = 0; i < items.length; i++) {
-      final boolean highlight = (hoverOption != null) ? (i == hoverOption) : (i == selectedIndex);
+      final boolean highlight = hoverOption != null ? i == hoverOption : i == selectedIndex;
       backBufferGraphics.setColor(highlight ? Color.GREEN : Color.WHITE);
       drawCenteredRegularString(screen, items[i], baseY + fontRegularMetrics.getHeight() * 3 * i);
     }
@@ -1344,12 +1369,13 @@ public final class DrawManager {
     return boxes;
   }
 
+  @SuppressWarnings("PMD.LawOfDemeter")
   public void drawShipSelectionMenu(
       final Screen screen,
       final Ship[] shipExamples,
       final int selectedShipIndex,
       final int playerIndex,
-      final boolean[] unlockedStates) {
+      final boolean[] unlockedStates) { // NOPMD - do not need varargs
 
     final String screenTitle = "PLAYER " + playerIndex + " : CHOOSE YOUR SHIP";
 
@@ -1365,18 +1391,17 @@ public final class DrawManager {
       final int x = s.getPositionX() - s.getWidth() / 2;
       final int y = s.getPositionY();
 
-      final boolean unlocked = unlockedStates != null && unlockedStates.length > i && unlockedStates[i];
+      final boolean unlocked =
+          unlockedStates != null && unlockedStates.length > i && unlockedStates[i];
 
-      Color shipColor;
-      if (!unlocked) {
-        shipColor = Color.GRAY.darker().darker();
+      final Color shipColor;
+
+      if (unlocked) {
+        shipColor = (playerIndex == 1) ? Color.BLUE : Color.RED;
       } else {
-        if (playerIndex == 1) {
-          shipColor = Color.BLUE;
-        } else {
-          shipColor = Color.RED;
-        }
+        shipColor = Color.GRAY.darker().darker();
       }
+
       drawEntity(s, x, y, shipColor);
 
       if (i == selectedShipIndex) {
@@ -1403,7 +1428,7 @@ public final class DrawManager {
     final Font original = backBufferGraphics.getFont();
     final Font statFont = new Font("Dialog", Font.PLAIN, 18);
     backBufferGraphics.setFont(statFont);
-    final java.awt.FontMetrics fm = backBufferGraphics.getFontMetrics(statFont);
+    final FontMetrics fm = backBufferGraphics.getFontMetrics(statFont);
 
     final String speedStr = shipSpeeds[selectedShipIndex];
     final String fireStr = shipFireRates[selectedShipIndex];
@@ -1423,10 +1448,10 @@ public final class DrawManager {
 
     // show unlock status and costs
     final boolean selectedUnlocked =
-        (unlockedStates == null)
-            || (selectedShipIndex >= 0
+        unlockedStates == null
+            || selectedShipIndex >= 0
                 && selectedShipIndex < unlockedStates.length
-                && unlockedStates[selectedShipIndex]);
+                && unlockedStates[selectedShipIndex];
 
     backBufferGraphics.setFont(fontRegular);
 
@@ -1499,19 +1524,19 @@ public final class DrawManager {
     final int baseY = screen.getHeight() * 3 / 10;
     final int presentY = baseY + (index * space);
 
-    final int bar_startWidth = screen.getWidth() / 2 - 10;
-    final int bar_endWidth = screen.getWidth() - 50;
+    final int barstartWidth = screen.getWidth() / 2 - 10;
+    final int barendWidth = screen.getWidth() - 50;
 
     final int iconSize = 16;
     final int iconBoxW = 24;
-    final int iconX = bar_startWidth - iconBoxW - 25;
+    final int iconX = barstartWidth - iconBoxW - 25;
     final int iconY = presentY - iconSize / 2;
 
-    final boolean mutedVisual = (volumelevel == 0 || SoundControl.isMuted(index));
+    final boolean mutedVisual = volumelevel == 0 || SoundControl.isMuted(index);
     drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
 
     backBufferGraphics.setColor(Color.WHITE);
-    backBufferGraphics.drawLine(bar_startWidth, presentY, bar_endWidth, presentY);
+    backBufferGraphics.drawLine(barstartWidth, presentY, barendWidth, presentY);
 
     if (selectedSection == 1 && index == volumetype) {
       backBufferGraphics.setColor(Color.green);
@@ -1519,17 +1544,18 @@ public final class DrawManager {
       backBufferGraphics.setColor(Color.white);
     }
     backBufferGraphics.setFont(fontRegular);
-    backBufferGraphics.drawString(title, bar_startWidth - 60, presentY - 20);
+    backBufferGraphics.drawString(title, barstartWidth - 60, presentY - 20);
 
     //		change this line to get indicator center position
     final int size = 14;
     final double ratio = volumelevel / 100.0;
-    final int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
+    final int centerX = barstartWidth + (int) ((barendWidth - barstartWidth) * ratio);
     final int indicatorX = centerX - size / 2 - 3;
     final int indicatorY = presentY - size / 2;
 
-    final int rawX = Core.getInputManager().getMouseX();
-    final int rawY = Core.getInputManager().getMouseY();
+    final InputManager inputManager = Core.getInputManager();
+    final int rawX = inputManager.getMouseX(); // NOPMD - LawofDemeter
+    final int rawY = inputManager.getMouseY(); // NOPMD - LawofDemeter
     final Insets insets = frame.getInsets();
     final int mouseX = rawX - insets.left;
     final int mouseY = rawY - insets.top;
@@ -1550,7 +1576,7 @@ public final class DrawManager {
 
     backBufferGraphics.setColor(Color.WHITE);
     final String volumeText = Integer.toString(volumelevel);
-    backBufferGraphics.drawString(volumeText, bar_endWidth + 10, presentY + 7);
+    backBufferGraphics.drawString(volumeText, barendWidth + 10, presentY + 7);
   }
 
   public void drawSettingLayout(
@@ -1568,34 +1594,42 @@ public final class DrawManager {
       backBufferGraphics.setColor(Color.GREEN);
     }
     backBufferGraphics.drawLine(
-        splitPointX, screen.getHeight() / 4, splitPointX, (menuY + menuItems.length * 60));
+        splitPointX, screen.getHeight() / 4, splitPointX, menuY + menuItems.length * 60);
   }
 
   public Rectangle getVolumeBarHitbox(final Screen screen) {
     return getVolumeBarHitbox(screen, 0);
   }
 
+  @SuppressWarnings("PMD.LawOfDemeter")
   public Rectangle getVolumeBarHitbox(final Screen screen, final int index) {
     final int space = 70;
     final int baseY = screen.getHeight() * 3 / 10 + 30;
     final int presentY = baseY + (index * space);
 
-    final int bar_startWidth = screen.getWidth() / 2 - 10;
-    final int bar_endWidth = screen.getWidth() - 50;
+    final int barstartWidth = screen.getWidth() / 2 - 10;
+    final int barendWidth = screen.getWidth() - 50;
 
     final int barThickness = 20;
 
-    final int x = bar_startWidth;
+    final int x = barstartWidth;
     final int y = presentY - barThickness / 2;
-    final int width = bar_endWidth - bar_startWidth;
+    final int width = barendWidth - barstartWidth;
     final int height = barThickness;
 
     return new Rectangle(x, y, width, height);
   }
 
   // draw Corner Frame at ship selection screen
+  @SuppressWarnings("PMD.LawOfDemeter")
   private void drawFrame(
-          final int x, final int y, final int width, final int height, final Color color, final int cornerLength, final int thickness) {
+      final int x,
+      final int y,
+      final int width,
+      final int height,
+      final Color color,
+      final int cornerLength,
+      final int thickness) {
     final Graphics2D g2d = (Graphics2D) backBufferGraphics;
     g2d.setColor(color);
     g2d.setStroke(new BasicStroke(thickness));
@@ -1617,7 +1651,9 @@ public final class DrawManager {
     g2d.drawLine(x + width, y + height - cornerLength, x + width, y + height);
   }
 
-  public Rectangle[] getShipSelectionHitboxes(final Screen screen, final Ship[] ships) {
+  @SuppressWarnings("PMD.LawOfDemeter")
+  public Rectangle[] getShipSelectionHitboxes(
+      final Screen screen, final Ship[] ships) { // NOPMD - do not need varargs
     Rectangle[] boxes = new Rectangle[ships.length];
     for (int i = 0; i < ships.length; i++) {
       final Ship s = ships[i];
@@ -1628,6 +1664,7 @@ public final class DrawManager {
     return boxes;
   }
 
+  @SuppressWarnings("PMD.LawOfDemeter")
   private void drawSpeakerIcon(final int x, final int y, final int size, final boolean muted) {
     final Graphics2D g = (Graphics2D) backBufferGraphics;
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1682,9 +1719,9 @@ public final class DrawManager {
     final int baseY = screen.getHeight() * 3 / 10;
     final int presentY = baseY + (index * space);
 
-    final int bar_startWidth = screen.getWidth() / 2 - 10;
+    final int barstartWidth = screen.getWidth() / 2 - 10;
     final int iconBoxW = 24;
-    final int iconX = bar_startWidth - iconBoxW - 25;
+    final int iconX = barstartWidth - iconBoxW - 25;
     final int iconY = presentY - 16 / 2;
 
     final int iconSize = 16;
@@ -1724,19 +1761,19 @@ public final class DrawManager {
     final int baseY = screen.getHeight() * 3 / 10 + 50;
     final int presentY = baseY + (index * space);
 
-    final int bar_startWidth = screen.getWidth() / 2 - 85;
-    final int bar_endWidth = screen.getWidth() - 125;
+    final int barstartWidth = screen.getWidth() / 2 - 85;
+    final int barendWidth = screen.getWidth() - 125;
 
     final int iconSize = 16;
     final int iconBoxW = 24;
-    final int iconX = bar_startWidth - iconBoxW - 25;
+    final int iconX = barstartWidth - iconBoxW - 25;
     final int iconY = presentY - iconSize / 2;
 
-    final boolean mutedVisual = (ingamevolumelevel == 0 || SoundControl.isIngameMuted(index));
+    final boolean mutedVisual = ingamevolumelevel == 0 || SoundControl.isIngameMuted(index);
     drawSpeakerIcon(iconX, iconY, iconSize, mutedVisual);
 
     backBufferGraphics.setColor(Color.WHITE);
-    backBufferGraphics.drawLine(bar_startWidth, presentY, bar_endWidth, presentY);
+    backBufferGraphics.drawLine(barstartWidth, presentY, barendWidth, presentY);
 
     if (selectedSection == 1 && index == ingamevolumetype) {
       backBufferGraphics.setColor(Color.green);
@@ -1749,12 +1786,13 @@ public final class DrawManager {
     //		change this line to get indicator center position
     final int size = 14;
     final double ratio = ingamevolumelevel / 100.0;
-    final int centerX = bar_startWidth + (int) ((bar_endWidth - bar_startWidth) * ratio);
+    final int centerX = barstartWidth + (int) ((barendWidth - barstartWidth) * ratio);
     final int indicatorX = centerX - size / 2 - 3;
     final int indicatorY = presentY - size / 2;
 
-    final int rawX = Core.getInputManager().getMouseX();
-    final int rawY = Core.getInputManager().getMouseY();
+    final InputManager input = Core.getInputManager();
+    final int rawX = input.getMouseX(); // NOPMD - LawofDemeter
+    final int rawY = input.getMouseY(); // NOPMD - LawofDemeter
     final Insets insets = frame.getInsets();
     final int mouseX = rawX - insets.left;
     final int mouseY = rawY - insets.top;
@@ -1775,7 +1813,7 @@ public final class DrawManager {
 
     backBufferGraphics.setColor(Color.WHITE);
     final String volumeText = Integer.toString(ingamevolumelevel);
-    backBufferGraphics.drawString(volumeText, bar_endWidth + 10, presentY + 7);
+    backBufferGraphics.drawString(volumeText, barendWidth + 10, presentY + 7);
   }
 
   public Rectangle getpauseVolumeBarHitbox(final Screen screen, final int index) {
@@ -1783,14 +1821,14 @@ public final class DrawManager {
     final int baseY = screen.getHeight() * 3 / 10 + 80;
     final int presentY = baseY + (index * space);
 
-    final int bar_startWidth = screen.getWidth() / 2 - 85;
-    final int bar_endWidth = screen.getWidth() - 125;
+    final int barstartWidth = screen.getWidth() / 2 - 85;
+    final int barendWidth = screen.getWidth() - 125;
 
     final int barThickness = 20;
 
-    final int x = bar_startWidth;
+    final int x = barstartWidth;
     final int y = presentY - barThickness / 2;
-    final int width = bar_endWidth - bar_startWidth;
+    final int width = barendWidth - barstartWidth;
     final int height = barThickness;
 
     return new Rectangle(x, y, width, height);
@@ -1801,11 +1839,11 @@ public final class DrawManager {
     final int baseY = screen.getHeight() * 3 / 10 + 80;
     final int presentY = baseY + (index * space);
 
-    final int bar_startWidth = screen.getWidth() / 2 - 85;
+    final int barstartWidth = screen.getWidth() / 2 - 85;
 
     final int iconSize = 16;
     final int iconBoxW = 24;
-    final int iconX = bar_startWidth - iconBoxW - 15;
+    final int iconX = barstartWidth - iconBoxW - 15;
     final int iconY = presentY - iconSize / 2;
 
     return new Rectangle(iconX, iconY, iconBoxW, iconSize);
