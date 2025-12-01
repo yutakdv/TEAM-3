@@ -27,6 +27,8 @@ import entity.ItemPool;
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
+@SuppressWarnings({"PMD.LawOfDemeter"})
+
 public class GameScreen extends Screen { // NOPMD
   /** Milliseconds until the screen accepts user input. */
   private static final int INPUT_DELAY = 6000;
@@ -498,12 +500,12 @@ public class GameScreen extends Screen { // NOPMD
   }
 
   private void drawHUD() {
-    drawManager.drawScore(this, state.getScore());
-    drawManager.drawLives(this, state.getLivesRemaining(), state.isCoop());
-    drawManager.drawCoins(this, state.getCoins());
-    drawManager.drawLevel(this, this.state.getLevel());
-    drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
-    drawManager.drawShipCount(this, enemyShipFormation.getShipCount());
+    drawManager.hud().drawScore(this, state.getScore());
+    drawManager.hud().drawLives(this, state.getLivesRemaining(), state.isCoop());
+    drawManager.hud().drawCoins(this, state.getCoins());
+    drawManager.hud().drawLevel(this, this.state.getLevel());
+    drawManager.hud().drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
+    drawManager.hud().drawShipCount(this, enemyShipFormation.getShipCount());
   }
 
   private void drawCountdownIfNeeded() {
@@ -514,9 +516,9 @@ public class GameScreen extends Screen { // NOPMD
               : (int)
                   ((INPUT_DELAY_NO_MESSAGE - (System.currentTimeMillis() - this.gameStartTime))
                       / 1000);
-      drawManager.drawCountDown(this, this.state.getLevel(), countdown, this.bonusLife);
-      drawManager.drawHorizontalLine(this, this.height / 2 - this.height / 12);
-      drawManager.drawHorizontalLine(this, this.height / 2 + this.height / 12);
+      drawManager.hud().drawCountDown(this, this.state.getLevel(), countdown, this.bonusLife);
+      drawManager.hud().drawHorizontalLine(this, this.height / 2 - this.height / 12);
+      drawManager.hud().drawHorizontalLine(this, this.height / 2 + this.height / 12);
     }
   }
 
@@ -524,12 +526,12 @@ public class GameScreen extends Screen { // NOPMD
     if (this.highScoreNotified
         && System.currentTimeMillis() - this.highScoreNoticeStartTime
             < HIGH_SCORE_NOTICE_DURATION) {
-      drawManager.drawNewHighScoreNotice(this);
+      drawManager.hud().drawNewHighScoreNotice(this);
     }
   }
 
   private void drawAchievementToastsSection() {
-    drawManager.drawAchievementToasts(
+    drawManager.hud().drawAchievementToasts(
         this,
         (this.achievementManager != null)
             ? this.achievementManager.getActiveToasts()

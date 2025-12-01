@@ -122,7 +122,7 @@ public class TitleScreen extends Screen {
     final int tempX = inputManager.getMouseX();
     final int tempY = inputManager.getMouseY();
 
-    final Rectangle[] boxes = drawManager.getMenuHitboxes(this);
+    final Rectangle[] boxes = drawManager.menu().getMenuHitboxes(this);//NOPMD - LOD
     final int[] pos = {5, 3, 8, 4, 0};
 
     for (int i = 0; i < boxes.length; i++) {
@@ -160,7 +160,7 @@ public class TitleScreen extends Screen {
 
     final int mx = inputManager.getMouseX();
     final int my = inputManager.getMouseY();
-    final Rectangle[] boxesForHover = drawManager.getMenuHitboxes(this);
+    final Rectangle[] boxesForHover = drawManager.menu().getMenuHitboxes(this);//NOPMD - LOD
 
     Integer newHover = null;
     if (boxesForHover[0].contains(mx, my)) {
@@ -200,8 +200,8 @@ public class TitleScreen extends Screen {
     }
 
     // pass hoverOption for menu highlights respond to mouse hover
-    drawManager.drawTitle(this);
-    drawManager.drawMenu(
+    drawManager.menu().drawTitle(this);//NOPMD - LOD
+    drawManager.menu().drawMenu(//NOPMD - LOD
         this,
         this.menuIndex,
         hoverOption,

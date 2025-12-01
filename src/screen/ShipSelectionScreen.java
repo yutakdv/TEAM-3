@@ -75,8 +75,8 @@ public class ShipSelectionScreen extends Screen {
     final int mx = inputManager.getMouseX();
     final int my = inputManager.getMouseY();
 
-    final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-    final java.awt.Rectangle[] shipBoxes = drawManager.getShipSelectionHitboxes(this, shipExamples);
+    final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);//NOPMD - LOD
+    final java.awt.Rectangle[] shipBoxes = drawManager.menu().getShipSelectionHitboxes(this, shipExamples);//NOPMD - LOD
 
     final ShipSelectionInput input =
         new ShipSelectionInput(
@@ -102,21 +102,21 @@ public class ShipSelectionScreen extends Screen {
 
     drawManager.initDrawing(this);
 
-    drawManager.drawShipSelectionMenu(
+    drawManager.menu().drawShipSelectionMenu( //NOPMD - LOD
         this, shipExamples, this.selectedShipIndex, this.player, unlockManager.getUnlockedStates());
-    drawManager.drawShipSelectionCoins(this, unlockManager.getCoins());
+    drawManager.hud().drawShipSelectionCoins(this, unlockManager.getCoins());//NOPMD - LOD
 
     // hover highlight
     final int mx = inputManager.getMouseX();
     final int my = inputManager.getMouseY();
-    final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+    final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);//NOPMD - LOD
     final boolean backHover = backBox.contains(mx, my); // NOPMD - LawofDemeter
-    drawManager.drawBackButton(this, backHover || backSelected);
+    drawManager.menu().drawBackButton(this, backHover || backSelected);//NOPMD - LOD
 
     if (unlockManager.isToastActive()) {
       final java.util.List<Achievement> list = new java.util.ArrayList<>();
       list.add(unlockManager.getCoinsToast());
-      drawManager.drawAchievementToasts(this, list);
+      drawManager.hud().drawAchievementToasts(this, list);//NOPMD - LOD
     }
 
     drawManager.completeDrawing(this);

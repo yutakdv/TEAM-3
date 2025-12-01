@@ -8,7 +8,7 @@ import engine.FileManager;
 import java.awt.event.KeyEvent;
 import engine.SoundManager;
 import java.util.List;
-
+@SuppressWarnings({"PMD.LawOfDemeter"})
 public class AchievementScreen extends Screen {
 
   private final FileManager fileManager;
@@ -68,7 +68,7 @@ public class AchievementScreen extends Screen {
     if (inputManager.isMouseClicked()) {
       final int mx = inputManager.getMouseX();
       final int my = inputManager.getMouseY();
-      final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+      final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
 
       if (backBox.contains(mx, my)) { // NOPMD - LawOfDemeter
         this.returnCode = 1;
@@ -76,7 +76,7 @@ public class AchievementScreen extends Screen {
         this.isRunning = false;
       }
 
-      final java.awt.Rectangle[] navBoxes = drawManager.getAchievementNavHitboxes(this);
+      final java.awt.Rectangle[] navBoxes = drawManager.menu().getAchievementNavHitboxes(this);
 
       if (navBoxes[0].contains(mx, my)) {
         currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
@@ -94,7 +94,7 @@ public class AchievementScreen extends Screen {
 
   private void draw() {
     drawManager.initDrawing(this);
-    drawManager.drawAchievementMenu(this, achievements.get(currentIdx), completer);
+    drawManager.menu().drawAchievementMenu(this, achievements.get(currentIdx), completer);
 
     // hover highlight
     handleBackButtonHover();

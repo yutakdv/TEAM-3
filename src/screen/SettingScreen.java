@@ -313,7 +313,7 @@ public class SettingScreen extends Screen {
     boolean pressed = inputManager.isMousePressed();
     boolean clicked = inputManager.isMouseClicked();
 
-    java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+    java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
 
     if (clicked && backBox.contains(mx, my)) {
       this.returnCode = 1;
@@ -325,7 +325,7 @@ public class SettingScreen extends Screen {
     if (this.selectMenuItem == volumeMenu) {
       if (draggingIndex == -1 && pressed) {
         for (int i = 0; i < SLIDER_TITLES.length; i++) {
-          java.awt.Rectangle box = drawManager.getVolumeBarHitbox(this, i);
+          java.awt.Rectangle box = drawManager.settings().getVolumeBarHitbox(this, i);
           if (box.contains(mx, my)) {
             volumetype = i;
             draggingIndex = i;
@@ -336,7 +336,7 @@ public class SettingScreen extends Screen {
       }
 
       if (draggingIndex != -1 && pressed) {
-        java.awt.Rectangle box = drawManager.getVolumeBarHitbox(this, draggingIndex);
+        java.awt.Rectangle box = drawManager.settings().getVolumeBarHitbox(this, draggingIndex);
         setVolumeFromX(box, mx, draggingIndex);
         SoundControl.setMute(this.volumetype, false);
       }
@@ -364,7 +364,7 @@ public class SettingScreen extends Screen {
     */
     if (this.selectMenuItem == volumeMenu && this.enableSoundMouseControl) {
       for (int i = 0; i < SLIDER_TITLES.length; i++) {
-        java.awt.Rectangle iconBox = drawManager.getSpeakerHitbox(this, i);
+        java.awt.Rectangle iconBox = drawManager.settings().getSpeakerHitbox(this, i);
         if (clicked && iconBox.contains(mx, my)) {
           boolean newMuted = !SoundControl.isMuted(i);
           SoundControl.setMute(i, newMuted);
@@ -376,7 +376,7 @@ public class SettingScreen extends Screen {
     }
 
     for (int i = 0; i < menuItem.length; i++) {
-      java.awt.Rectangle menuBox = drawManager.getSettingMenuHitbox(this, i);
+      java.awt.Rectangle menuBox = drawManager.settings().getSettingMenuHitbox(this, i);
       if (clicked && menuBox.contains(mx, my) && selectMenuItem != i) {
         if (waitingForNewKey){
           if(selectedKeyIndex >= 0 && selectedKeyIndex < keyItems.length) {
@@ -406,14 +406,14 @@ public class SettingScreen extends Screen {
   /** Draws the elements associated with the screen. */
   private void draw() {
     drawManager.initDrawing(this);
-    drawManager.drawSettingMenu(this);
-    drawManager.drawSettingLayout(this, menuItem, this.selectMenuItem);
+    drawManager.settings().drawSettingMenu(this);
+    drawManager.settings().drawSettingLayout(this, menuItem, this.selectMenuItem);
 
     switch (this.selectMenuItem) {
       case volumeMenu:
         for (int i = 0; i < NUM_SLIDERS; i++) {
           boolean dragging = (draggingIndex == i);
-          drawManager.drawVolumeBar(
+          drawManager.settings().drawVolumeBar(
               this,
               volumeLevels[i],
               dragging,
@@ -424,7 +424,7 @@ public class SettingScreen extends Screen {
         }
         break;
       case firstplayerMenu:
-        drawManager.drawKeysettings(
+        drawManager.settings().drawKeysettings(
             this,
             1,
             this.selectedSection,
@@ -433,7 +433,7 @@ public class SettingScreen extends Screen {
             this.player1Keys);
         break;
       case secondplayerMenu:
-        drawManager.drawKeysettings(
+        drawManager.settings().drawKeysettings(
             this,
             2,
             this.selectedSection,
@@ -446,11 +446,11 @@ public class SettingScreen extends Screen {
     // hover highlight
     int mx = inputManager.getMouseX();
     int my = inputManager.getMouseY();
-    java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+    java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
 
     boolean backHover = backBox.contains(mx, my);
     boolean backSelected = (this.selectMenuItem == back);
-    drawManager.drawBackButton(this, backHover || backSelected);
+    drawManager.menu().drawBackButton(this, backHover || backSelected);
 
     drawManager.completeDrawing(this);
   }
