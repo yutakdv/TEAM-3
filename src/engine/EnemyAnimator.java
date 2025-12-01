@@ -3,7 +3,7 @@ package engine;
 import engine.DrawManager.SpriteType;
 
 public class EnemyAnimator {
-
+    @SuppressWarnings("PMD")
   public EnemyAnimator() {
     // utility class
   }
