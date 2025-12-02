@@ -1,5 +1,6 @@
 package entity;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -66,17 +67,22 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
   }
 
   private void processInitialChanges(final GameSettings gameSettings) {
+    List<EnemyShip> shipsToDestroy = new ArrayList<>();
     for (final GameSettings.ChangeData changeData : gameSettings.getChangeDataList()) {
       // Grid에게 특정 위치의 배를 달라고 요청
       final EnemyShip ship = this.grid.getShip(changeData.x, changeData.y);
 
       if (ship != null) {
         if (changeData.hp == 0) {
-          destroy(ship);
+          shipsToDestroy.add(ship);
         } else {
           ship.changeShip(changeData); // NOPMD
         }
       }
+    }
+
+    for (EnemyShip ship : shipsToDestroy) {
+      destroy(ship);
     }
   }
 
