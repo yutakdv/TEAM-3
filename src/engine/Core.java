@@ -32,6 +32,7 @@ public final class Core {
   @SuppressWarnings("PMD.CyclomaticComplexity")
   public static void main(final String[] args) {
     initializeLogger();
+    CoinManager.load();
 
     /* Frame to draw the screen on. */
     final Frame frame = new Frame(WIDTH, HEIGHT);

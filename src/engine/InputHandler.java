@@ -66,9 +66,7 @@ public class InputHandler { // NOPMD
   private void handleShooting(
       final Ship ship, final int playerIndex, final Set<Bullet> bullets, final GameState state) {
     final boolean fire =
-        (playerIndex == 0)
-            ? inputManager.isKeyDown(KeyEvent.VK_SPACE)
-            : inputManager.isKeyDown(KeyEvent.VK_ENTER);
+        (playerIndex == 0) ? inputManager.isP1ShootPressed() : inputManager.isP2ShootPressed();
 
     if (fire && ship.shoot(bullets)) {
       SoundManager.ingameeffect("sound/shoot.wav");
