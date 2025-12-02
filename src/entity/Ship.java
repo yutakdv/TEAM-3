@@ -8,7 +8,8 @@ import engine.Core;
 import engine.GameState;
 import engine.DrawManager.SpriteType;
 
-import static engine.ItemEffect.ItemEffectType.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Implements a ship, to be controlled by the player.
@@ -16,6 +17,8 @@ import static engine.ItemEffect.ItemEffectType.*;
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
 public class Ship extends Entity {
+
+  private static final Logger LOGGER = Core.getLogger();
 
   /** Bullet Variables * */
   // default bullet variables
@@ -34,7 +37,7 @@ public class Ship extends Entity {
   private static final int SHIP_HEIGHT = 16;
   private static final int DESTRUCTION_COOLDOWN = 1000;
 
-  /**
+  /*
    * Initializes ship properties based on ship type.
    *
    * <p>NORMAL = Bronze BIG_SHOT = Silver DOUBLE_SHOT = Gold MOVE_FAST = Platinum
@@ -42,16 +45,55 @@ public class Ship extends Entity {
 
   /** Types of ships. */
   public enum ShipType {
-    NORMAL,
-    BIG_SHOT,
-    DOUBLE_SHOT,
-    MOVE_FAST
+    NORMAL(BASE_SPEED, BASE_SHOOTING_INTERVAL, SpriteType.Ship1) {
+      void shoot(final Ship ship, final Set<Bullet> bullets, final int centerX, final int bulletY) {
+        ship.addBullet(bullets, centerX, bulletY);
+      }
+    },
+    BIG_SHOT(3, 700, SpriteType.Ship2) {
+      void shoot(final Ship ship, final Set<Bullet> bullets, final int centerX, final int bulletY) {
+        ship.addBullet(bullets, centerX, bulletY);
+      }
+    },
+    DOUBLE_SHOT(4, 700, SpriteType.Ship3) {
+      void shoot(final Ship ship, final Set<Bullet> bullets, final int centerX, final int bulletY) {
+        ship.addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
+        ship.addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
+      }
+    },
+    MOVE_FAST(5, 500, SpriteType.Ship4) {
+      void shoot(final Ship ship, final Set<Bullet> bullets, final int centerX, final int bulletY) {
+        ship.addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
+        ship.addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
+      }
+    };
+
+    private final int moveSpeed;
+    private final int shootingInterval;
+    private final SpriteType spriteType;
+
+    ShipType(final int moveSpeed, final int shootingInterval, final SpriteType spriteType) {
+      this.moveSpeed = moveSpeed;
+      this.shootingInterval = shootingInterval;
+      this.spriteType = spriteType;
+    }
+
+    void applyStats(final Ship ship) {
+      ship.moveSpeed = this.moveSpeed;
+      ship.shootingInterval = this.shootingInterval;
+      ship.spriteType = this.spriteType;
+      ship.bulletSpeed = BASE_BULLET_SPEED;
+      ship.bulletWidth = BASE_BULLET_WIDTH;
+      ship.bulletHeight = BASE_BULLET_HEIGHT;
+    }
+
+    abstract void shoot(Ship ship, Set<Bullet> bullets, int centerX, int bulletY);
   }
 
   /** Game state and Ship type * */
-  private GameState gameState;
+  private final GameState gameState; // NOPMD
 
-  private ShipType type;
+  private final ShipType type;
 
   // Ship properties (vary by type)
   private int moveSpeed = BASE_SPEED;
@@ -61,15 +103,14 @@ public class Ship extends Entity {
   private int bulletHeight = BASE_BULLET_HEIGHT;
 
   /** Cooldowns */
-  private Cooldown shootingCooldown;
+  private final Cooldown shootingCooldown;
 
-  private Cooldown destructionCooldown;
+  private final Cooldown destructionCooldown;
 
   // Identify player in index: 0 = P1, 1 = P2
-  private int playerIndex = 0;
+  private int playerIndex;
 
-  private int Y;
-  private int hits;
+  private int hits; // NOPMD
 
   /**
    * Constructor, establishes the ship's properties.
@@ -92,53 +133,17 @@ public class Ship extends Entity {
     this.type = (type != null) ? type : ShipType.NORMAL;
     this.spriteType = SpriteType.Ship1;
 
-    initializeShipProperties(this.type);
+    this.type.applyStats(this);
 
     this.shootingCooldown = Core.getCooldown(this.shootingInterval);
     this.destructionCooldown = Core.getCooldown(DESTRUCTION_COOLDOWN);
 
     // apply entity
-    Team playerID = (team != null) ? team : Team.PLAYER1;
+    final Team playerID = (team != null) ? team : Team.PLAYER1;
     this.setTeam(playerID);
     this.playerIndex = (playerID == Team.PLAYER1) ? 0 : (playerID == Team.PLAYER2) ? 1 : 0;
 
-    this.Y = positionY;
     this.hits = 0;
-  }
-
-  /**
-   * Initializes ship properties based on ship type.
-   *
-   * @param type Ship type to configure
-   */
-  private void initializeShipProperties(final ShipType type) {
-    this.bulletSpeed = BASE_BULLET_SPEED;
-    this.moveSpeed = BASE_SPEED;
-    this.shootingInterval = BASE_SHOOTING_INTERVAL; // 750
-    this.bulletWidth = BASE_BULLET_WIDTH; // 6
-    this.bulletHeight = BASE_BULLET_HEIGHT; // 10
-    this.spriteType = SpriteType.Ship1;
-
-    switch (type) {
-      case BIG_SHOT: // Silver ship
-        this.moveSpeed = 3;
-        this.shootingInterval = 700;
-        this.spriteType = SpriteType.Ship2;
-        break;
-      case DOUBLE_SHOT: // Gold ship
-        this.moveSpeed = 4;
-        this.shootingInterval = 700;
-        this.spriteType = SpriteType.Ship3;
-        break;
-      case MOVE_FAST: // Platinum ship
-        this.moveSpeed = 5;
-        this.shootingInterval = 500;
-        this.spriteType = SpriteType.Ship4;
-        break;
-      case NORMAL: // Bronze ship
-      default:
-        break;
-    }
   }
 
   /** Moves the ship speed uni ts right, or until the right screen border is reached. */
@@ -164,37 +169,44 @@ public class Ship extends Entity {
     }
 
     this.shootingCooldown.reset();
-    Core.getLogger().info("[Ship] Shooting :" + this.type);
-
-    int bulletX = positionX + this.width / 2;
-    int bulletY = this.positionY - this.bulletHeight;
-
-    if (hasTripleShotEffect()) {
-      shootTripleShot(bullets, bulletX, bulletY);
-      return true;
+    if (LOGGER.isLoggable(Level.FINE)) {
+      LOGGER.fine("[Ship] Shooting :" + this.type);
     }
+    final int bulletX = positionX + this.width / 2;
+    final int bulletY = this.positionY - this.bulletHeight;
 
     // Default shooting based on ship type
-    shootBasedOnType(bullets, bulletX, bulletY);
+    this.type.shoot(this, bullets, bulletX, bulletY);
     return true;
   }
 
   /** Updates status of the ship. */
   public final void update() {
-    if (!this.destructionCooldown.checkFinished())
-      switch (this.spriteType) {
-        case Ship1 -> this.spriteType = SpriteType.ShipDestroyed1;
-        case Ship2 -> this.spriteType = SpriteType.ShipDestroyed2;
-        case Ship3 -> this.spriteType = SpriteType.ShipDestroyed3;
-        case Ship4 -> this.spriteType = SpriteType.ShipDestroyed4;
-      }
-    else
-      switch (this.spriteType) {
-        case ShipDestroyed1 -> this.spriteType = SpriteType.Ship1;
-        case ShipDestroyed2 -> this.spriteType = SpriteType.Ship2;
-        case ShipDestroyed3 -> this.spriteType = SpriteType.Ship3;
-        case ShipDestroyed4 -> this.spriteType = SpriteType.Ship4;
-      }
+    if (this.destructionCooldown.checkFinished()) {
+      resetToNormalSprite();
+    } else {
+      setDestroyedSprite();
+    }
+  }
+
+  private void setDestroyedSprite() {
+    switch (this.spriteType) {
+      case Ship1 -> this.spriteType = SpriteType.ShipDestroyed1;
+      case Ship2 -> this.spriteType = SpriteType.ShipDestroyed2;
+      case Ship3 -> this.spriteType = SpriteType.ShipDestroyed3;
+      case Ship4 -> this.spriteType = SpriteType.ShipDestroyed4;
+      default -> {}
+    }
+  }
+
+  private void resetToNormalSprite() {
+    switch (this.spriteType) {
+      case ShipDestroyed1 -> this.spriteType = SpriteType.Ship1;
+      case ShipDestroyed2 -> this.spriteType = SpriteType.Ship2;
+      case ShipDestroyed3 -> this.spriteType = SpriteType.Ship3;
+      case ShipDestroyed4 -> this.spriteType = SpriteType.Ship4;
+      default -> {}
+    }
   }
 
   /** Switches the ship to its destroyed state. */
@@ -225,70 +237,20 @@ public class Ship extends Entity {
     return this.playerIndex + 1;
   }
 
-  public void setPlayerId(int id) {
+  public void setPlayerId(final int id) {
     this.playerIndex = id - 1;
   }
 
-  /** Fires bullets based on ship type. */
-  private void shootBasedOnType(final Set<Bullet> bullets, final int centerX, final int bulletY) {
-    switch (this.type) {
-      case DOUBLE_SHOT, MOVE_FAST:
-        addBullet(bullets, centerX - DOUBLE_SHOT_OFFSET, bulletY);
-        addBullet(bullets, centerX + DOUBLE_SHOT_OFFSET, bulletY);
-        break;
-      case BIG_SHOT:
-      case NORMAL:
-      default:
-        addBullet(bullets, centerX, bulletY);
-        break;
-    }
-  }
-
   /** Creates and adds a bullet to the game. */
-  private void addBullet(final Set<Bullet> bullets, final int x, final int y) {
-    int speedMultiplier = getBulletSpeedMultiplier();
-    int currentBulletSpeed = this.bulletSpeed * speedMultiplier;
-
-    Bullet bullet =
+  void addBullet(final Set<Bullet> bullets, final int x, final int y) {
+    final Bullet bullet =
         BulletPool.getBullet(
-            x, y, currentBulletSpeed, this.bulletWidth, this.bulletHeight, this.getTeam());
-    bullet.setOwnerPlayerId(this.getPlayerId());
+            x, y, this.bulletSpeed, this.bulletWidth, this.bulletHeight, this.getTeam());
+    bullet.setOwnerPlayerId(this.getPlayerId()); //NOPMD
     bullets.add(bullet);
-  }
-
-  /** ========================= Item Effect check ========================= * */
-
-  /**
-   * Checks if player has effect active
-   *
-   * @return list of active effects
-   */
-  private boolean hasTripleShotEffect() {
-    return gameState != null && gameState.hasEffect(playerIndex, TRIPLESHOT);
-  }
-
-  private int getBulletSpeedMultiplier() {
-    if (gameState == null) return 1;
-
-    Integer effectValue = gameState.getEffectValue(playerIndex, BULLETSPEEDUP);
-    if (effectValue != null) {
-      Core.getLogger().info("[Ship] Item effect: Faster Bullets");
-      return effectValue;
-    }
-    return 1;
   }
 
   public void addHit() {
     this.hits++;
-  }
-
-  /** TRIPLESHOT effect */
-  private void shootTripleShot(final Set<Bullet> bullets, final int centerX, final int bulletY) {
-    Core.getLogger().info("[Ship] Item effect: TRIPLESHOT");
-    Integer TRIPLE_SHOT_OFFSET = gameState.getEffectValue(playerIndex, TRIPLESHOT);
-
-    addBullet(bullets, centerX, bulletY);
-    addBullet(bullets, centerX - TRIPLE_SHOT_OFFSET, bulletY);
-    addBullet(bullets, centerX + TRIPLE_SHOT_OFFSET, bulletY);
   }
 }

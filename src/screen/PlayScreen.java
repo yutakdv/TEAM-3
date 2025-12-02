@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import engine.SoundManager;
 
 /** Implements the PlayScreen */
+@SuppressWarnings({"PMD.LawOfDemeter"})
 public class PlayScreen extends Screen {
   private boolean coopSelected = false; // NOPMD - redundant initializer
   private int menuIndex = 0; // NOPMD - redundant initializer | 0 = 1P, 1 = 2P, 2 = Back
@@ -62,8 +63,8 @@ public class PlayScreen extends Screen {
     private void handleKeyboardNavigation() {
         final int mx = inputManager.getMouseX();
         final int my = inputManager.getMouseY();
-        final Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
-        final Rectangle backBox = drawManager.getBackButtonHitbox(this);
+        final Rectangle[] modeBoxes = drawManager.menu().getPlayMenuHitboxes(this);
+        final Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
 
         final boolean mouseHovering =
                 modeBoxes[0].contains(mx, my) ||
@@ -116,8 +117,8 @@ public class PlayScreen extends Screen {
 
         final int mx = inputManager.getMouseX();
         final int my = inputManager.getMouseY();
-        final Rectangle backBox = drawManager.getBackButtonHitbox(this);
-        final Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
+        final Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
+        final Rectangle[] modeBoxes = drawManager.menu().getPlayMenuHitboxes(this);
 
         final Rectangle[] allBoxes = {
                 modeBoxes[0], modeBoxes[1], backBox
@@ -148,8 +149,8 @@ public class PlayScreen extends Screen {
     final int mx = inputManager.getMouseX();
     final int my = inputManager.getMouseY();
 
-    final Rectangle[] modeBoxes = drawManager.getPlayMenuHitboxes(this);
-    final Rectangle backBox = drawManager.getBackButtonHitbox(this);
+    final Rectangle[] modeBoxes = drawManager.menu().getPlayMenuHitboxes(this);
+    final Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
     final Rectangle[] allBoxes = {
       modeBoxes[0], // 1P
       modeBoxes[1], // 2P
@@ -170,8 +171,8 @@ public class PlayScreen extends Screen {
       SoundManager.playeffect("sound/hover.wav");
     }
 
-    drawManager.drawPlayMenu(this, this.menuIndex == 2 ? -1 : this.menuIndex, this.menuIndex);
-    drawManager.drawBackButton(this, this.menuIndex == 2);
+    drawManager.menu().drawPlayMenu(this, this.menuIndex == 2 ? -1 : this.menuIndex, this.menuIndex);
+    drawManager.menu().drawBackButton(this, this.menuIndex == 2);
     drawManager.completeDrawing(this);
   }
 }
