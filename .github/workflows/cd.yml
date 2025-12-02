@@ -1,0 +1,186 @@
+name: CD - Auto Tag & Release
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [closed]
+    branches:
+      - development
+    paths-ignore:
+      - '.github/workflows/**'
+    tags-ignore:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      # 레포지토리 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # JDK 설정
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Gradle 빌드
+      - name: Build project (skip static analysis)
+        run: ./gradlew clean assemble -x spotbugsMain -x pmdMain -x test --stacktrace
+
+      # GitHub API 호출용
+      - name: Ensure GitHub CLI installed
+        run: |
+          if ! command -v gh &> /dev/null; then
+            sudo apt update && sudo apt install gh -y
+          fi
+
+      - name: Build EXE using Launch4j (manual)
+        run: |
+          set -e
+          wget -q https://downloads.sourceforge.net/project/launch4j/launch4j-3/3.50/launch4j-3.50-linux-x64.tgz
+          tar -xzf launch4j-3.50-linux-x64.tgz
+          cd launch4j
+          java -jar launch4j.jar ../launch4j-config.xml
+
+      # 최신 PR 제목 기반 버전 계산
+      - name: Determine next version (Based on PR title)
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git fetch --tags
+          
+          # 기존 최신 태그 확인
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          echo "Latest tag: $latest_tag"
+
+          # 최근 merge 커밋 메시지의 첫 줄을 PR 제목으로 인식
+          pr_title=$(git log -1 --pretty=%B | head -n 1 | tr '[:upper:]' '[:lower:]')
+          
+          echo "PR title: $pr_title"
+          echo "pr_title=$pr_title" >> $GITHUB_OUTPUT
+          
+          # 태그 숫자 분리
+          IFS='.' read -r major minor patch <<<"${latest_tag#v}"
+
+          # 버전 규칙 적용 (:gitmoji: type: desc)
+          if echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(hotfix|fix)\s*:\s*.+'; then
+            new_tag="v$major.$minor.$((patch+1))"
+          elif echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(feature|feat)\s*:\s*.+'; then
+            new_tag="v$major.$((minor+1)).0"
+          elif echo "$pr_title" | grep -Eq '^:[a-z0-9_+]+:\s*(release|major)\s*:\s*.+'; then
+            new_tag="v$((major+1)).0.0"
+          else
+            new_tag="v$major.$minor.$((patch+1))"
+          fi
+
+          echo "New tag: $new_tag"
+          echo "tag=$new_tag" >> $GITHUB_OUTPUT
+
+      # 태그 생성 및 푸시
+      - name: Create Git Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
+
+      # 릴리스 본문에 커밋 로그 포함
+      - name: Generate commit log
+        id: changelog
+        run: |
+          # 최신 태그 목록 정렬 (작성 순서 기준)
+          all_tags=($(git tag --sort=creatordate))
+          current_tag=${{ steps.version.outputs.tag }}
+          previous_tag=""
+
+          # 현재 태그 이전의 태그 찾기
+          for ((i=${#all_tags[@]}-1; i>=0; i--)); do
+            if [[ "${all_tags[$i]}" == "$current_tag" && $i -gt 0 ]]; then
+              previous_tag=${all_tags[$((i-1))]}
+              break
+            fi
+          done
+
+          if [ -z "$previous_tag" ]; then
+            echo "⚠️ No previous tag found. Using initial commits."
+            changelog=$(git log --pretty=format:"- %s")
+          else
+            echo "Previous tag found: $previous_tag"
+            changelog=$(git log ${previous_tag}..HEAD --pretty=format:"- %s")
+          fi
+
+          # Slack과 Release용 출력
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # GitHub Release 자동 생성
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "TEAM-3 Release ${{ steps.version.outputs.tag }}"
+          body: |
+            **자동 릴리스 생성**
+            - Branch: `${{ github.ref_name }}`
+            - Commit: `${{ github.sha }}`
+            - Author: `${{ github.actor }}`
+            - PR Title: `${{ steps.version.outputs.pr_title }}`
+
+            ### 포함된 커밋 내역
+            ${{ steps.changelog.outputs.changelog }}
+          files: |
+            build/libs/*.jar
+            build/libs/*.exe
+          prerelease: ${{ startsWith(steps.version.outputs.tag, 'v1.') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # If stable release (v2.x.x or above), auto-merge development → main
+      - name: Auto merge development into main for stable releases
+        if: ${{ startsWith(steps.version.outputs.tag, 'v2.') }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Fetch latest branches
+          git fetch origin master
+          git fetch origin development
+
+          # Checkout master
+          git checkout master
+
+          # Merge development → master
+          git merge origin/development --no-ff -m "Auto-merge stable release ${{ steps.version.outputs.tag }}"
+
+          # Push to main
+          git push origin master
+
+      # Slack 알림 (릴리스 완료 후에만)
+      - name: Notify Slack of Release
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data "{
+            \"text\": \":rocket: *TEAM-3 Release Completed!*\",
+            \"attachments\": [
+              {
+                \"color\": \"#36a64f\",
+                \"title\": \"Release ${{ steps.version.outputs.tag }}\",
+                \"title_link\": \"https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}\",
+                \"text\": \"🎯 *Latest Version:* \`${{ steps.version.outputs.tag }}\`\n📝 *PR Title:* \`${{ steps.version.outputs.pr_title }}\`\n\n릴리스가 성공적으로 완료되었습니다!\"
+              }
+            ]
+          }" \
+          ${{ secrets.SLACK_WEBHOOK_URL }}

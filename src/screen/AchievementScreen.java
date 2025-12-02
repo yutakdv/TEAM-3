@@ -8,85 +8,97 @@ import engine.FileManager;
 import java.awt.event.KeyEvent;
 import engine.SoundManager;
 import java.util.List;
-
+@SuppressWarnings({"PMD.LawOfDemeter"})
 public class AchievementScreen extends Screen {
 
-    private FileManager fileManager;
-    private AchievementManager achievementManager;
-    private List<Achievement> achievements;
-    private List<String> completer;
-    private int currentIdx = 0;
+  private final FileManager fileManager;
+  AchievementManager achievementManager; // NOPMD - Field name matches class name
+  private final List<Achievement> achievements;
+  private List<String> completer;
+  private int currentIdx;
+  private static final String HOVER_SOUND = "sound/hover.wav";
 
-    public AchievementScreen(final int width, final int height, final int fps) {
-        super(width, height, fps);
-        achievementManager = Core.getAchievementManager();
-        achievements = achievementManager.getAchievements();
-        fileManager = Core.getFileManager();
-        this.completer = Core.getFileManager().getAchievementCompleter(achievements.get(currentIdx));
-        this.returnCode = 3;
+  public AchievementScreen(final int width, final int height, final int fps) {
+    super(width, height, fps);
+    achievementManager = Core.getAchievementManager();
+    achievements = achievementManager.getAchievements();
+    fileManager = Core.getFileManager();
+    this.currentIdx = 0;
+    this.completer = Core.getFileManager().getAchievementCompleter(achievements.get(currentIdx));
+    this.returnCode = 3;
 
-        // Start menu music loop when the achievement screen is created
-        SoundManager.playLoop("sound/menu_sound.wav");
+    // Start menu music loop when the achievement screen is created
+    SoundManager.playBGM("sound/menu_sound.wav");
+  }
+
+  public final int run() {
+    super.run();
+    // Stop menu music when leaving the achievement screen
+    SoundManager.stop();
+
+    return this.returnCode;
+  }
+
+  protected final void update() {
+
+    // [2025-10-17] feat: Added key input logic to navigate achievements
+    // When the right or left arrow key is pressed, update the current achievement index
+    // and reload the completer list for the newly selected achievement.
+    if (inputManager.isKeyPressed(KeyEvent.VK_RIGHT)) {
+      currentIdx = (currentIdx + 1) % achievements.size();
+      completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
+      SoundManager.playeffect(HOVER_SOUND);
+    }
+    if (inputManager.isKeyPressed(KeyEvent.VK_LEFT)) {
+      currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
+      completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
+      SoundManager.playeffect(HOVER_SOUND);
     }
 
-    public final int run() {
-        super.run();
-        // Stop menu music when leaving the achievement screen
-        SoundManager.stop();
+    super.update();
+    draw();
 
-        return this.returnCode;
+    if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+      this.returnCode = 1;
+      SoundManager.playeffect(HOVER_SOUND);
+      this.isRunning = false;
     }
 
-    protected final void update() {
+    // back button click event
+    if (inputManager.isMouseClicked()) {
+      final int mx = inputManager.getMouseX();
+      final int my = inputManager.getMouseY();
+      final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
 
-        // [2025-10-17] feat: Added key input logic to navigate achievements
-        // When the right or left arrow key is pressed, update the current achievement index
-        // and reload the completer list for the newly selected achievement.
-        if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) && inputDelay.checkFinished()) {
-            currentIdx = (currentIdx + 1) % achievements.size();
-            completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-            inputDelay.reset();
-        }
-        if (inputManager.isKeyDown(KeyEvent.VK_LEFT) && inputDelay.checkFinished()) {
-            currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
-            completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
-            inputDelay.reset();
-        }
+      if (backBox.contains(mx, my)) { // NOPMD - LawOfDemeter
+        this.returnCode = 1;
+        SoundManager.playeffect(HOVER_SOUND);
+        this.isRunning = false;
+      }
 
-        super.update();
-        draw();
+      final java.awt.Rectangle[] navBoxes = drawManager.menu().getAchievementNavHitboxes(this);
 
-        if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE) && this.inputDelay.checkFinished()) {
-            this.returnCode = 1;
-            this.isRunning = false;
-        }
+      if (navBoxes[0].contains(mx, my)) {
+        currentIdx = (currentIdx - 1 + achievements.size()) % achievements.size();
+        completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
+        SoundManager.playeffect(HOVER_SOUND);
+      }
 
-        // back button click event
-        if (inputManager.isMouseClicked()) {
-            int mx = inputManager.getMouseX();
-            int my = inputManager.getMouseY();
-            java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
-
-            if (backBox.contains(mx, my)) {
-                this.returnCode = 1;
-                this.isRunning = false;
-            }
-        }
+      if (navBoxes[1].contains(mx, my)) {
+        currentIdx = (currentIdx + 1) % achievements.size();
+        completer = fileManager.getAchievementCompleter(achievements.get(currentIdx));
+        SoundManager.playeffect(HOVER_SOUND);
+      }
     }
+  }
 
-    private void draw() {
-        drawManager.initDrawing(this);
-        drawManager.drawAchievementMenu(this, achievements.get(currentIdx), completer);
+  private void draw() {
+    drawManager.initDrawing(this);
+    drawManager.menu().drawAchievementMenu(this, achievements.get(currentIdx), completer);
 
-        // hover highlight
-        int mx = inputManager.getMouseX();
-        int my = inputManager.getMouseY();
-        java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+    // hover highlight
+    handleBackButtonHover();
 
-        if (backBox.contains(mx, my)) {
-            drawManager.drawBackButton(this, true);
-        }
-
-        drawManager.completeDrawing(this);
-    }
+    drawManager.completeDrawing(this);
+  }
 }

@@ -1,0 +1,156 @@
+import com.github.spotbugs.snom.SpotBugsTask
+
+plugins {
+    id 'application'
+    id 'com.github.spotbugs' version '6.4.4'
+    id 'pmd'
+    id 'jacoco'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.9.3'
+    // Add Mockito for mocking dependencies in tests
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+}
+
+application {
+    mainClass = 'engine.Core'
+}
+
+// PMD 규칙
+pmd {
+    toolVersion = "6.55.0"
+    ruleSetConfig = resources.text.fromFile("gradle/pmd/ruleset.xml")
+    ruleSets = []
+    ignoreFailures = true
+    reportsDir = layout.buildDirectory.dir("reports/pmd").get().asFile
+}
+
+tasks.withType(Pmd).configureEach {
+    javaLauncher.set(
+            javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(17)
+            }
+    )
+    reports {
+        html.required.set(true)
+        html.outputLocation = layout.buildDirectory.file('reports/pmd/pmd-report.html').get().asFile
+    }
+}
+
+// SpotBugs 설정
+spotbugs {
+    toolVersion = '4.8.6'
+    ignoreFailures = false
+    effort = "max"
+    reportLevel = "medium"
+
+    excludeFilter = file("gradle/spotbugs/spotbugs-exclude.xml")
+}
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+def projectLayout = layout
+
+tasks.withType(SpotBugsTask).configureEach {
+    dependsOn(tasks.classes)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        html.outputLocation = projectLayout.buildDirectory.file('reports/spotbugs/spotbugs-report.html').get().asFile
+    }
+    extraArgs = [
+            '-excludeBugs', 'gradle/spotbugs/spotbugs-baseline.xml'
+    ]
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src'] // 기존 src 디렉터리 사용
+            exclude '**/test/**'
+        }
+        resources {
+            srcDirs = ['res'] // 리소스 폴더 지정
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src/test']
+        }
+    }
+}
+
+tasks.processResources {
+    from('res') {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        include '**/*'
+        into 'res'
+    }
+}
+
+tasks.withType(JavaExec).configureEach {
+    systemProperty "file.encoding", "UTF-8"
+}
+
+tasks.test {
+    useJUnitPlatform()
+    reports.junitXml.required.set(true)
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.withType(JacocoReport).configureEach {
+    dependsOn test
+    reports {
+        xml.required.set(true)
+        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
+        html.required.set(true)
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/test/coverage-report")
+    }
+}
+
+tasks.withType(JacocoCoverageVerification).configureEach {
+    violationRules {
+        rule {
+            element = 'CLASS'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+            }
+            excludes = ["*.*Application*"]
+        }
+    }
+    onlyIf { true } // 이 Task는 항상 실행
+    doLast {
+        println "JaCoCo coverage verification executed."
+    }
+    dependsOn(tasks.jacocoTestReport)
+}
+
+// Build .jar file
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'engine.Core'
+        )
+    }
+}

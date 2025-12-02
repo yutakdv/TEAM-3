@@ -1,28 +1,36 @@
 package engine;
 
-/**
- * Represents a single achievement with name, description, and unlock state.
- */
+/** Represents a single achievement with name, description, and unlock state. */
 public class Achievement {
-    private String name;
-    private String description;
-    private boolean unlocked;
+  private final String name;
+  private final String description;
+  private boolean unlocked;
 
-    public Achievement(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.unlocked = false;
-    }
+  public Achievement(final String name, final String description) {
+    this.name = name;
+    this.description = description;
+    this.unlocked = false;
+  }
 
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public boolean isUnlocked() { return unlocked; }
+  public String getName() {
+    return name;
+  }
 
-    /** Unlocks this achievement. */
-    public void unlock() { this.unlocked = true; }
+  public String getDescription() {
+    return description;
+  }
 
-    @Override
-    public String toString() {
-        return name + " - " + description + " [" + (unlocked ? "Unlocked" : "Locked") + "]";
-    }
+  public boolean isUnlocked() {
+    return unlocked;
+  }
+
+  /** Unlocks this achievement. */
+  public void unlock() {
+    this.unlocked = true;
+  }
+
+  @Override
+  public String toString() {
+    return name + " - " + description + " [" + (unlocked ? "Unlocked" : "Locked") + "]";
+  }
 }

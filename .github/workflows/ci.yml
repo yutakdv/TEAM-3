@@ -1,0 +1,257 @@
+name: CI - PR Validation & Build Pipeline
+
+on:
+  pull_request:
+    branches:
+      - development
+      - release/*
+    types: [ opened, edited, synchronize, reopened ]
+
+permissions:
+  actions: read
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  # -----------------------------------------------------
+  # 1) 공통 Title Check
+  # -----------------------------------------------------
+  title-check:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate PR title format
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const regex = /^:[a-z0-9_+]+:\s*(hotfix|fix|feature|feat|major|release)\s*:\s*.+/;
+
+            if (!regex.test(title)) {
+              core.setFailed(`❌ Invalid PR title format: "${title}"
+
+              Expected format:
+                :gitmoji: type: description
+                :gitmoji:type: description
+
+              Allowed types:
+                hotfix | fix | feature | feat | major | release`);
+            }
+
+  # -----------------------------------------------------
+  # 2) FULL CI — feature → release/*
+  # -----------------------------------------------------
+  full-ci:
+    name: FULL CI (Build + Test + Coverage + PMD + SpotBugs)
+    needs: title-check
+    runs-on: ubuntu-latest
+
+    if: |
+      startsWith(github.event.pull_request.base.ref, 'release/')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build & Test (FULL)
+        run: ./gradlew clean build --stacktrace --no-build-cache
+
+      - name: Generate Jacoco
+        run: ./gradlew jacocoTestReport
+
+      - name: Run PMD
+        run: ./gradlew pmdMain --stacktrace
+
+      - name: Run SpotBugs
+        id: spotbugs
+        continue-on-error: true
+        run: ./gradlew spotbugsMain
+
+      - name: Upload PMD Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PMD-Report
+          path: build/reports/pmd/pmd-report.html
+
+      - name: Upload SpotBugs Report
+        if: steps.spotbugs.conclusion == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpotBugs-Report
+          path: build/reports/spotbugs/spotbugs-report.html
+
+      - name: Upload JaCoCo HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JaCoCo-Report
+          path: build/reports/jacoco/test/
+
+      - name: Slack Notify (FULL)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,commit,author,ref
+          text: |
+            *TEAM-3 FULL CI Results*
+            Status: `${{ job.status }}`
+            Author: `${{ github.actor }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+            
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            • Coverage, PMD, SpotBugs artifacts uploaded.
+            • Details 👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -----------------------------------------------------
+  # 3) LIGHT CI — release/* → development
+  # -----------------------------------------------------
+  light-ci:
+    name: LIGHT CI (Build Only)
+    needs: title-check
+    runs-on: ubuntu-latest
+
+    if: |
+      startsWith(github.event.pull_request.head.ref, 'release/') &&
+      github.event.pull_request.base.ref == 'development'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build Only
+        run: ./gradlew clean assemble --stacktrace
+
+      - name: Slack Notify (LIGHT)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,commit,author,ref
+          text: |
+            *TEAM-3 LIGHT CI Results*
+            Status: `${{ job.status }}`
+            Author: `${{ github.actor }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            This run only performed: `clean assemble`
+            (No PMD, No SpotBugs, No Jacoco)
+            👉 테스트 없이 “빌드만 성공하면 OK” 👈
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -----------------------------------------------------
+  # 4) MEDIUM CI — hotfix/ or fix/ → development
+  # -----------------------------------------------------
+  medium-ci:
+    name: MEDIUM CI (Build + Test)
+    needs: title-check
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event.pull_request.base.ref == 'development' &&
+      (
+        startsWith(github.event.pull_request.head.ref, 'hotfix/') ||
+        startsWith(github.event.pull_request.head.ref, 'fix/')
+      )
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build & Test (Medium Level)
+        run: ./gradlew clean test --stacktrace
+
+      - name: Slack Notify (MEDIUM)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,commit,author,ref
+          text: |
+            *TEAM-3 MEDIUM CI Results*
+            Status: `${{ job.status }}`
+            Author: `${{ github.actor }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            This run performed: `clean test`
+            (No PMD, No SpotBugs, No Jacoco)
+            👉 테스트 진행, PMD/SpotBugs는 필요 없음 👈
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -----------------------------------------------------
+  # 5) INVALID PR — FULL / LIGHT / MEDIUM 조건 불충족 시 강제 실패
+  # -----------------------------------------------------
+  invalid-pr:
+    name: INVALID PR (Reject Merge)
+    needs: [ title-check, full-ci, light-ci, medium-ci ]
+    runs-on: ubuntu-latest
+
+    if: |
+      needs.full-ci.result == 'skipped' &&
+      needs.light-ci.result == 'skipped' &&
+      needs.medium-ci.result == 'skipped'
+
+    steps:
+      - run: |
+          echo "❌ Invalid PR routing."
+          echo "Allowed combinations:"
+          echo " • feature/* → release/* (FULL CI)"
+          echo " • release/* → development (LIGHT CI)"
+          echo " • hotfix/* or fix/* → development (MEDIUM CI)"
+          echo ""
+          echo "Your PR does not match \"feature/*\" allowed rule → merge blocked."
+          exit 1
+
+      - name: Slack Notify (INVALID)
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          fields: repo,commit,author,ref
+          text: |
+            *❌ TEAM-3 INVALID PR Detected*
+            Your PR does not match any allowed routing rule.
+
+            *Pull Request Info*
+            Title: `${{ github.event.pull_request.title }}`
+            Source Branch: `${{ github.event.pull_request.head.ref }}`
+            Target Branch: `${{ github.event.pull_request.base.ref }}`
+
+            Allowed:
+            • feature/* → release/* (FULL CI)
+            • release/* → development (LIGHT CI)
+            • hotfix/* or fix/* → development (MEDIUM CI)
+
+            👉 Merge blocked. Fix the branch routing and retry.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
