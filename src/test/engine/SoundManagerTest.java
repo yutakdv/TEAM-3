@@ -16,16 +16,16 @@ public class SoundManagerTest {
   @BeforeEach
   void resetCoreState() {
     // Core index 0 = BGM, index 1 = Menu BGM, index 2 = SFX (팀 코드 구조 기준)
-    Core.setMute(0, false);
-    Core.setMute(1, false);
-    Core.setMute(2, false);
+    SoundControl.setMute(0, false);
+    SoundControl.setMute(1, false);
+    SoundControl.setMute(2, false);
 
-    Core.setVolumeLevel(0, 100); // For BGM
-    Core.setVolumeLevel(1, 100); // For menu BGM loop
-    Core.setVolumeLevel(2, 100); // For SFX
+    SoundControl.setVolumeLevel(0, 100); // For BGM
+    SoundControl.setVolumeLevel(1, 100); // For menu BGM loop
+    SoundControl.setVolumeLevel(2, 100); // For SFX
 
-    Core.setIngameVolumeLevel(0, 100);
-    Core.setIngameVolumeLevel(1, 100);
+    SoundControl.setIngameVolumeLevel(0, 100);
+    SoundControl.setIngameVolumeLevel(1, 100);
   }
 
   // -------------------------------------------------------------
@@ -60,7 +60,7 @@ public class SoundManagerTest {
   // -------------------------------------------------------------
   @Test
   void testCalculateVolumeDb_muted_isSilent() throws Exception {
-    Core.setMute(0, true);
+    SoundControl.setMute(0, true);
 
     float db = invokeCalculate(80);
     assertEquals(-80.0f, db, 0.01f, "Muted should return −80 dB");
@@ -71,7 +71,7 @@ public class SoundManagerTest {
   // -------------------------------------------------------------
   @Test
   void testCalculateVolumeDb_respectsCoreBaseline() throws Exception {
-    Core.setVolumeLevel(0, 50); // baseline volume = 50%
+    SoundControl.setVolumeLevel(0, 50); // baseline volume = 50%
 
     float db = invokeCalculate(100);
 

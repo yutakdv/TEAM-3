@@ -13,6 +13,8 @@ import engine.InputManager;
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
+@SuppressWarnings({"PMD.LawOfDemeter"})
+
 public class Screen {
 
   /** Milliseconds until the screen accepts user input. */
@@ -83,7 +85,7 @@ public class Screen {
 
       InputManager.updatekeystatus();
 
-      time = (1000 / this.fps) - (System.currentTimeMillis() - time);
+      time = 1000 / this.fps - (System.currentTimeMillis() - time);
       if (time > 0) {
         try {
           TimeUnit.MILLISECONDS.sleep(time);
@@ -120,10 +122,10 @@ public class Screen {
   protected void handleBackButtonHover() {
       final int mx = inputManager.getMouseX();
       final int my = inputManager.getMouseY();
-      final java.awt.Rectangle backBox = drawManager.getBackButtonHitbox(this);
+      final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
 
       if (backBox.contains(mx, my)) {
-          drawManager.drawBackButton(this, true);
+          drawManager.menu().drawBackButton(this, true);
       }
   }
 }

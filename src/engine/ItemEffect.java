@@ -1,15 +1,14 @@
 package engine;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ItemEffect {
-
+public final class ItemEffect {
+  // utility class: prevent instantiation
   private static final Logger logger = Core.getLogger();
 
-  public enum ItemEffectType {
-    TRIPLESHOT,
-    SCOREBOOST,
-    BULLETSPEEDUP
+  private ItemEffect() {
+    // prevent instantiation
   }
 
   /*
@@ -17,11 +16,8 @@ public class ItemEffect {
    * attempt to spend the corresponding amount of coins. If the
    * player doesn't have enough coins the effect is not applied.
    */
-//  private static final int COST_TRIPLESHOT = 100;
-//  private static final int COST_SCOREBOOST = 0;
-//  private static final int COST_BULLETSPEEDUP = 75;
 
-  /** =========================SINGLE USE=================================* */
+  /* =========================SINGLE USE=================================* */
 
   /**
    * Applies the coin item effect to the specified player.
@@ -30,22 +26,26 @@ public class ItemEffect {
    * @param playerId ID of the player to apply the effect to.
    * @param coinAmount amount of coins to add.
    */
-  public static void applyCoinItem(final GameState gameState, final int playerId, int coinAmount) {
-    if (gameState == null) return;
+  public static void applyCoinItem(
+      final GameState gameState, final int playerId, final int coinAmount) {
+    if (gameState == null) {
+      return;
+    }
     final int playerIndex = getPlayerIndex(playerId);
     final int beforeCoin = gameState.getCoins();
 
     gameState.addCoins(playerIndex, coinAmount);
-
-    logger.info(
-        "Player "
-            + playerId
-            + " added "
-            + coinAmount
-            + " coins. before : "
-            + beforeCoin
-            + ", after : "
-            + gameState.getCoins());
+    if (logger.isLoggable(Level.INFO)) {
+      logger.info(
+          "Player "
+              + playerId
+              + " added "
+              + coinAmount
+              + " coins. before : "
+              + beforeCoin
+              + ", after : "
+              + gameState.getCoins());
+    }
   }
 
   /**
@@ -55,8 +55,11 @@ public class ItemEffect {
    * @param playerId ID of the player to apply the effect to.
    * @param lifeAmount amount of lives to add.
    */
-  public static void applyHealItem(final GameState gameState, final int playerId, int lifeAmount) {
-    if (gameState == null) return;
+  public static void applyHealItem(
+      final GameState gameState, final int playerId, final int lifeAmount) {
+    if (gameState == null) {
+      return;
+    }
     final int beforeLife = gameState.getLivesRemaining();
 
     // if 2p mode
@@ -78,14 +81,15 @@ public class ItemEffect {
         gameState.addLife(getPlayerIndex(playerId), lifeAmount);
       }
     }
-
-    logger.info(
-        "Player added "
-            + lifeAmount
-            + " lives. before : "
-            + beforeLife
-            + ", after : "
-            + gameState.getLivesRemaining());
+    if (logger.isLoggable(Level.INFO)) {
+      logger.info(
+          "Player added "
+              + lifeAmount
+              + " lives. before : "
+              + beforeLife
+              + ", after : "
+              + gameState.getLivesRemaining());
+    }
   }
 
   /**
@@ -96,22 +100,25 @@ public class ItemEffect {
    * @param scoreAmount amount of score to add.
    */
   public static void applyScoreItem(
-      final GameState gameState, final int playerId, int scoreAmount) {
-    if (gameState == null) return;
+      final GameState gameState, final int playerId, final int scoreAmount) {
+    if (gameState == null) {
+      return;
+    }
     final int playerIndex = getPlayerIndex(playerId);
     final int beforeScore = gameState.getScore(playerIndex);
 
     gameState.addScore(getPlayerIndex(playerId), scoreAmount);
-
-    logger.info(
-        "[ItemEffect - SCORE] Player "
-            + playerId
-            + " : "
-            + beforeScore
-            + " + "
-            + scoreAmount
-            + " -> "
-            + gameState.getScore(playerIndex));
+    if (logger.isLoggable(Level.INFO)) {
+      logger.info(
+          "[ItemEffect - SCORE] Player "
+              + playerId
+              + " : "
+              + beforeScore
+              + " + "
+              + scoreAmount
+              + " -> "
+              + gameState.getScore(playerIndex));
+    }
   }
 
   /**

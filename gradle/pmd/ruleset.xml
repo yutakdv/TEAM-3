@@ -13,6 +13,7 @@
 
     <rule ref="category/java/errorprone.xml">
         <exclude name="AvoidLiteralsInIfCondition"/>
+        <exclude name="UseProperClassLoader"/>
     </rule>
 
     <rule ref="category/java/bestpractices.xml">
@@ -31,6 +32,8 @@
         <exclude name="CommentDefaultAccessModifier" />
         <exclude name="FieldNamingConventions"/>
         <exclude name="TooManyStaticImports"/>
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="LongVariable"/>
     </rule>
 
 </ruleset>
