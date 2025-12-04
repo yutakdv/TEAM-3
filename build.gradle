@@ -31,7 +31,7 @@ pmd {
     toolVersion = "6.55.0"
     ruleSetConfig = resources.text.fromFile("gradle/pmd/ruleset.xml")
     ruleSets = []
-    ignoreFailures = true
+    ignoreFailures = false
     reportsDir = layout.buildDirectory.dir("reports/pmd").get().asFile
 }
 
@@ -70,9 +70,6 @@ tasks.withType(SpotBugsTask).configureEach {
         html.required.set(true)
         html.outputLocation = projectLayout.buildDirectory.file('reports/spotbugs/spotbugs-report.html').get().asFile
     }
-    extraArgs = [
-            '-excludeBugs', 'gradle/spotbugs/spotbugs-baseline.xml'
-    ]
 }
 
 java {
