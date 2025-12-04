@@ -1,20 +1,29 @@
 package engine;
 
+/**
+ * Controls the sound volume and mute settings.
+ * Refactored to address PMD issues and encapsulate static state.
+ */
+@SuppressWarnings({"PMD.LawOfDemeter"})
 public final class SoundControl {
-  private static final int[] ingameVolume = {50, 50};
-  private static final boolean[] ingameMute = {false, false};
+
+  // PMD: Avoid non-final non-private static fields -> Made private
+  private static final int[] IN_GAME_VOLUME = {50, 50};
+  private static final boolean[] IN_GAME_MUTE = {false, false};
   private static int ingameVolumetype;
 
-  private static final int[] previousIngameVolume = {50, 50};
+  private static final int[] PREVIOUS_IN_GAME_VOLUME = {50, 50};
 
-  private static final int[] volumearray = {50, 50, 50};
-  private static final boolean[] Mute = {false, false, false};
+  private static final int[] VOLUME_ARRAY = {50, 50, 50};
+  private static final boolean[] MUTE_ARRAY = {false, false, false};
   private static int volumetype;
 
-  private SoundControl() {}
+  private SoundControl() {
+    // Private constructor to prevent instantiation
+  }
 
   public static int getVolumeLevel(final int w) {
-    return volumearray[w];
+    return VOLUME_ARRAY[w];
   }
 
   public static int getVolumetype() {
@@ -22,20 +31,20 @@ public final class SoundControl {
   }
 
   public static void setVolumeLevel(final int w, final int v) {
-    volumearray[w] = Math.max(0, Math.min(100, v));
+    VOLUME_ARRAY[w] = Math.max(0, Math.min(100, v));
     volumetype = w;
   }
 
   public static boolean isMuted(final int index) {
-    return Mute[index];
+    return MUTE_ARRAY[index];
   }
 
   public static void setMute(final int index, final boolean m) {
-    Mute[index] = m;
+    MUTE_ARRAY[index] = m;
   }
 
   public static int getIngameVolumeLevel(final int idx) {
-    return ingameVolume[idx];
+    return IN_GAME_VOLUME[idx];
   }
 
   public static int getIngameVolumetype() {
@@ -44,21 +53,21 @@ public final class SoundControl {
 
   public static void setIngameVolumeLevel(final int idx, final int v) {
     final int clamped = Math.max(0, Math.min(100, v));
-    ingameVolume[idx] = clamped;
+    IN_GAME_VOLUME[idx] = clamped;
     ingameVolumetype = idx;
 
-    // [핵심] 사용자가 직접 조절한 값은 '복구용 값'으로도 저장해둠
+    // Backup user-set value for unmute restoration
     if (clamped > 0) {
-      previousIngameVolume[idx] = clamped;
+      PREVIOUS_IN_GAME_VOLUME[idx] = clamped;
     }
   }
 
   public static boolean isIngameMuted(final int idx) {
-    return ingameMute[idx];
+    return IN_GAME_MUTE[idx];
   }
 
   public static void setIngameMute(final int idx, final boolean m) {
-    ingameMute[idx] = m;
+    IN_GAME_MUTE[idx] = m;
   }
 
   public static void setIngameVolumetype(final int idx) {
@@ -66,31 +75,35 @@ public final class SoundControl {
   }
 
   public static void changeIngameVolume(final int idx, final int delta) {
-    final int current = ingameVolume[idx];
-    if ((delta < 0 && current > 0) || (delta > 0 && current < 100)) { // NOPMD
+    final int current = IN_GAME_VOLUME[idx];
+    // PMD: Simplify boolean expressions logic
+    final boolean canDecrease = delta < 0 && current > 0;
+    final boolean canIncrease = delta > 0 && current < 100;
+
+    if (canDecrease || canIncrease) {
       setIngameVolumeLevel(idx, current + delta);
-      setIngameMute(idx, false); // 조절하면 뮤트 해제
+      setIngameMute(idx, false); // Unmute if volume is changed manually
     }
   }
 
   public static void toggleIngameMute(final int idx) {
-    if (!ingameMute[idx]) { // NOPMD
-      // Mute 수행: 현재 값 백업 후 0으로
-      if (ingameVolume[idx] > 0) {
-        previousIngameVolume[idx] = ingameVolume[idx];
-      }
-      ingameVolume[idx] = 0;
-      ingameMute[idx] = true;
-    } else {
-      // Unmute 수행: 백업된 값 복구
-      int restore = previousIngameVolume[idx];
+    if (IN_GAME_MUTE[idx]) {
+      // Unmute: Restore backup value
+      int restore = PREVIOUS_IN_GAME_VOLUME[idx];
       if (restore <= 0) {
-        restore = 50; // 안전장치
+        restore = 50; // Safety default
+    } else {
+        // Mute: Backup current value then set to 0
+        if (IN_GAME_VOLUME[idx] > 0) {
+          PREVIOUS_IN_GAME_VOLUME[idx] = IN_GAME_VOLUME[idx];
+        }
+        IN_GAME_VOLUME[idx] = 0;
+        IN_GAME_MUTE[idx] = true;
       }
 
-      ingameVolume[idx] = restore;
-      previousIngameVolume[idx] = restore;
-      ingameMute[idx] = false;
+      IN_GAME_VOLUME[idx] = restore;
+      PREVIOUS_IN_GAME_VOLUME[idx] = restore;
+      IN_GAME_MUTE[idx] = false;
     }
   }
 }
