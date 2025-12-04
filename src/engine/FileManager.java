@@ -150,7 +150,10 @@ public final class FileManager { //NOPMD
   public void saveHighScores(final List<Score> highScores, final String mode) throws IOException {
     final File scoresFile = new File(getSaveDirectory() + mode + "scores.csv");
     if (!scoresFile.exists()) {
-      scoresFile.createNewFile();
+      final boolean created = scoresFile.createNewFile();
+        if (!created && !scoresFile.exists()) {
+            throw new IOException("Failed to create high score file: " + scoresFile.getAbsolutePath());
+        }
     }
 
     try (BufferedWriter bufferedWriter = Files.newBufferedWriter(scoresFile.toPath(), StandardCharsets.UTF_8)) {

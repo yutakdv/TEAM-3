@@ -16,7 +16,7 @@ import screen.Screen;
 
 /** Draws in-game HUD, results, countdown, and achievement toasts. */
 @SuppressWarnings({"PMD.LawOfDemeter"})
-public final class HudDrawer {
+public final class HudDrawer { // NOPMD
 
   private static final String FOUR_DIGIT_FORMAT = "%04d";
 
@@ -299,7 +299,7 @@ public final class HudDrawer {
   // ================= ACHIEVEMENT TOASTS =================
 
   @SuppressWarnings("PMD.LawOfDemeter")
-  public void drawAchievementToasts(final Screen screen, final List<Achievement> toasts) {
+  public void drawAchievementToasts(final Screen screen, final List<Achievement> toasts) { // NOPMD
     if (toasts == null || toasts.isEmpty()) {
       return;
     }
