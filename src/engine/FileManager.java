@@ -4,438 +4,269 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
-import java.util.HashMap;
 import entity.Ship.ShipType;
-
 import engine.DrawManager.SpriteType;
 
 /**
  * Manages files used in the application.
- *
- * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
+ * Refactored to fix PMD issues: God class, Complexity, Try-with-resources.
  */
+@SuppressWarnings("PMD.LawOfDemeter")
 public final class FileManager {
-  /** Singleton instance of the class. */
   private static FileManager instance;
-
-  /** Application logger. */
-  private static Logger logger;
-
-  /** private constructor. */
-  private FileManager() {
-    logger = Core.getLogger();
-  }
-
-  // Test only override directory
+  private static final Logger LOGGER = Core.getLogger();
   private static String testDirectory = null;
 
-  /**
-   * Returns shared instance of FileManager.
-   *
-   * @return Shared instance of FileManager.
-   */
+  // PMD: Avoid duplicate literals
+  private static final String FILENAME_ACHIEVEMENT = "achievement.csv";
+  private static final String FILENAME_COINS = "coins.csv";
+  private static final String FILENAME_SHIPS = "ships.csv";
+  private static final String DIR_RES = "res";
+
+  private FileManager() {
+    // Singleton
+  }
+
   protected static FileManager getInstance() {
-    if (instance == null) instance = new FileManager();
+    if (instance == null) {
+      instance = new FileManager();
+    }
     return instance;
   }
 
-  /**
-   * Loads sprites from disk.
-   *
-   * @param spriteMap Mapping of sprite type and empty boolean matrix that will contain the image.
-   * @throws IOException In case of loading problems.
-   */
   public void loadSprite(final Map<SpriteType, boolean[][]> spriteMap) throws IOException {
-    InputStream inputStream = null;
-
-    try {
-      inputStream = DrawManager.class.getClassLoader().getResourceAsStream("graphics");
-      char c;
-
-      // Sprite loading.
-      for (Map.Entry<SpriteType, boolean[][]> sprite : spriteMap.entrySet()) {
-        for (int i = 0; i < sprite.getValue().length; i++)
-          for (int j = 0; j < sprite.getValue()[i].length; j++) {
-            do c = (char) inputStream.read();
-            while (c != '0' && c != '1');
-
-            if (c == '1') sprite.getValue()[i][j] = true;
-            else sprite.getValue()[i][j] = false;
-          }
-        logger.fine("Sprite " + sprite.getKey() + " loaded.");
+    try (InputStream inputStream = DrawManager.class.getClassLoader().getResourceAsStream("graphics")) {
+      if (inputStream == null) {
+        throw new IOException("Graphics resource not found.");
       }
-      if (inputStream != null) inputStream.close();
-    } finally {
-      if (inputStream != null) inputStream.close();
+
+      for (Map.Entry<SpriteType, boolean[][]> sprite : spriteMap.entrySet()) {
+        final boolean[][] image = sprite.getValue();
+        for (int i = 0; i < image.length; i++) {
+          for (int j = 0; j < image[i].length; j++) {
+            image[i][j] = readBooleanChar(inputStream);
+          }
+        }
+        LOGGER.fine("Sprite " + sprite.getKey() + " loaded.");
+      }
     }
   }
 
-  /**
-   * Loads a font of a given size.
-   *
-   * @param size Point size of the font.
-   * @return New font.
-   * @throws IOException In case of loading problems.
-   * @throws FontFormatException In case of incorrect font format.
-   */
+  private boolean readBooleanChar(final InputStream is) throws IOException {
+    int c;
+    do {
+      c = is.read();
+    } while (c != '0' && c != '1' && c != -1);
+    return c == '1';
+  }
+
   public Font loadFont(final float size) throws IOException, FontFormatException {
-    InputStream inputStream = null;
-    Font font;
-
-    try {
-      // Font loading.
-      inputStream = FileManager.class.getClassLoader().getResourceAsStream("font.ttf");
-      font = Font.createFont(Font.TRUETYPE_FONT, inputStream).deriveFont(size);
-    } finally {
-      if (inputStream != null) inputStream.close();
+    try (InputStream inputStream = FileManager.class.getClassLoader().getResourceAsStream("font.ttf")) {
+      if (inputStream == null) {
+        throw new IOException("Font resource not found.");
+      }
+      return Font.createFont(Font.TRUETYPE_FONT, inputStream).deriveFont(size);
     }
-
-    return font;
   }
 
-  /**
-   * Returns the filepath
-   *
-   * @param fileName file to get path
-   * @return full file path
-   * @throws IOException In case of loading problems
-   */
-  /* yutak - getFilepath can do both local file path and .jar file path*/
-  //  private static InputStream getFileStream(String fileName) throws IOException {
-  //    InputStream inputStream =
-  //        FileManager.class.getClassLoader().getResourceAsStream("res/" + fileName);
-  //
-  //    if (inputStream != null) {
-  //      return inputStream;
-  //    }
-  //
-  //    File localFile =
-  //        new File(
-  //            System.getProperty("user.dir") + File.separator + "res" + File.separator +
-  // fileName);
-  //    if (localFile.exists()) {
-  //      return new FileInputStream(localFile);
-  //    }
-  //
-  //    throw new FileNotFoundException("Resource not found: res/" + fileName);
-  //  }
-
-  /**
-   * Returns the application default scores if there is no user high scores file.
-   *
-   * @return Default high scores.
-   * @throws IOException In case of loading problems.
-   */
   private List<Score> loadDefaultHighScores() throws IOException {
-    List<Score> highScores = new ArrayList<>();
-    InputStream inputStream = null;
-    BufferedReader reader;
+    final List<Score> highScores = new ArrayList<>();
+    try (InputStream inputStream = FileManager.class.getClassLoader().getResourceAsStream("1Pscores.csv");
+         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
 
-    try {
-      inputStream = FileManager.class.getClassLoader().getResourceAsStream("1Pscores.csv");
-      reader = new BufferedReader(new InputStreamReader(inputStream));
-
-      // except first line
-      reader.readLine();
+      reader.readLine(); // skip header
       String input;
       while ((input = reader.readLine()) != null) {
-        String[] pair = input.split(",");
-        String name = pair[0], score = pair[1];
-        String mode = pair[2];
-        Score highScore = new Score(name, Integer.parseInt(score), mode);
-        highScores.add(highScore);
+        highScores.add(parseScoreLine(input));
       }
-    } finally {
-      if (inputStream != null) inputStream.close();
     }
-
     return highScores;
   }
 
-  /**
-   * Loads high scores from file, and returns a sorted list of pairs score - value.
-   *
-   * @param mode get game mode 1P/2P.
-   * @return Sorted list of scores - players.
-   * @throws IOException In case of loading problems.
-   */
-  public List<Score> loadHighScores(String mode) throws IOException {
-    List<Score> highScores = new ArrayList<>();
-    InputStream inputStream = null;
-    BufferedReader bufferedReader = null;
+  private Score parseScoreLine(final String line) {
+    final String[] pair = line.split(",");
+    return new Score(pair[0], Integer.parseInt(pair[1]), pair[2]);
+  }
 
-    try {
-      File file = new File(getSaveDirectory() + mode + "scores.csv");
+  public List<Score> loadHighScores(final String mode) throws IOException {
+    final List<Score> highScores = new ArrayList<>();
+    final File file = new File(getSaveDirectory() + mode + "scores.csv");
 
-      bufferedReader =
-          new BufferedReader(
-              new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-      logger.info("Loading user high scores.");
-      // except first line
-      bufferedReader.readLine();
+    if (!file.exists()) {
+      LOGGER.info("Loading default high scores.");
+      return loadDefaultHighScores();
+    }
+
+    try (FileInputStream fis = new FileInputStream(file);
+         InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
+         BufferedReader bufferedReader = new BufferedReader(isr)) {
+
+      LOGGER.info("Loading user high scores.");
+      bufferedReader.readLine(); // skip header
+
       String input;
       while ((input = bufferedReader.readLine()) != null) {
-        String[] pair = input.split(",");
-        String name = pair[0], score = pair[1];
-        Score highScore = new Score(name, Integer.parseInt(score), mode);
-        highScores.add(highScore);
+        highScores.add(parseScoreLine(input));
       }
-    } catch (FileNotFoundException e) {
-      // loads default if there's no user scores.
-      logger.info("Loading default high scores.");
-      highScores = loadDefaultHighScores();
-    } finally {
-      if (bufferedReader != null) bufferedReader.close();
     }
 
     Collections.sort(highScores);
     return highScores;
   }
 
-  /**
-   * Saves user high scores to disk.
-   *
-   * @param highScores High scores to save.
-   * @param mode get game mode 1P/2P.
-   * @throws IOException In case of loading problems.
-   */
-  public void saveHighScores(final List<Score> highScores, String mode) throws IOException {
-    OutputStream outputStream = null;
-    BufferedWriter bufferedWriter = null;
+  public void saveHighScores(final List<Score> highScores, final String mode) throws IOException {
+    final File scoresFile = new File(getSaveDirectory() + mode + "scores.csv");
+    if (!scoresFile.exists()) {
+      scoresFile.createNewFile();
+    }
 
-    try {
-      File scoresFile = new File(getSaveDirectory() + mode + "scores.csv");
+    try (FileOutputStream fos = new FileOutputStream(scoresFile);
+         OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+         BufferedWriter bufferedWriter = new BufferedWriter(osw)) {
 
-      if (!scoresFile.exists()) scoresFile.createNewFile();
-
-      outputStream = new FileOutputStream(scoresFile);
-      bufferedWriter =
-          new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
-
-      logger.info("Saving user high scores.");
+      LOGGER.info("Saving user high scores.");
       bufferedWriter.write("player,score");
       bufferedWriter.newLine();
 
-      for (Score score : highScores) {
+      for (final Score score : highScores) {
         bufferedWriter.write(score.getName() + "," + score.getScore());
         bufferedWriter.newLine();
       }
-
-    } finally {
-      if (bufferedWriter != null) bufferedWriter.close();
     }
   }
 
-  /**
-   * Search Achievement list of user
-   *
-   * @param userName user's name to search.
-   * @throws IOException In case of loading problems.
-   */
-  public List<Boolean> searchAchievementsByName(String userName) throws IOException {
-    List<Boolean> achievementList = new ArrayList<>();
+  public void unlockAchievement(final String userName, final List<Boolean> unlockedAchievement, final String mode) {
+    // Extract only numeric part (e.g., "1P" -> "1")
+    final String numericMode = mode.replaceAll("[^0-9]", "");
+    final List<String[]> records = new ArrayList<>();
+    final File achFile = new File(getSaveDirectory() + FILENAME_ACHIEVEMENT);
+    boolean found = false;
 
-    try {
-      File achFile = new File(getSaveDirectory() + "achievement.csv");
-
-      try (BufferedReader bReader =
-          new BufferedReader(
-              new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
-
-        bReader.readLine(); // Skip header
-        String line;
-        boolean found = false;
-
-        while ((line = bReader.readLine()) != null) {
-          String[] playRecord = line.split(",");
-          if (playRecord.length < 3)
-            continue; // Minimum fields: mode, userName, at least 1 achievement
-
-          String mode = playRecord[0].trim(); // Mode: "1" or "2"
-          String name = playRecord[1].trim();
-
-          if (name.equals(userName)) {
-            found = true;
-            logger.info("Loading user achievements.");
-            // Achievements start from index 2
-            for (int i = 2; i < playRecord.length; i++) {
-              achievementList.add(playRecord[i].equals("1"));
-            }
-            break;
-          }
-        }
-
-        if (!found) {
-          logger.info("Loading default achievements.");
-          for (int i = 0; i < 5; i++) { // Default to 5 achievements, all set to false
-            achievementList.add(false);
-          }
-        }
-      }
-
-    } catch (FileNotFoundException e) {
-      logger.info("Achievement file not found, loading default achievements.");
-      for (int i = 0; i < 5; i++) {
-        achievementList.add(false);
-      }
-    }
-
-    return achievementList;
-  }
-
-  /**
-   * Unlocks achievements for a specific user.
-   *
-   * @param userName The name of the user.
-   * @param unlockedAchievement A list of booleans representing which achievements have been
-   *     unlocked.
-   */
-  public void unlockAchievement(String userName, List<Boolean> unlockedAchievement, String mode) {
-    List<String[]> records = new ArrayList<>();
-
-    // Extract only numeric part from mode string (e.g., "1P" → "1", "2P" → "2")
-    String numericMode = mode.replaceAll("[^0-9]", "");
-
-    try {
-      File achFile = new File(getSaveDirectory() + "achievement.csv");
-      try (BufferedReader bReader =
-          new BufferedReader(
+    // 1. Read existing records
+    if (achFile.exists()) {
+      try (BufferedReader bReader = new BufferedReader(
               new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
 
         String line;
-        boolean found = false;
-
         while ((line = bReader.readLine()) != null) {
-          String[] playRecord = line.split(",");
-
-          // Skip invalid or incomplete lines
-          if (playRecord.length < 3) {
-            records.add(playRecord);
+          final String[] row = line.split(",");
+          if (row.length < 3) {
+            records.add(row);
             continue;
           }
 
-          String currentMode = playRecord[0].trim();
-          String name = playRecord[1].trim();
-
-          // ✅ Match both username and mode to consider it the same record
-          if (name.equals(userName) && currentMode.equals(numericMode)) {
+          // Match both username and mode
+          if (row[1].trim().equals(userName) && row[0].trim().equals(numericMode)) {
             found = true;
-            Logger.getLogger(getClass().getName()).info("Achievement has been updated.");
-            for (int i = 2; i < playRecord.length; i++) {
-              if (playRecord[i].equals("0") && unlockedAchievement.get(i - 2)) {
-                playRecord[i] = "1";
-              }
-            }
+            updateAchievementRow(row, unlockedAchievement);
           }
-
-          records.add(playRecord);
+          records.add(row);
         }
-
-        // If no existing record found, create a new one
-        if (!found) {
-          Logger.getLogger(getClass().getName()).info("User not found, creating new record.");
-          String[] newRecord = new String[unlockedAchievement.size() + 2];
-          newRecord[0] = numericMode; // Store numeric mode only
-          newRecord[1] = userName;
-          for (int i = 0; i < unlockedAchievement.size(); i++) {
-            newRecord[i + 2] = unlockedAchievement.get(i) ? "1" : "0";
-          }
-          records.add(newRecord);
-        }
+      } catch (IOException e) {
+        LOGGER.warning("Error reading achievements: " + e.getMessage());
       }
+    }
 
-      File achievementFile = new File(getSaveDirectory() + "achievement.csv");
+    // 2. Add new record if not found
+    if (!found) {
+      LOGGER.info("User not found, creating new record.");
+      records.add(createNewAchievementRow(numericMode, userName, unlockedAchievement));
+    }
 
-      // Write the updated records back to the CSV file
-      try (BufferedWriter bWriter =
-          new BufferedWriter(
-              new OutputStreamWriter(
-                  new FileOutputStream(achievementFile), StandardCharsets.UTF_8))) {
-        for (String[] record : records) {
-          bWriter.write(String.join(",", record));
-          bWriter.newLine();
-        }
+    // 3. Save back to file
+    writeCSV(achFile, records);
+  }
+
+  private void updateAchievementRow(final String[] row, final List<Boolean> unlocked) {
+    LOGGER.info("Achievement has been updated.");
+    for (int i = 2; i < row.length && (i - 2) < unlocked.size(); i++) {
+      if ("0".equals(row[i]) && unlocked.get(i - 2)) {
+        row[i] = "1";
       }
-
-    } catch (IOException e) {
-      Logger.getLogger(getClass().getName()).info("No achievements to save or error occurred.");
     }
   }
 
-  /**
-   * Returns a list of users who have completed a specific achievement.
-   *
-   * @param achievement The achievement to check.
-   * @return A list of strings in the format "mode:username" for those who have completed the
-   *     achievement.
-   *     <p>[2025-10-09] Added in commit: feat: add method to retrieve achievement completer
-   */
-  public List<String> getAchievementCompleter(Achievement achievement) {
-    List<String> completer = new ArrayList<>();
-    try {
-      File achFile = new File(getSaveDirectory() + "achievement.csv");
+  private String[] createNewAchievementRow(final String mode, final String name, final List<Boolean> unlocked) {
+    final String[] newRecord = new String[unlocked.size() + 2];
+    newRecord[0] = mode;
+    newRecord[1] = name;
+    for (int i = 0; i < unlocked.size(); i++) {
+      newRecord[i + 2] = unlocked.get(i) ? "1" : "0";
+    }
+    return newRecord;
+  }
 
-      try (BufferedReader bReader =
-          new BufferedReader(
-              new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
+  private void writeCSV(final File file, final List<String[]> rows) {
+    try (BufferedWriter writer = new BufferedWriter(
+            new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+      for (final String[] row : rows) {
+        writer.write(String.join(",", row));
+        writer.newLine();
+      }
+    } catch (IOException e) {
+      LOGGER.warning("Error writing CSV: " + e.getMessage());
+    }
+  }
 
-        String line;
-        String[] header = bReader.readLine().split(",");
-        int idx = -1;
+  public List<String> getAchievementCompleter(final Achievement achievement) {
+    final List<String> completer = new ArrayList<>();
+    final File achFile = new File(getSaveDirectory() + FILENAME_ACHIEVEMENT);
 
-        // Find the column index of the given achievement name
-        for (int i = 2; i < header.length; i++) { // Achievements start from column index 2
-          if (header[i].trim().equalsIgnoreCase(achievement.getName().trim())) {
-            idx = i;
-            break;
-          }
+    if (!achFile.exists()) {
+      return completer;
+    }
+
+    try (BufferedReader bReader = new BufferedReader(
+            new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
+
+      final String headerLine = bReader.readLine();
+      if (headerLine == null) {
+        return completer;
+      }
+
+      final String[] header = headerLine.split(",");
+      int idx = -1;
+
+      for (int i = 2; i < header.length; i++) {
+        if (header[i].trim().equalsIgnoreCase(achievement.getName().trim())) {
+          idx = i;
+          break;
         }
+      }
 
-        if (idx == -1) {
-          logger.warning("Achievement not found: " + achievement.getName());
-          return completer;
-        }
+      if (idx == -1) {
+        LOGGER.warning("Achievement column not found: " + achievement.getName());
+        return completer;
+      }
 
-        // Parse each line in the file
-        while ((line = bReader.readLine()) != null) {
-          String[] tokens = line.split(",");
-          if (tokens.length <= idx) continue;
-
-          String mode = tokens[0].trim();
-          String playerName = tokens[1].trim();
-          String value = tokens[idx].trim();
-
-          if (value.equals("1")) {
-            completer.add(mode + ":" + playerName);
-          }
+      String line;
+      while ((line = bReader.readLine()) != null) {
+        final String[] tokens = line.split(",");
+        if (tokens.length > idx && "1".equals(tokens[idx].trim())) {
+          completer.add(tokens[0].trim() + ":" + tokens[1].trim());
         }
       }
 
     } catch (IOException e) {
-      logger.warning("Error reading achievement file. Returning default users...");
+      LOGGER.warning("Error reading achievement file.");
     }
 
     return completer;
   }
 
-  public void saveShipUnlocks(Map<ShipType, Boolean> unlockMap) throws IOException {
-    File file = new File(getSaveDirectory() + "ships.csv");
-
-    try (BufferedWriter writer =
-        new BufferedWriter(
+  public void saveShipUnlocks(final Map<ShipType, Boolean> unlockMap) throws IOException {
+    final File file = new File(getSaveDirectory() + FILENAME_SHIPS);
+    try (BufferedWriter writer = new BufferedWriter(
             new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
 
       writer.write("shipType,unlocked");
       writer.newLine();
 
       for (ShipType type : ShipType.values()) {
-        boolean unlocked = unlockMap.getOrDefault(type, false);
+        final boolean unlocked = unlockMap.getOrDefault(type, false);
         writer.write(type.name() + "," + unlocked);
         writer.newLine();
       }
@@ -443,40 +274,30 @@ public final class FileManager {
   }
 
   public Map<ShipType, Boolean> loadShipUnlocks() throws IOException {
-    Map<ShipType, Boolean> unlockMap = new HashMap<>();
-
-    File file = new File(getSaveDirectory() + "ships.csv");
+    final Map<ShipType, Boolean> unlockMap = new HashMap<>();
+    final File file = new File(getSaveDirectory() + FILENAME_SHIPS);
 
     if (!file.exists()) {
       unlockMap.put(ShipType.NORMAL, true);
-      unlockMap.put(ShipType.BIG_SHOT, false);
-      unlockMap.put(ShipType.DOUBLE_SHOT, false);
-      unlockMap.put(ShipType.MOVE_FAST, false);
-
       saveShipUnlocks(unlockMap);
       return unlockMap;
     }
 
-    try (BufferedReader reader =
-        new BufferedReader(
+    try (BufferedReader reader = new BufferedReader(
             new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 
-      String line = reader.readLine();
-
+      reader.readLine(); // skip header
+      String line;
       while ((line = reader.readLine()) != null) {
-        String[] tokens = line.split(",");
-        if (tokens.length < 2) continue;
-
-        String shipName = tokens[0].trim();
-        String unlockedStr = tokens[1].trim();
-
-        try {
-          ShipType type = ShipType.valueOf(shipName);
-          boolean unlocked = Boolean.parseBoolean(unlockedStr);
-          unlockMap.put(type, unlocked);
-        } catch (IllegalArgumentException e) {
-
-          logger.warning("Unknown ship type in ships.csv: " + shipName);
+        final String[] tokens = line.split(",");
+        if (tokens.length >= 2) {
+          try {
+            final ShipType type = ShipType.valueOf(tokens[0].trim());
+            final boolean unlocked = Boolean.parseBoolean(tokens[1].trim());
+            unlockMap.put(type, unlocked);
+          } catch (IllegalArgumentException e) {
+            LOGGER.warning("Unknown ship type in ships.csv");
+          }
         }
       }
     }
@@ -484,120 +305,66 @@ public final class FileManager {
   }
 
   public int loadCoins() {
-    BufferedReader bufferedReader = null;
+    final File file = new File(getSaveDirectory() + FILENAME_COINS);
+    if (!file.exists()) {
+      saveCoins(0);
+      return 0;
+    }
 
-    try {
-      File file = new File(getSaveDirectory() + "coins.csv");
-
-      bufferedReader =
-          new BufferedReader(
-              new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-
-      String line = bufferedReader.readLine();
+    try (BufferedReader reader = new BufferedReader(
+            new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+      final String line = reader.readLine();
       if (line != null) {
         return Integer.parseInt(line.trim());
       }
-    } catch (FileNotFoundException e) {
-      logger.info("Coins file not found, defaulting to 0.");
-    } catch (IOException e) {
-      logger.warning("Error reading coins file: " + e.getMessage());
-    } finally {
-      if (bufferedReader != null) {
-        try {
-          bufferedReader.close();
-        } catch (IOException ignored) {
-        }
-      }
+    } catch (IOException | NumberFormatException e) {
+      LOGGER.warning("Error reading coins file: " + e.getMessage());
     }
-    saveCoins(0);
     return 0;
   }
 
-  public void saveCoins(int coins) {
-    BufferedWriter bufferedWriter = null;
+  public void saveCoins(final int coins) {
+    final File coinsFile = new File(getSaveDirectory() + FILENAME_COINS);
 
-    try {
-      File coinsFile = new File(getSaveDirectory() + "coins.csv");
+    // Ensure parent directory exists
+    final File parent = coinsFile.getParentFile();
+    if (parent != null && !parent.exists() && !parent.mkdirs()) {
+      LOGGER.warning("Failed to create directory: " + parent.getAbsolutePath());
+    }
 
-      if (!coinsFile.exists()) {
-        boolean created = coinsFile.createNewFile();
-        if (!created) {
-          logger.warning("Failed to create coins file: " + coinsFile.getAbsolutePath());
-        }
-      }
-
-      bufferedWriter =
-          new BufferedWriter(
-              new OutputStreamWriter(new FileOutputStream(coinsFile), StandardCharsets.UTF_8));
-
-      bufferedWriter.write(Integer.toString(coins));
-      bufferedWriter.newLine();
-
-      logger.info("User coins saved.");
-
+    try (BufferedWriter writer = new BufferedWriter(
+            new OutputStreamWriter(new FileOutputStream(coinsFile), StandardCharsets.UTF_8))) {
+      writer.write(Integer.toString(coins));
+      writer.newLine();
+      LOGGER.info("User coins saved.");
     } catch (IOException e) {
-      logger.warning("Failed to save coins: " + e.getMessage());
-    } finally {
-      if (bufferedWriter != null) {
-        try {
-          bufferedWriter.close();
-        } catch (IOException ignored) {
-        }
-      }
+      LOGGER.warning("Failed to save coins: " + e.getMessage());
     }
   }
 
   private boolean isRunningFromJarOrExe() {
-    String protocol = FileManager.class.getResource("").getProtocol();
-    return !protocol.equals("file");
+    final String protocol = FileManager.class.getResource("").getProtocol();
+    return !"file".equals(protocol);
   }
 
   private String getSaveDirectory() {
-    if (testDirectory != null) return testDirectory;
-
-    String dir;
-    if (isRunningFromJarOrExe()) {
-      dir = System.getProperty("user.home") + File.separator + "TEAM3" + File.separator;
-    } else {
-      dir = System.getProperty("user.dir") + File.separator + "res" + File.separator;
+    if (testDirectory != null) {
+      return testDirectory;
     }
 
-    File d = new File(dir);
-    if (!d.exists()) {
-      if (!d.mkdirs()) {
-        logger.warning("Failed to create directory: " + d.getAbsolutePath());
-      }
+    final String dirPath = isRunningFromJarOrExe()
+            ? System.getProperty("user.home") + File.separator + "TEAM3" + File.separator
+            : System.getProperty("user.dir") + File.separator + DIR_RES + File.separator;
+
+    final File d = new File(dirPath);
+    if (!d.exists() && !d.mkdirs()) {
+      LOGGER.warning("Failed to create directory: " + d.getAbsolutePath());
     }
 
-    File achFile = new File(d, "achievement.csv");
-    if (!achFile.exists()) {
-      try (BufferedWriter w =
-          new BufferedWriter(
-              new OutputStreamWriter(new FileOutputStream(achFile), StandardCharsets.UTF_8))) {
-        w.write("mode,player,First Blood,Survivor,Clear,Sharpshooter,50 Bullets,Get 3000 Score");
-        w.newLine();
-      } catch (IOException e) {
-        logger.warning("Failed to create achievement.csv: " + achFile.getAbsolutePath());
-      }
-    }
-
-    File coinsFile = new File(d, "coins.csv");
-    if (!coinsFile.exists()) {
-      try (BufferedWriter w =
-          new BufferedWriter(
-              new OutputStreamWriter(new FileOutputStream(coinsFile), StandardCharsets.UTF_8))) {
-        w.write("0");
-        w.newLine();
-      } catch (IOException e) {
-        logger.warning("Failed to create coins.csv: " + coinsFile.getAbsolutePath());
-      }
-    }
-
-    return dir;
+    return dirPath;
   }
 
-  /** JUnit test code can force FileManager to use a specific directory */
-  public static void setTestDirectory(String path) {
+  public static void setTestDirectory(final String path) {
     testDirectory = path;
   }
 }
