@@ -148,7 +148,8 @@ public final class ShipSelectionInteraction {
     }
 
     if (!input.unlockManager.isSelectedShipUnlocked(state.selectedIndex)) { // NOPMD - LawOfDemeter
-      input.unlockManager.tryUnlock(state.selectedIndex); // NOPMD - LawOfDemeter
+      input.unlockManager.tryUnlock(state.selectedIndex);
+      CoinManager.load(); // NOPMD - LawOfDemeter
       return ShipSelectionResult.noChange(
           state.selectedIndex, state.backSelected, state.hoverIndex);
     }
