@@ -113,7 +113,7 @@ public class InputHandler { // NOPMD
     } else if (inputManager.isKeyDown(KeyEvent.VK_RIGHT)) {
       SoundControl.changeIngameVolume(currentType, 1);
       applyMenuAction();
-    } else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
+    } else if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
       SoundControl.toggleIngameMute(currentType);
       applyMenuAction();
     }
