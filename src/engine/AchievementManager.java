@@ -157,7 +157,7 @@ public class AchievementManager {//NOPMD
     if (achFile.exists()) {
       try (BufferedReader bReader = new BufferedReader(
               new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {//NOPMD
-        String line= bReader.readLine();
+        final String line= bReader.readLine();
         while (line != null) {
           final String[] row = line.split(",");
           if (row.length < 3) {
