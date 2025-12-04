@@ -14,7 +14,7 @@ import entity.ItemPool;
  */
 public final class ItemManager {
 
-    private static ItemManager instance;
+    private static final ItemManager instance = new ItemManager();
 
     /** Debug logger init */
     private static final Logger LOGGER = Core.getLogger();
@@ -65,9 +65,6 @@ public final class ItemManager {
     }
 
     public static ItemManager getInstance() {
-        if (instance == null) {
-            instance = new ItemManager();
-        }
         return instance;
     }
 

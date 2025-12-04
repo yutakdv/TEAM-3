@@ -67,7 +67,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
   }
 
   private void processInitialChanges(final GameSettings gameSettings) {
-    List<EnemyShip> shipsToDestroy = new ArrayList<>();
+    final List<EnemyShip> shipsToDestroy = new ArrayList<>();
     for (final GameSettings.ChangeData changeData : gameSettings.getChangeDataList()) {
       // Grid에게 특정 위치의 배를 달라고 요청
       final EnemyShip ship = this.grid.getShip(changeData.x, changeData.y);
@@ -81,7 +81,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
       }
     }
 
-    for (EnemyShip ship : shipsToDestroy) {
+    for (final EnemyShip ship : shipsToDestroy) {
       destroy(ship);
     }
   }

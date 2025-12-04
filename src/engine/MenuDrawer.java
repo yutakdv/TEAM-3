@@ -13,7 +13,7 @@ import screen.Screen;
 
 /** Draws title, main menu, play menu, high scores, achievements, and ship selection. */
 @SuppressWarnings({"PMD.LawOfDemeter"})
-public final class MenuDrawer {
+public final class MenuDrawer { // NOPMD
 
   private static final String BACK_LABEL = "< Back";
   private static final int MENU_HITBOX_OFFSET = 20;
@@ -134,7 +134,7 @@ public final class MenuDrawer {
   }
 
   /** Draws achievement menu & completer list. */
-  public void drawAchievementMenu(
+  public void drawAchievementMenu( // NOPMD
       final Screen screen, final Achievement achievement, final List<String> completer) {
     final String achievementsTitle = "Achievements";
     final String instructionsString = "Press ESC to return";
