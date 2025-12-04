@@ -61,8 +61,8 @@ public class EnemyShipGrid implements Iterable<EnemyShip> {
     }
 
     // 초기 치수 설정
-    if (!enemyShips.isEmpty() && !enemyShips.get(0).isEmpty()) {
-      final EnemyShip firstShip = enemyShips.get(0).get(0);
+    if (!enemyShips.isEmpty() && !enemyShips.getFirst().isEmpty()) {
+      final EnemyShip firstShip = enemyShips.getFirst().getFirst();
       this.shipWidth = firstShip.getWidth();
       this.shipHeight = firstShip.getHeight();
       updateDimensions(nShipsWide);
@@ -70,9 +70,8 @@ public class EnemyShipGrid implements Iterable<EnemyShip> {
   }
 
   /**
-   * Cleans up empty columns and recalculates dimensions.
-   *
-   * @return The new top-left [x, y] position if the grid shifted, otherwise logic handles it.
+   * Cleans up empty columns and recalculates dimensions. The new top-left [x, y] position if the
+   * grid shifted, otherwise logic handles it.
    */
   public void cleanUp() {
     // 1. 빈 컬럼 제거
@@ -87,14 +86,12 @@ public class EnemyShipGrid implements Iterable<EnemyShip> {
 
     // 3. 높이 및 너비 재계산
     int maxColumnHeight = 0;
-    final int leftMost = enemyShips.get(0).get(0).getPositionX();
-    final int rightMost = enemyShips.get(enemyShips.size() - 1).get(0).getPositionX();
+    final int leftMost = enemyShips.getFirst().getFirst().getPositionX();
+    final int rightMost = enemyShips.getLast().getFirst().getPositionX();
 
     for (final List<EnemyShip> column : this.enemyShips) {
       final int colHeight =
-          column.get(column.size() - 1).getPositionY()
-              - column.get(0).getPositionY()
-              + this.shipHeight;
+          column.getLast().getPositionY() - column.getFirst().getPositionY() + this.shipHeight;
       maxColumnHeight = Math.max(maxColumnHeight, colHeight);
     }
 
@@ -154,17 +151,17 @@ public class EnemyShipGrid implements Iterable<EnemyShip> {
   }
 
   public int getMinX() {
-    if (enemyShips.isEmpty() || enemyShips.get(0).isEmpty()) {
+    if (enemyShips.isEmpty() || enemyShips.getFirst().isEmpty()) {
       return 0;
     }
-    return enemyShips.get(0).get(0).getPositionX();
+    return enemyShips.getFirst().getFirst().getPositionX();
   }
 
   public int getMinY() {
-    if (enemyShips.isEmpty() || enemyShips.get(0).isEmpty()) {
+    if (enemyShips.isEmpty() || enemyShips.getFirst().isEmpty()) {
       return 0;
     }
-    return enemyShips.get(0).get(0).getPositionY();
+    return enemyShips.getFirst().getFirst().getPositionY();
   }
 
   @Override

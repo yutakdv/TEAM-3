@@ -21,13 +21,6 @@ public final class CoinManager {
     }
   }
 
-  public static void save() {
-    Core.getFileManager().saveCoins(coins); // NOPMD
-    if (logger.isLoggable(Level.INFO)) {
-      logger.info("[CoinManager] Saved coins: " + coins);
-    }
-  }
-
   // 2P mode: per-player coin tracking
   public static int getCoins() {
     return coins;

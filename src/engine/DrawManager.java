@@ -30,9 +30,6 @@ public final class DrawManager {
   /** Current frame. */
   private Frame frame;
 
-  /** FileManager instance. */
-  private final FileManager fileManager; // NOPMD - used across methods
-
   /** Application logger. */
   private final Logger logger;
 
@@ -61,8 +58,6 @@ public final class DrawManager {
   private final MenuDrawer menuDrawer = new MenuDrawer(this);
   private final SettingsDrawer settingsDrawer = new SettingsDrawer(this);
 
-  public static final String FOUR_DIGIT_FORMAT = "%04d";
-
   /** Sprite types mapped to their images. */
   private Map<SpriteType, boolean[][]> spriteMap;
 
@@ -71,9 +66,9 @@ public final class DrawManager {
   private final Random explosionRandom = new Random();
 
   /** Stars background animations for both game and main menu Star density specified as argument. */
-  BasicGameSpace basicGameSpace = new BasicGameSpace(100);
+  final BasicGameSpace basicGameSpace = new BasicGameSpace(100);
 
-  MenuSpace menuSpace = new MenuSpace(50);
+  final MenuSpace menuSpace = new MenuSpace(50);
   int explosion_size = 2;
 
   /** Sprite types. */
@@ -121,7 +116,9 @@ public final class DrawManager {
 
   /** Private constructor. */
   private DrawManager() {
-    fileManager = Core.getFileManager();
+    /* FileManager instance. */
+    // NOPMD - used across methods
+    final FileManager fileManager = Core.getFileManager();
     logger = Core.getLogger();
     logger.info("Started loading resources.");
 
@@ -212,12 +209,8 @@ public final class DrawManager {
     this.fontBigMetrics = this.backBufferGraphics.getFontMetrics(this.fontBig);
   }
 
-  /**
-   * Draws the completed drawing on screen.
-   *
-   * @param screen Screen to draw on.
-   */
-  public void completeDrawing(final Screen screen) {
+  /** Draws the completed drawing on screen. */
+  public void completeDrawing() {
     this.graphics.drawImage(
         this.backBuffer, this.frame.getInsets().left, this.frame.getInsets().top, this.frame);
   }
@@ -239,29 +232,7 @@ public final class DrawManager {
       final Entity entity, final int positionX, final int positionY, final Color override) {
     final boolean[][] image = spriteMap.get(entity.getSpriteType());
 
-    Color color = (override != null) ? override : entity.getColor();
-
-    if (override == null) {
-      // Color-code by player when applicable
-      if (entity instanceof Ship) {
-        final Ship ship = (Ship) entity;
-        final int pid = ship.getPlayerId(); // NOPMD - LawOfDemeter
-        if (pid == 1) {
-          color = Color.BLUE;
-        } else if (pid == 2) {
-          color = Color.RED;
-        }
-      } else if (entity instanceof Bullet) {
-        final Bullet bullet = (Bullet) entity;
-        final int pid = bullet.getPlayerId(); // NOPMD - LawOfDemeter
-        if (pid == 1) {
-          color = Color.CYAN;
-        } else if (pid == 2) {
-          color = Color.MAGENTA;
-        }
-        // enemy bullets keep default color
-      }
-    }
+    final Color color = getColor(entity, override);
 
     // --- Scaling logic ---
     final int spriteWidth = image.length;
@@ -286,6 +257,31 @@ public final class DrawManager {
         }
       }
     }
+  }
+
+  private static Color getColor(final Entity entity, final Color override) {
+    Color color = (override != null) ? override : entity.getColor();
+
+    if (override == null) {
+      // Color-code by player when applicable
+      if (entity instanceof Ship ship) {
+        final int pid = ship.getPlayerId(); // NOPMD - LawOfDemeter
+        if (pid == 1) {
+          color = Color.BLUE;
+        } else if (pid == 2) {
+          color = Color.RED;
+        }
+      } else if (entity instanceof Bullet bullet) {
+        final int pid = bullet.getPlayerId(); // NOPMD - LawOfDemeter
+        if (pid == 1) {
+          color = Color.CYAN;
+        } else if (pid == 2) {
+          color = Color.MAGENTA;
+        }
+        // enemy bullets keep default color
+      }
+    }
+    return color;
   }
 
   /** Main-menu starfield hover effect. */
@@ -343,24 +339,7 @@ public final class DrawManager {
             Math.max(0, Math.min(255, p.color.getAlpha() - explosionRandom.nextInt(50)));
 
         final float[] dist = {0.0f, 0.3f, 0.7f, 1.0f};
-        Color[] colors;
-        if (e.isEnemy()) {
-          colors =
-              new Color[] {
-                new Color(255, 255, 250, flickerAlpha),
-                new Color(255, 250, 180, flickerAlpha),
-                new Color(255, 200, 220, flickerAlpha / 2),
-                new Color(0, 0, 0, 0)
-              };
-        } else {
-          colors =
-              new Color[] {
-                new Color(255, 255, 180, flickerAlpha),
-                new Color(255, 200, 0, flickerAlpha),
-                new Color(255, 80, 0, flickerAlpha / 2),
-                new Color(0, 0, 0, 0)
-              };
-        }
+        final Color[] colors = getColors(e, flickerAlpha);
 
         final RadialGradientPaint paint =
             new RadialGradientPaint(new Point((int) p.x, (int) p.y), baseSize, dist, colors);
@@ -376,6 +355,28 @@ public final class DrawManager {
             (int) (p.x - halfSize + offsetX), (int) (p.y - halfSize + offsetY), baseSize, baseSize);
       }
     }
+  }
+
+  private static Color[] getColors(final Explosion e, final int flickerAlpha) {
+    Color[] colors;
+    if (e.isEnemy()) {
+      colors =
+          new Color[] {
+            new Color(255, 255, 250, flickerAlpha),
+            new Color(255, 250, 180, flickerAlpha),
+            new Color(255, 200, 220, flickerAlpha / 2),
+            new Color(0, 0, 0, 0)
+          };
+    } else {
+      colors =
+          new Color[] {
+            new Color(255, 255, 180, flickerAlpha),
+            new Color(255, 200, 0, flickerAlpha),
+            new Color(255, 80, 0, flickerAlpha / 2),
+            new Color(0, 0, 0, 0)
+          };
+    }
+    return colors;
   }
 
   /** Draws the main menu stars background animation */
@@ -460,38 +461,6 @@ public final class DrawManager {
   }
 
   /**
-   * For debugging purposes, draws the canvas borders.
-   *
-   * @param screen Screen to draw in.
-   */
-  @SuppressWarnings("unused")
-  private void drawBorders(final Screen screen) {
-    backBufferGraphics.setColor(Color.GREEN);
-    backBufferGraphics.drawLine(0, 0, screen.getWidth() - 1, 0);
-    backBufferGraphics.drawLine(0, 0, 0, screen.getHeight() - 1);
-    backBufferGraphics.drawLine(
-        screen.getWidth() - 1, 0, screen.getWidth() - 1, screen.getHeight() - 1);
-    backBufferGraphics.drawLine(
-        0, screen.getHeight() - 1, screen.getWidth() - 1, screen.getHeight() - 1);
-  }
-
-  /**
-   * For debugging purposes, draws a grid over the canvas.
-   *
-   * @param screen Screen to draw in.
-   */
-  @SuppressWarnings("unused")
-  private void drawGrid(final Screen screen) {
-    backBufferGraphics.setColor(Color.DARK_GRAY);
-    for (int i = 0; i < screen.getHeight() - 1; i += 2) {
-      backBufferGraphics.drawLine(0, i, screen.getWidth() - 1, i);
-    }
-    for (int j = 0; j < screen.getWidth() - 1; j += 2) {
-      backBufferGraphics.drawLine(j, 0, j, screen.getHeight() - 1);
-    }
-  }
-
-  /**
    * Draws a centered string on regular font.
    *
    * @param screen Screen to draw on.
@@ -503,18 +472,6 @@ public final class DrawManager {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.drawString(
         string, screen.getWidth() / 2 - fontRegularMetrics.stringWidth(string) / 2, height);
-  }
-
-  /**
-   * Draws a centered string on regular font at a specific coordinate.
-   *
-   * @param string String to draw.
-   * @param x X coordinate to center the string on.
-   * @param y Y coordinate of the drawing.
-   */
-  public void drawCenteredRegularString(final String string, final int x, final int y) {
-    backBufferGraphics.setFont(fontRegular);
-    backBufferGraphics.drawString(string, x - fontRegularMetrics.stringWidth(string) / 2, y);
   }
 
   /**

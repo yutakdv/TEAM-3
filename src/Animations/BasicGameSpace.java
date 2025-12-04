@@ -78,9 +78,9 @@ public class BasicGameSpace {
 
   // Star format
   private static class Star {
-    int x;
+    final int x;
     int y;
-    int speed;
+    final int speed;
 
     Star(final int x, final int y, final int speed) {
       this.x = x;

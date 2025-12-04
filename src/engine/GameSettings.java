@@ -40,16 +40,16 @@ public class GameSettings {
   // 추가 사항
   public static class ChangeData { // NOPMD - Data class design is intentional
     // 바꿀 적 위치
-    public int x;
-    public int y;
+    public final int x;
+    public final int y;
 
     // 적 체력
-    public int hp;
+    public final int hp;
     // 적 색상
     public Color color;
 
     // 보상 배율
-    public int multiplier;
+    public final int multiplier;
 
     public ChangeData(final int x, final int y, final int hp, final int multiplier) {
       this.x = x;
@@ -80,13 +80,13 @@ public class GameSettings {
   }
 
   public static Color hexToColor(final String hex) {
-      String cleanedHex = hex;
+    String cleanedHex = hex;
     if (cleanedHex.startsWith("#")) {
-        cleanedHex = cleanedHex.substring(1);
+      cleanedHex = cleanedHex.substring(1);
     }
     if (cleanedHex.length() > 6) {
       final int alpha = Integer.parseInt(cleanedHex.substring(7), 16);
-        cleanedHex = cleanedHex.substring(0, 6);
+      cleanedHex = cleanedHex.substring(0, 6);
       final int red = Integer.parseInt(cleanedHex.substring(0, 2), 16);
       final int green = Integer.parseInt(cleanedHex.substring(3, 5), 16);
       final int blue = Integer.parseInt(cleanedHex.substring(5), 16);
@@ -128,7 +128,7 @@ public class GameSettings {
         continue;
       }
 
-      final String[] ints = lines.get(0).split(",");
+      final String[] ints = lines.getFirst().split(",");
       final GameSettings settings =
           new GameSettings( // NOPMD - per-row object creation required
               Integer.parseInt(ints[0].trim()),
@@ -136,7 +136,8 @@ public class GameSettings {
               Integer.parseInt(ints[2].trim()),
               Integer.parseInt(ints[3].trim()));
 
-      final List<ChangeData> changeList = new ArrayList<>(); // NOPMD - per-row object creation required
+      final List<ChangeData> changeList =
+          new ArrayList<>(); // NOPMD - per-row object creation required
       for (int i = 1; i < lines.size(); i++) {
         final String[] parts = lines.get(i).split(",");
         final int x = Integer.parseInt(parts[0].trim());
@@ -171,7 +172,8 @@ public class GameSettings {
     GameSettings setting;
 
     try {
-      InputStream in = GameSettings.class.getClassLoader().getResourceAsStream("res/level.csv"); // NOPMD
+      InputStream in = // NOPMD
+          GameSettings.class.getClassLoader().getResourceAsStream("res/level.csv"); // NOPMD
       if (in == null) {
         in = Files.newInputStream(Paths.get("res", "level.csv"));
       }
@@ -200,7 +202,7 @@ public class GameSettings {
       return Collections.emptyList();
     }
     final GameSettings base1 = result.get(result.size() - 2);
-    final GameSettings base2 = result.get(result.size() - 1);
+    final GameSettings base2 = result.getLast();
     final int INCREASE_AMOUNT_SHOOTING_FREQUENCY = 10; // NOPMD - name intentionally descriptive
     final int INCREASE_AMOUNT_SPEED = 1; // NOPMD - name intentionally descriptive
     for (int level = result.size() + 1; level < GameState.INFINITE_LEVEL; level++) {

@@ -11,7 +11,7 @@ import java.util.List;
 public class AchievementScreen extends Screen {
 
   // Removed FileManager dependency
-  AchievementManager achievementManager;
+  final AchievementManager achievementManager;
   private final List<Achievement> achievements;
   private List<String> completer;
   private int currentIdx;
@@ -63,7 +63,7 @@ public class AchievementScreen extends Screen {
     if (inputManager.isMouseClicked()) {
       final int mx = inputManager.getMouseX();
       final int my = inputManager.getMouseY();
-      final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
+      final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox();
 
       if (backBox.contains(mx, my)) {
         this.returnCode = 1;
@@ -91,6 +91,6 @@ public class AchievementScreen extends Screen {
     drawManager.initDrawing(this);
     drawManager.menu().drawAchievementMenu(this, achievements.get(currentIdx), completer);
     handleBackButtonHover();
-    drawManager.completeDrawing(this);
+    drawManager.completeDrawing();
   }
 }

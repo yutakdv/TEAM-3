@@ -6,11 +6,11 @@ import java.util.logging.Logger;
 import javax.sound.sampled.*;
 
 /**
- * Minimal sound manager for short SFX.
- * Refactored to fix PMD issues: Resource leaks, Code Duplication, Generic Exceptions, Log Guards.
+ * Minimal sound manager for short SFX. Refactored to fix PMD issues: Resource leaks, Code
+ * Duplication, Generic Exceptions, Log Guards.
  */
 @SuppressWarnings("PMD.LawOfDemeter")
-public final class SoundManager {//NOPMD
+public final class SoundManager { // NOPMD
 
   private static final Logger LOGGER = Core.getLogger();
   private static Clip loopClip;
@@ -18,13 +18,12 @@ public final class SoundManager {//NOPMD
 
   // PMD: Avoid duplicate literals
   private static final String ERR_MSG_PLAY_FAIL = "Unable to play sound '%s': %s";
-  private static final String ERR_MSG_RES_NOT_FOUND = "Audio file not found in resources or local path: ";
+  private static final String ERR_MSG_RES_NOT_FOUND =
+      "Audio file not found in resources or local path: ";
 
   private SoundManager() {}
 
-  /**
-   * Plays a short WAV from resources folder.
-   */
+  /** Plays a short WAV from resources folder. */
   public static void playeffect(final String resourcePath) {
     // Index 2 is for SFX in SoundControl
     playClip(resourcePath, 2, false);
@@ -35,10 +34,9 @@ public final class SoundManager {//NOPMD
     playClip(resourcePath, 1, true);
   }
 
-  /**
-   * Internal helper to deduplicate play logic and reduce Complexity.
-   */
-  private static void playClip(final String resourcePath, final int volumeIndex, final boolean isIngame) {//NOPMD
+  /** Internal helper to deduplicate play logic and reduce Complexity. */
+  private static void playClip( // NOPMD
+      final String resourcePath, final int volumeIndex, final boolean isIngame) { // NOPMD
     try (AudioInputStream rawStream = openAudioStream(resourcePath)) {
       if (rawStream == null) {
         return;
@@ -46,15 +44,17 @@ public final class SoundManager {//NOPMD
 
       try (AudioInputStream audioStream = toPcmSigned(rawStream)) {
         final DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
-        final Clip clip = (Clip) AudioSystem.getLine(info);//NOPMD
+        final Clip clip = (Clip) AudioSystem.getLine(info); // NOPMD
         clip.open(audioStream);
 
         if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-          final int savedLevel = isIngame
+          final int savedLevel =
+              isIngame
                   ? SoundControl.getIngameVolumeLevel(volumeIndex)
                   : SoundControl.getVolumeLevel(volumeIndex);
 
-          final boolean isMuted = isIngame
+          final boolean isMuted =
+              isIngame
                   ? SoundControl.isIngameMuted(volumeIndex) || savedLevel == 0
                   : SoundControl.isMuted(volumeIndex) || savedLevel == 0;
 
@@ -74,11 +74,13 @@ public final class SoundManager {//NOPMD
         }
 
         // Add listener to close clip after playback
-        clip.addLineListener(event -> {
-          if (event.getType() == LineEvent.Type.STOP || event.getType() == LineEvent.Type.CLOSE) {
-            clip.close();
-          }
-        });
+        clip.addLineListener(
+            event -> {
+              if (event.getType() == LineEvent.Type.STOP
+                  || event.getType() == LineEvent.Type.CLOSE) {
+                clip.close();
+              }
+            });
       }
     } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
       if (LOGGER.isLoggable(Level.INFO)) {
@@ -96,7 +98,7 @@ public final class SoundManager {//NOPMD
         return;
       }
 
-      final AudioInputStream audioStream = toPcmSigned(rawStream);//NOPMD
+      final AudioInputStream audioStream = toPcmSigned(rawStream); // NOPMD
       final DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
 
       loopClip = (Clip) AudioSystem.getLine(info);
@@ -122,7 +124,7 @@ public final class SoundManager {//NOPMD
       }
       if (loopClip != null) {
         loopClip.close();
-        loopClip = null;//NOPMD - this null absoulty need
+        loopClip = null; // NOPMD - this null absoulty need
       }
     }
   }
@@ -131,7 +133,7 @@ public final class SoundManager {//NOPMD
     if (loopClip != null) {
       loopClip.stop();
       loopClip.close();
-      loopClip = null;//NOPMD - this null absoulty need
+      loopClip = null; // NOPMD - this null absoulty need
     }
   }
 
@@ -139,6 +141,7 @@ public final class SoundManager {//NOPMD
     stop();
     stopBackgroundMusic();
   }
+
   public static void ingameBGM(final String musicResourcePath) {
     stop();
     stopBackgroundMusic();
@@ -151,7 +154,7 @@ public final class SoundManager {//NOPMD
         return;
       }
 
-      final AudioInputStream audioStream = toPcmSigned(rawStream);//NOPMD
+      final AudioInputStream audioStream = toPcmSigned(rawStream); // NOPMD
       final DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
 
       backgroundMusicClip = (Clip) AudioSystem.getLine(info);
@@ -162,7 +165,8 @@ public final class SoundManager {//NOPMD
         final int saved = SoundControl.getIngameVolumeLevel(0);
         final boolean muted = SoundControl.isIngameMuted(0) || saved == 0;
 
-        final FloatControl gain = (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
+        final FloatControl gain =
+            (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
         final float volumeDb = muted ? -80.0f : calculateVolumeDb(saved);
 
         gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
@@ -177,27 +181,28 @@ public final class SoundManager {//NOPMD
       if (LOGGER.isLoggable(Level.FINE)) {
         LOGGER.fine(String.format(ERR_MSG_PLAY_FAIL, musicResourcePath, e.getMessage()));
       }
-      backgroundMusicClip = null;//NOPMD - this null absoulty need
+      backgroundMusicClip = null; // NOPMD - this null absoulty need
     }
   }
 
   public static void stopBackgroundMusic() {
-    if (backgroundMusicClip != null) {//NOPMD
+    if (backgroundMusicClip != null) { // NOPMD
       backgroundMusicClip.stop();
       backgroundMusicClip.close();
-      backgroundMusicClip = null;//NOPMD - this null absoulty need
+      backgroundMusicClip = null; // NOPMD - this null absoulty need
     }
   }
 
   private static AudioInputStream openAudioStream(final String resourcePath)
-          throws UnsupportedAudioFileException, IOException {
-    final InputStream in = SoundManager.class.getClassLoader().getResourceAsStream(resourcePath);//NOPMD
-    if (in != null) {//NOPMD
+      throws UnsupportedAudioFileException, IOException {
+    final InputStream in = // NOPMD
+        SoundManager.class.getClassLoader().getResourceAsStream(resourcePath); // NOPMD
+    if (in != null) { // NOPMD
       return AudioSystem.getAudioInputStream(new BufferedInputStream(in));
     }
 
     final File file = new File(System.getProperty("user.dir"), resourcePath);
-    if (file.exists()) {//NOPMD
+    if (file.exists()) { // NOPMD
       return AudioSystem.getAudioInputStream(file);
     }
 
@@ -207,22 +212,21 @@ public final class SoundManager {//NOPMD
     return null;
   }
 
-  private static AudioInputStream toPcmSigned(final AudioInputStream source)
-          throws IOException {
+  private static AudioInputStream toPcmSigned(final AudioInputStream source) {
     final AudioFormat format = source.getFormat();
     if (format.getEncoding().equals(AudioFormat.Encoding.PCM_SIGNED)) {
       return source;
     }
 
     final AudioFormat targetFormat =
-            new AudioFormat(
-                    AudioFormat.Encoding.PCM_SIGNED,
-                    format.getSampleRate(),
-                    16,
-                    format.getChannels(),
-                    format.getChannels() * 2,
-                    format.getSampleRate(),
-                    false);
+        new AudioFormat(
+            AudioFormat.Encoding.PCM_SIGNED,
+            format.getSampleRate(),
+            16,
+            format.getChannels(),
+            format.getChannels() * 2,
+            format.getSampleRate(),
+            false);
     return AudioSystem.getAudioInputStream(targetFormat, source);
   }
 
@@ -236,12 +240,14 @@ public final class SoundManager {//NOPMD
       gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
     }
 
-    if (backgroundMusicClip != null && backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+    if (backgroundMusicClip != null
+        && backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
       final int vol = SoundControl.getIngameVolumeLevel(0);
       final boolean muted = SoundControl.isIngameMuted(0) || vol == 0;
       final float volumeDb = muted ? -80.0f : calculateVolumeDb(vol);
 
-      final FloatControl gain = (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
+      final FloatControl gain =
+          (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
       gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
     }
   }
