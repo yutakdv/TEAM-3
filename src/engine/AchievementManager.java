@@ -2,17 +2,22 @@ package engine;
 
 import entity.EnemyShipFormation;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Manages the list of achievements for a player, including loading from and saving to the
- * FileManager.
+ * Manages the list of achievements for a player, including loading from and saving to disk.
+ * Refactored: Now handles file I/O internally.
  */
 public class AchievementManager {
-  private static final java.util.logging.Logger logger = Core.getLogger();
+  private static final Logger LOGGER = Core.getLogger();
+  private static final String FILENAME_ACHIEVEMENT = "achievement.csv";
 
   private final List<Achievement> achievements;
 
@@ -26,7 +31,6 @@ public class AchievementManager {
     this.achievements = createDefaultAchievements();
   }
 
-  /** Defines the default achievements available in the game. */
   private List<Achievement> createDefaultAchievements() {
     final List<Achievement> list = new ArrayList<>();
     list.add(new Achievement("First Blood", "Defeat your first enemy."));
@@ -39,30 +43,26 @@ public class AchievementManager {
     return list;
   }
 
-  /** Converts the achievements into a boolean list and saves them using FileManager. */
+  // [Refactored] Now calls internal unlockAchievement instead of FileManager
   public void saveToFile(final String userName, final String mode) {
     final List<Boolean> flags = new ArrayList<>();
     for (final Achievement a : achievements) {
       flags.add(a.isUnlocked());
     }
-    // mode 추가
-    final FileManager fm = FileManager.getInstance();
-    fm.unlockAchievement(userName, flags, mode); // NOPMD - LawOfDemeter
+    unlockAchievement(userName, flags, mode);
   }
 
-  /** Returns the current achievement list. */
   public List<Achievement> getAchievements() {
     return achievements;
   }
 
-  /** Unlocks the achievement by name. */
   public void unlock(final String name) {
     for (final Achievement a : achievements) {
-      if (a.getName().equals(name) && !a.isUnlocked()) { // NOPMD - LawOfDemeter
+      if (a.getName().equals(name) && !a.isUnlocked()) {
         a.unlock();
         SoundManager.ingameeffect("sound/achievement.wav");
-        if (logger.isLoggable(java.util.logging.Level.INFO)) {
-          logger.info("Achievement unlocked: " + a);
+        if (LOGGER.isLoggable(Level.INFO)) {
+          LOGGER.info("Achievement unlocked: " + a);
         }
         toastQueue.offer(new Toast(a));
       }
@@ -73,7 +73,7 @@ public class AchievementManager {
     if (activeToast == null || !activeToast.alive()) {
       activeToast = toastQueue.poll();
       if (activeToast != null) {
-        activeToast.ttl.reset(); // NOPMD - LawOfDemeter
+        activeToast.ttl.reset();
       }
     }
   }
@@ -86,14 +86,8 @@ public class AchievementManager {
     return activeList;
   }
 
-  /**
-   * Make sure you have a pop-up on the screen, or you have a pop-up left in the queue.
-   *
-   * @return If there is at least one pop-up left, true, or false
-   */
   public boolean hasPendingToasts() {
-    return (activeToast != null && activeToast.alive()) // NOPMD - UselessParentheses
-        || !toastQueue.isEmpty();
+    return (activeToast != null && activeToast.alive()) || !toastQueue.isEmpty();
   }
 
   private static final class Toast {
@@ -110,10 +104,6 @@ public class AchievementManager {
     }
   }
 
-  /**
-   * Returns the shared instance of AchievementManager. [2025-10-17] Added in commit feat: complete
-   * drawAchievementMenu method in DrawManager.
-   */
   protected static AchievementManager getInstance() {
     if (instance == null) {
       instance = new AchievementManager();
@@ -122,7 +112,7 @@ public class AchievementManager {
   }
 
   public void checkAchievements(
-      GameState state, EnemyShipFormation formation, boolean levelFinished, boolean tookDamage) {
+          GameState state, EnemyShipFormation formation, boolean levelFinished, boolean tookDamage) {
     if (state.getShipsDestroyed() == 1) unlock("First Blood");
     if (state.getBulletsShot() >= 50) unlock("50 Bullets");
     if (state.getScore() >= 3000) unlock("Get 3000 Score");
@@ -130,16 +120,133 @@ public class AchievementManager {
     if (levelFinished && formation.isEmpty() && state.getLevel() == 5) {
       unlock("Clear");
       float p1Acc =
-          state.getBulletsShot(0) > 0
-              ? (float) state.getShipsDestroyed(0) / state.getBulletsShot(0) * 100
-              : 0f;
+              state.getBulletsShot(0) > 0
+                      ? (float) state.getShipsDestroyed(0) / state.getBulletsShot(0) * 100
+                      : 0f;
       float p2Acc =
-          state.getBulletsShot(1) > 0
-              ? (float) state.getShipsDestroyed(1) / state.getBulletsShot(1) * 100
-              : 0f;
+              state.getBulletsShot(1) > 0
+                      ? (float) state.getShipsDestroyed(1) / state.getBulletsShot(1) * 100
+                      : 0f;
 
       if (!tookDamage) unlock("Survivor");
       if (p1Acc >= 80 || p2Acc >= 80) unlock("Sharpshooter");
     }
+  }
+
+  /**
+   * Unlocks achievements for a specific user and saves to file.
+   */
+  public void unlockAchievement(final String userName, final List<Boolean> unlockedAchievement, final String mode) {
+    final String numericMode = mode.replaceAll("[^0-9]", "");
+    final List<String[]> records = new ArrayList<>();
+    final String path = FileManager.getInstance().getSaveDirectory() + FILENAME_ACHIEVEMENT;
+    final File achFile = new File(path);
+    boolean found = false;
+
+    // Read existing
+    if (achFile.exists()) {
+      try (BufferedReader bReader = new BufferedReader(
+              new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
+        String line;
+        while ((line = bReader.readLine()) != null) {
+          final String[] row = line.split(",");
+          if (row.length < 3) {
+            records.add(row);
+            continue;
+          }
+          if (row[1].trim().equals(userName) && row[0].trim().equals(numericMode)) {
+            found = true;
+            updateAchievementRow(row, unlockedAchievement);
+          }
+          records.add(row);
+        }
+      } catch (IOException e) {
+        if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Error reading achievements: " + e.getMessage());
+      }
+    }
+
+    // Create new if not found
+    if (!found) {
+      if (LOGGER.isLoggable(Level.INFO)) LOGGER.info("User not found, creating new record.");
+      records.add(createNewAchievementRow(numericMode, userName, unlockedAchievement));
+    }
+
+    // Write back
+    writeCSV(achFile, records);
+  }
+
+  private void updateAchievementRow(final String[] row, final List<Boolean> unlocked) {
+    if (LOGGER.isLoggable(Level.INFO)) LOGGER.info("Achievement has been updated.");
+    for (int i = 2; i < row.length && (i - 2) < unlocked.size(); i++) {
+      if ("0".equals(row[i]) && unlocked.get(i - 2)) {
+        row[i] = "1";
+      }
+    }
+  }
+
+  private String[] createNewAchievementRow(final String mode, final String name, final List<Boolean> unlocked) {
+    final String[] newRecord = new String[unlocked.size() + 2];
+    newRecord[0] = mode;
+    newRecord[1] = name;
+    for (int i = 0; i < unlocked.size(); i++) {
+      newRecord[i + 2] = unlocked.get(i) ? "1" : "0";
+    }
+    return newRecord;
+  }
+
+  private void writeCSV(final File file, final List<String[]> rows) {
+    try (BufferedWriter writer = new BufferedWriter(
+            new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+      for (final String[] row : rows) {
+        writer.write(String.join(",", row));
+        writer.newLine();
+      }
+    } catch (IOException e) {
+      if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Error writing CSV: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Returns a list of users who have completed a specific achievement.
+   */
+  public List<String> getAchievementCompleter(final Achievement achievement) {
+    final List<String> completer = new ArrayList<>();
+    final String path = FileManager.getInstance().getSaveDirectory() + FILENAME_ACHIEVEMENT;
+    final File achFile = new File(path);
+
+    if (!achFile.exists()) return completer;
+
+    try (BufferedReader bReader = new BufferedReader(
+            new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
+
+      final String headerLine = bReader.readLine();
+      if (headerLine == null) return completer;
+
+      final String[] header = headerLine.split(",");
+      int idx = -1;
+
+      for (int i = 2; i < header.length; i++) {
+        if (header[i].trim().equalsIgnoreCase(achievement.getName().trim())) {
+          idx = i;
+          break;
+        }
+      }
+
+      if (idx == -1) {
+        if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Achievement column not found: " + achievement.getName());
+        return completer;
+      }
+
+      String line;
+      while ((line = bReader.readLine()) != null) {
+        final String[] tokens = line.split(",");
+        if (tokens.length > idx && "1".equals(tokens[idx].trim())) {
+          completer.add(tokens[0].trim() + ":" + tokens[1].trim());
+        }
+      }
+    } catch (IOException e) {
+      if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Error reading achievement file.");
+    }
+    return completer;
   }
 }

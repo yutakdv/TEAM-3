@@ -6,13 +6,14 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import entity.Ship.ShipType;
 import engine.DrawManager.SpriteType;
 
 /**
  * Manages files used in the application.
- * Refactored to fix PMD issues: God class, Complexity, Try-with-resources.
+ * Refactored: Achievement logic moved to AchievementManager.
  */
 @SuppressWarnings("PMD.LawOfDemeter")
 public final class FileManager {
@@ -20,8 +21,6 @@ public final class FileManager {
   private static final Logger LOGGER = Core.getLogger();
   private static String testDirectory = null;
 
-  // PMD: Avoid duplicate literals
-  private static final String FILENAME_ACHIEVEMENT = "achievement.csv";
   private static final String FILENAME_COINS = "coins.csv";
   private static final String FILENAME_SHIPS = "ships.csv";
   private static final String DIR_RES = "res";
@@ -50,7 +49,9 @@ public final class FileManager {
             image[i][j] = readBooleanChar(inputStream);
           }
         }
-        LOGGER.fine("Sprite " + sprite.getKey() + " loaded.");
+        if (LOGGER.isLoggable(Level.FINE)) {
+          LOGGER.fine("Sprite " + sprite.getKey() + " loaded.");
+        }
       }
     }
   }
@@ -87,8 +88,22 @@ public final class FileManager {
   }
 
   private Score parseScoreLine(final String line) {
-    final String[] pair = line.split(",");
-    return new Score(pair[0], Integer.parseInt(pair[1]), pair[2]);
+    final String[] data = line.split(",");
+
+    if (data.length < 2) {
+      System.err.println("잘못된 데이터 형식 무시함: " + line);
+      return new Score("Error", 0, "N/A");
+    }
+    String date = "N/A";
+    if (data.length >= 3) {
+      date = data[2];
+    }
+
+    try {
+      return new Score(data[0], Integer.parseInt(data[1].trim()), date);
+    } catch (NumberFormatException e) {
+      return new Score("Error", 0, "N/A");
+    }
   }
 
   public List<Score> loadHighScores(final String mode) throws IOException {
@@ -96,7 +111,7 @@ public final class FileManager {
     final File file = new File(getSaveDirectory() + mode + "scores.csv");
 
     if (!file.exists()) {
-      LOGGER.info("Loading default high scores.");
+      if (LOGGER.isLoggable(Level.INFO)) LOGGER.info("Loading default high scores.");
       return loadDefaultHighScores();
     }
 
@@ -104,7 +119,7 @@ public final class FileManager {
          InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
          BufferedReader bufferedReader = new BufferedReader(isr)) {
 
-      LOGGER.info("Loading user high scores.");
+      if (LOGGER.isLoggable(Level.INFO)) LOGGER.info("Loading user high scores.");
       bufferedReader.readLine(); // skip header
 
       String input;
@@ -127,7 +142,7 @@ public final class FileManager {
          OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
          BufferedWriter bufferedWriter = new BufferedWriter(osw)) {
 
-      LOGGER.info("Saving user high scores.");
+      if (LOGGER.isLoggable(Level.INFO)) LOGGER.info("Saving user high scores.");
       bufferedWriter.write("player,score");
       bufferedWriter.newLine();
 
@@ -136,125 +151,6 @@ public final class FileManager {
         bufferedWriter.newLine();
       }
     }
-  }
-
-  public void unlockAchievement(final String userName, final List<Boolean> unlockedAchievement, final String mode) {
-    // Extract only numeric part (e.g., "1P" -> "1")
-    final String numericMode = mode.replaceAll("[^0-9]", "");
-    final List<String[]> records = new ArrayList<>();
-    final File achFile = new File(getSaveDirectory() + FILENAME_ACHIEVEMENT);
-    boolean found = false;
-
-    // 1. Read existing records
-    if (achFile.exists()) {
-      try (BufferedReader bReader = new BufferedReader(
-              new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
-
-        String line;
-        while ((line = bReader.readLine()) != null) {
-          final String[] row = line.split(",");
-          if (row.length < 3) {
-            records.add(row);
-            continue;
-          }
-
-          // Match both username and mode
-          if (row[1].trim().equals(userName) && row[0].trim().equals(numericMode)) {
-            found = true;
-            updateAchievementRow(row, unlockedAchievement);
-          }
-          records.add(row);
-        }
-      } catch (IOException e) {
-        LOGGER.warning("Error reading achievements: " + e.getMessage());
-      }
-    }
-
-    // 2. Add new record if not found
-    if (!found) {
-      LOGGER.info("User not found, creating new record.");
-      records.add(createNewAchievementRow(numericMode, userName, unlockedAchievement));
-    }
-
-    // 3. Save back to file
-    writeCSV(achFile, records);
-  }
-
-  private void updateAchievementRow(final String[] row, final List<Boolean> unlocked) {
-    LOGGER.info("Achievement has been updated.");
-    for (int i = 2; i < row.length && (i - 2) < unlocked.size(); i++) {
-      if ("0".equals(row[i]) && unlocked.get(i - 2)) {
-        row[i] = "1";
-      }
-    }
-  }
-
-  private String[] createNewAchievementRow(final String mode, final String name, final List<Boolean> unlocked) {
-    final String[] newRecord = new String[unlocked.size() + 2];
-    newRecord[0] = mode;
-    newRecord[1] = name;
-    for (int i = 0; i < unlocked.size(); i++) {
-      newRecord[i + 2] = unlocked.get(i) ? "1" : "0";
-    }
-    return newRecord;
-  }
-
-  private void writeCSV(final File file, final List<String[]> rows) {
-    try (BufferedWriter writer = new BufferedWriter(
-            new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-      for (final String[] row : rows) {
-        writer.write(String.join(",", row));
-        writer.newLine();
-      }
-    } catch (IOException e) {
-      LOGGER.warning("Error writing CSV: " + e.getMessage());
-    }
-  }
-
-  public List<String> getAchievementCompleter(final Achievement achievement) {
-    final List<String> completer = new ArrayList<>();
-    final File achFile = new File(getSaveDirectory() + FILENAME_ACHIEVEMENT);
-
-    if (!achFile.exists()) {
-      return completer;
-    }
-
-    try (BufferedReader bReader = new BufferedReader(
-            new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {
-
-      final String headerLine = bReader.readLine();
-      if (headerLine == null) {
-        return completer;
-      }
-
-      final String[] header = headerLine.split(",");
-      int idx = -1;
-
-      for (int i = 2; i < header.length; i++) {
-        if (header[i].trim().equalsIgnoreCase(achievement.getName().trim())) {
-          idx = i;
-          break;
-        }
-      }
-
-      if (idx == -1) {
-        LOGGER.warning("Achievement column not found: " + achievement.getName());
-        return completer;
-      }
-
-      String line;
-      while ((line = bReader.readLine()) != null) {
-        final String[] tokens = line.split(",");
-        if (tokens.length > idx && "1".equals(tokens[idx].trim())) {
-          completer.add(tokens[0].trim() + ":" + tokens[1].trim());
-        }
-      }
-
-    } catch (IOException e) {
-      LOGGER.warning("Error reading achievement file.");
-    }
-
-    return completer;
   }
 
   public void saveShipUnlocks(final Map<ShipType, Boolean> unlockMap) throws IOException {
@@ -296,7 +192,7 @@ public final class FileManager {
             final boolean unlocked = Boolean.parseBoolean(tokens[1].trim());
             unlockMap.put(type, unlocked);
           } catch (IllegalArgumentException e) {
-            LOGGER.warning("Unknown ship type in ships.csv");
+            if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Unknown ship type in ships.csv");
           }
         }
       }
@@ -318,7 +214,7 @@ public final class FileManager {
         return Integer.parseInt(line.trim());
       }
     } catch (IOException | NumberFormatException e) {
-      LOGGER.warning("Error reading coins file: " + e.getMessage());
+      if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Error reading coins file: " + e.getMessage());
     }
     return 0;
   }
@@ -326,19 +222,18 @@ public final class FileManager {
   public void saveCoins(final int coins) {
     final File coinsFile = new File(getSaveDirectory() + FILENAME_COINS);
 
-    // Ensure parent directory exists
     final File parent = coinsFile.getParentFile();
     if (parent != null && !parent.exists() && !parent.mkdirs()) {
-      LOGGER.warning("Failed to create directory: " + parent.getAbsolutePath());
+      if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Failed to create directory: " + parent.getAbsolutePath());
     }
 
     try (BufferedWriter writer = new BufferedWriter(
             new OutputStreamWriter(new FileOutputStream(coinsFile), StandardCharsets.UTF_8))) {
       writer.write(Integer.toString(coins));
       writer.newLine();
-      LOGGER.info("User coins saved.");
+      if (LOGGER.isLoggable(Level.INFO)) LOGGER.info("User coins saved.");
     } catch (IOException e) {
-      LOGGER.warning("Failed to save coins: " + e.getMessage());
+      if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Failed to save coins: " + e.getMessage());
     }
   }
 
@@ -347,7 +242,8 @@ public final class FileManager {
     return !"file".equals(protocol);
   }
 
-  private String getSaveDirectory() {
+  // [Changed] Visibility changed to package-private to allow access from AchievementManager
+  String getSaveDirectory() {
     if (testDirectory != null) {
       return testDirectory;
     }
@@ -358,7 +254,7 @@ public final class FileManager {
 
     final File d = new File(dirPath);
     if (!d.exists() && !d.mkdirs()) {
-      LOGGER.warning("Failed to create directory: " + d.getAbsolutePath());
+      if (LOGGER.isLoggable(Level.WARNING)) LOGGER.warning("Failed to create directory: " + d.getAbsolutePath());
     }
 
     return dirPath;
