@@ -153,15 +153,15 @@ public class AchievementManager {//NOPMD
     final File achFile = new File(path);
     boolean found = false;
 
-    // Read existing
     if (achFile.exists()) {
       try (BufferedReader bReader = new BufferedReader(
               new InputStreamReader(new FileInputStream(achFile), StandardCharsets.UTF_8))) {//NOPMD
-        final String line= bReader.readLine();
+         String line= bReader.readLine();
         while (line != null) {
           final String[] row = line.split(",");
           if (row.length < 3) {
             records.add(row);
+            line = bReader.readLine();
             continue;
           }
           if (row[1].trim().equals(userName) && row[0].trim().equals(numericMode)) {
@@ -169,6 +169,7 @@ public class AchievementManager {//NOPMD
             updateAchievementRow(row, unlockedAchievement);
           }
           records.add(row);
+          line = bReader.readLine();
         }
       } catch (IOException e) {
         if (LOGGER.isLoggable(Level.WARNING)){
