@@ -21,6 +21,7 @@ import java.util.logging.Logger;
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
+@SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods", "PMD.TooManyFields"})
 public final class DrawManager {
 
   /** Singleton instance of the class. */
@@ -199,7 +200,7 @@ public final class DrawManager {
    */
   public void initDrawing(final Screen screen) {
     this.backBuffer =
-            new BufferedImage(screen.getWidth(), screen.getHeight(), BufferedImage.TYPE_INT_RGB);
+        new BufferedImage(screen.getWidth(), screen.getHeight(), BufferedImage.TYPE_INT_RGB);
 
     this.graphics = this.frame.getGraphics();
     this.backBufferGraphics = this.backBuffer.getGraphics();
@@ -218,7 +219,7 @@ public final class DrawManager {
    */
   public void completeDrawing(final Screen screen) {
     this.graphics.drawImage(
-            this.backBuffer, this.frame.getInsets().left, this.frame.getInsets().top, this.frame);
+        this.backBuffer, this.frame.getInsets().left, this.frame.getInsets().top, this.frame);
   }
 
   /**
@@ -228,12 +229,14 @@ public final class DrawManager {
    * @param positionX Coordinates for the left side of the image.
    * @param positionY Coordinates for the upper side of the image.
    */
+  @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
   public void drawEntity(final Entity entity, final int positionX, final int positionY) {
     drawEntity(entity, positionX, positionY, null);
   }
 
+  @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity"})
   public void drawEntity(
-          final Entity entity, final int positionX, final int positionY, final Color override) {
+      final Entity entity, final int positionX, final int positionY, final Color override) {
     final boolean[][] image = spriteMap.get(entity.getSpriteType());
 
     Color color = (override != null) ? override : entity.getColor();
@@ -276,10 +279,10 @@ public final class DrawManager {
       for (int j = 0; j < spriteHeight; j++) {
         if (image[i][j]) {
           backBufferGraphics.fillRect(
-                  positionX + (int) (i * 2 * widthRatio),
-                  positionY + (int) (j * 2 * heightRatio),
-                  (int) Math.ceil(widthRatio * 2),
-                  (int) Math.ceil(heightRatio * 2));
+              positionX + (int) (i * 2 * widthRatio),
+              positionY + (int) (j * 2 * heightRatio),
+              (int) Math.ceil(widthRatio * 2),
+              (int) Math.ceil(heightRatio * 2));
         }
       }
     }
@@ -292,7 +295,7 @@ public final class DrawManager {
   }
 
   public void triggerExplosion(
-          final int x, final int y, final boolean enemy, final boolean finalExplosion) {
+      final int x, final int y, final boolean enemy, final boolean finalExplosion) {
     if (logger.isLoggable(Level.INFO)) {
       logger.info("Enemy: " + enemy);
       logger.info("final: " + finalExplosion);
@@ -300,7 +303,11 @@ public final class DrawManager {
     explosions.add(new Explosion(x, y, enemy, finalExplosion));
   }
 
-  @SuppressWarnings({"PMD.LawOfDemeter", "PMD.AvoidInstantiatingObjectsInLoops"})
+  @SuppressWarnings({
+    "PMD.LawOfDemeter",
+    "PMD.AvoidInstantiatingObjectsInLoops",
+    "PMD.CognitiveComplexity"
+  })
   public void drawExplosions() {
 
     final Graphics2D g2d = (Graphics2D) backBufferGraphics;
@@ -333,30 +340,30 @@ public final class DrawManager {
         }
 
         final int flickerAlpha =
-                Math.max(0, Math.min(255, p.color.getAlpha() - explosionRandom.nextInt(50)));
+            Math.max(0, Math.min(255, p.color.getAlpha() - explosionRandom.nextInt(50)));
 
         final float[] dist = {0.0f, 0.3f, 0.7f, 1.0f};
         Color[] colors;
         if (e.isEnemy()) {
           colors =
-                  new Color[] {
-                          new Color(255, 255, 250, flickerAlpha),
-                          new Color(255, 250, 180, flickerAlpha),
-                          new Color(255, 200, 220, flickerAlpha / 2),
-                          new Color(0, 0, 0, 0)
-                  };
+              new Color[] {
+                new Color(255, 255, 250, flickerAlpha),
+                new Color(255, 250, 180, flickerAlpha),
+                new Color(255, 200, 220, flickerAlpha / 2),
+                new Color(0, 0, 0, 0)
+              };
         } else {
           colors =
-                  new Color[] {
-                          new Color(255, 255, 180, flickerAlpha),
-                          new Color(255, 200, 0, flickerAlpha),
-                          new Color(255, 80, 0, flickerAlpha / 2),
-                          new Color(0, 0, 0, 0)
-                  };
+              new Color[] {
+                new Color(255, 255, 180, flickerAlpha),
+                new Color(255, 200, 0, flickerAlpha),
+                new Color(255, 80, 0, flickerAlpha / 2),
+                new Color(0, 0, 0, 0)
+              };
         }
 
         final RadialGradientPaint paint =
-                new RadialGradientPaint(new Point((int) p.x, (int) p.y), baseSize, dist, colors);
+            new RadialGradientPaint(new Point((int) p.x, (int) p.y), baseSize, dist, colors);
 
         g2d.setPaint(paint);
 
@@ -366,7 +373,7 @@ public final class DrawManager {
         final double halfSize = baseSize / 2.0;
 
         g2d.fillOval(
-                (int) (p.x - halfSize + offsetX), (int) (p.y - halfSize + offsetY), baseSize, baseSize);
+            (int) (p.x - halfSize + offsetX), (int) (p.y - halfSize + offsetY), baseSize, baseSize);
       }
     }
   }
@@ -377,8 +384,8 @@ public final class DrawManager {
     menuSpace.updateStars();
 
     final Graphics2D g2d = (Graphics2D) backBufferGraphics;
-    g2d.setRenderingHint(
-            RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setRenderingHint( // NOPMD - LOD
+        RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     backBufferGraphics.setColor(Color.WHITE);
     final int[][] positions = menuSpace.getStarLocations();
@@ -392,8 +399,8 @@ public final class DrawManager {
       final Color[] colors = {menuSpace.getColor(), new Color(255, 255, 200, 0)};
 
       final RadialGradientPaint paint =
-              new RadialGradientPaint(
-                      new Point(positions[i][0], positions[i][1]), radius, dist, colors);
+          new RadialGradientPaint(
+              new Point(positions[i][0], positions[i][1]), radius, dist, colors);
       g2d.setPaint(paint);
       g2d.fillOval(positions[i][0] - radius / 2, positions[i][1] - radius / 2, radius, radius);
 
@@ -419,8 +426,8 @@ public final class DrawManager {
     basicGameSpace.update();
 
     final Graphics2D g2d = (Graphics2D) backBufferGraphics;
-    g2d.setRenderingHint(
-            RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setRenderingHint( // NOPMD - LOD
+        RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     backBufferGraphics.setColor(Color.WHITE);
     final int[][] positions = basicGameSpace.getStarLocations();
@@ -440,11 +447,11 @@ public final class DrawManager {
       }
 
       final RadialGradientPaint paint =
-              new RadialGradientPaint(
-                      new Point(positions[i][0] + size / 2, positions[i][1] + size / 2),
-                      radius,
-                      dist,
-                      colors);
+          new RadialGradientPaint(
+              new Point(positions[i][0] + size / 2, positions[i][1] + size / 2),
+              radius,
+              dist,
+              colors);
       g2d.setPaint(paint);
       g2d.fillOval(positions[i][0] - radius / 2, positions[i][1] - radius / 2, radius, radius);
 
@@ -463,9 +470,9 @@ public final class DrawManager {
     backBufferGraphics.drawLine(0, 0, screen.getWidth() - 1, 0);
     backBufferGraphics.drawLine(0, 0, 0, screen.getHeight() - 1);
     backBufferGraphics.drawLine(
-            screen.getWidth() - 1, 0, screen.getWidth() - 1, screen.getHeight() - 1);
+        screen.getWidth() - 1, 0, screen.getWidth() - 1, screen.getHeight() - 1);
     backBufferGraphics.drawLine(
-            0, screen.getHeight() - 1, screen.getWidth() - 1, screen.getHeight() - 1);
+        0, screen.getHeight() - 1, screen.getWidth() - 1, screen.getHeight() - 1);
   }
 
   /**
@@ -492,10 +499,10 @@ public final class DrawManager {
    * @param height Height of the drawing.
    */
   public void drawCenteredRegularString(
-          final Screen screen, final String string, final int height) {
+      final Screen screen, final String string, final int height) {
     backBufferGraphics.setFont(fontRegular);
     backBufferGraphics.drawString(
-            string, screen.getWidth() / 2 - fontRegularMetrics.stringWidth(string) / 2, height);
+        string, screen.getWidth() / 2 - fontRegularMetrics.stringWidth(string) / 2, height);
   }
 
   /**
@@ -520,7 +527,7 @@ public final class DrawManager {
   public void drawCenteredBigString(final Screen screen, final String string, final int height) {
     backBufferGraphics.setFont(fontBig);
     backBufferGraphics.drawString(
-            string, screen.getWidth() / 2 - fontBigMetrics.stringWidth(string) / 2, height);
+        string, screen.getWidth() / 2 - fontBigMetrics.stringWidth(string) / 2, height);
   }
 
   /**
@@ -531,7 +538,7 @@ public final class DrawManager {
    * @param bonusLife Checks if a bonus life is received.
    */
   public static String getCountdownMessage(
-          final int level, final int number, final boolean bonusLife) {
+      final int level, final int number, final boolean bonusLife) {
     if (number < 4) {
       return null;
     }
