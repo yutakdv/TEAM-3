@@ -1,8 +1,8 @@
 package engine;
 
 /**
- * Controls the sound volume and mute settings.
- * Refactored to address PMD issues and encapsulate static state.
+ * Controls the sound volume and mute settings. Refactored to address PMD issues and encapsulate
+ * static state.
  */
 @SuppressWarnings({"PMD.LawOfDemeter"})
 public final class SoundControl {
@@ -87,23 +87,24 @@ public final class SoundControl {
   }
 
   public static void toggleIngameMute(final int idx) {
+    int restore = PREVIOUS_IN_GAME_VOLUME[idx];
     if (IN_GAME_MUTE[idx]) {
       // Unmute: Restore backup value
-      int restore = PREVIOUS_IN_GAME_VOLUME[idx];
+
       if (restore <= 0) {
         restore = 50; // Safety default
-    } else {
-        // Mute: Backup current value then set to 0
-        if (IN_GAME_VOLUME[idx] > 0) {
-          PREVIOUS_IN_GAME_VOLUME[idx] = IN_GAME_VOLUME[idx];
-        }
-        IN_GAME_VOLUME[idx] = 0;
-        IN_GAME_MUTE[idx] = true;
       }
 
       IN_GAME_VOLUME[idx] = restore;
       PREVIOUS_IN_GAME_VOLUME[idx] = restore;
       IN_GAME_MUTE[idx] = false;
+    } else {
+      // Mute: Backup current value then set to 0
+      if (IN_GAME_VOLUME[idx] > 0) {
+        PREVIOUS_IN_GAME_VOLUME[idx] = IN_GAME_VOLUME[idx];
+      }
+      IN_GAME_VOLUME[idx] = 0;
+      IN_GAME_MUTE[idx] = true;
     }
   }
 }
