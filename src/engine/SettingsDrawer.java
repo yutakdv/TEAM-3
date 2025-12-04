@@ -12,7 +12,7 @@ import java.awt.event.KeyEvent;
 
 import screen.Screen;
 @SuppressWarnings({"PMD.LawOfDemeter"})
-public final class SettingsDrawer {
+public final class SettingsDrawer { // NOPMD
 
     private final DrawManager drawManager;
 

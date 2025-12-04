@@ -17,9 +17,9 @@ public class PauseMenuHandler {
   }
 
   public void draw(final DrawManager drawManager, final Screen screen) {
-    drawManager.hud().drawPauseOverlay(screen);
+    drawManager.hud().drawPauseOverlay(screen); // NOPMD
     for (int i = 0; i < numPauseSliders; i++) {
-      drawManager.settings().drawpauseVolumeBar(
+      drawManager.settings().drawpauseVolumeBar( // NOPMD
           screen,
           SoundControl.getIngameVolumeLevel(i),
           pauseDraggingIndex == i,

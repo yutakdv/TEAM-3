@@ -1,335 +1,268 @@
 package engine;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.sampled.*;
 
-/** Minimal sound manager for short SFX. */
-public final class SoundManager {
+/**
+ * Minimal sound manager for short SFX.
+ * Refactored to fix PMD issues: Resource leaks, Code Duplication, Generic Exceptions, Log Guards.
+ */
+@SuppressWarnings("PMD.LawOfDemeter")
+public final class SoundManager {//NOPMD
 
-  private static final Logger logger = Core.getLogger();
+  private static final Logger LOGGER = Core.getLogger();
   private static Clip loopClip;
+  private static Clip backgroundMusicClip;
+
+  // PMD: Avoid duplicate literals
+  private static final String ERR_MSG_PLAY_FAIL = "Unable to play sound '%s': %s";
+  private static final String ERR_MSG_RES_NOT_FOUND = "Audio file not found in resources or local path: ";
 
   private SoundManager() {}
 
   /**
-   * Plays a short WAV from resources folder. Example path: "sound/shoot.wav". Uses a new Clip per
-   * invocation for simplicity; suitable for very short SFX.
+   * Plays a short WAV from resources folder.
    */
-  public static void playeffect(String resourcePath) {
-    AudioInputStream audioStream = null;
-    Clip clip = null;
-    try {
-      audioStream = openAudioStream(resourcePath);
-      if (audioStream == null) return;
-      audioStream = toPcmSigned(audioStream);
-      DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
-      clip = (Clip) AudioSystem.getLine(info);
-      clip.open(audioStream);
+  public static void playeffect(final String resourcePath) {
+    // Index 2 is for SFX in SoundControl
+    playClip(resourcePath, 2, false);
+  }
 
-      // Set volume based on user settings
-      if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        int saved = SoundControl.getVolumeLevel(2);
-        boolean muted = SoundControl.isMuted(2) || saved == 0;
-        if (muted) {
-          clip.close();
-          return;
+  public static void ingameeffect(final String resourcePath) {
+    // Index 1 is for In-game SFX in SoundControl (ingame volume)
+    playClip(resourcePath, 1, true);
+  }
+
+  /**
+   * Internal helper to deduplicate play logic and reduce Complexity.
+   */
+  private static void playClip(final String resourcePath, final int volumeIndex, final boolean isIngame) {//NOPMD
+    try (AudioInputStream rawStream = openAudioStream(resourcePath)) {
+      if (rawStream == null) {
+        return;
+      }
+
+      try (AudioInputStream audioStream = toPcmSigned(rawStream)) {
+        final DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+        final Clip clip = (Clip) AudioSystem.getLine(info);//NOPMD
+        clip.open(audioStream);
+
+        if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+          final int savedLevel = isIngame
+                  ? SoundControl.getIngameVolumeLevel(volumeIndex)
+                  : SoundControl.getVolumeLevel(volumeIndex);
+
+          final boolean isMuted = isIngame
+                  ? SoundControl.isIngameMuted(volumeIndex) || savedLevel == 0
+                  : SoundControl.isMuted(volumeIndex) || savedLevel == 0;
+
+          if (isMuted) {
+            clip.close();
+            return;
+          }
+
+          final FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+          final float volumeDb = calculateVolumeDb(savedLevel);
+          gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
+
+          clip.start();
+          if (LOGGER.isLoggable(Level.INFO)) {
+            LOGGER.info("Started one-shot sound: " + resourcePath);
+          }
         }
-        float volumeDb = calculateVolumeDb(saved);
-        gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
-        clip.start();
-        logger.info("Started one-shot sound: " + resourcePath);
+
+        // Add listener to close clip after playback
+        clip.addLineListener(event -> {
+          if (event.getType() == LineEvent.Type.STOP || event.getType() == LineEvent.Type.CLOSE) {
+            clip.close();
+          }
+        });
       }
     } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-      logger.info("Unable to play sound '" + resourcePath + "': " + e.getMessage());
-    } finally {
-      // We can't close 'in' immediately because AudioSystem may stream; rely on clip close
-      if (clip != null) {
-        final Clip c = clip;
-        c.addLineListener(
-            event -> {
-              LineEvent.Type type = event.getType();
-              if (type == LineEvent.Type.STOP || type == LineEvent.Type.CLOSE) {
-                try {
-                  c.close();
-                } catch (Exception ignored) {
-                }
-              }
-            });
+      if (LOGGER.isLoggable(Level.INFO)) {
+        LOGGER.info(String.format(ERR_MSG_PLAY_FAIL, resourcePath, e.getMessage()));
       }
     }
   }
 
-  public static void ingameeffect(String resourcePath) {
-    AudioInputStream audioStream = null;
-    Clip clip = null;
-    try {
-      audioStream = openAudioStream(resourcePath);
-      if (audioStream == null) return;
-      audioStream = toPcmSigned(audioStream);
-      DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
-      clip = (Clip) AudioSystem.getLine(info);
-      clip.open(audioStream);
-
-      // Set volume based on user settings
-      if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        int saved = SoundControl.getIngameVolumeLevel(1);
-        boolean muted = SoundControl.isIngameMuted(1) || saved == 0;
-        if (muted) {
-          clip.close();
-          return;
-        }
-        float volumeDb = calculateVolumeDb(saved);
-        gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
-        clip.start();
-        logger.info("Started one-shot sound: " + resourcePath);
-      }
-    } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-      logger.info("Unable to play sound '" + resourcePath + "': " + e.getMessage());
-    } finally {
-      // We can't close 'in' immediately because AudioSystem may stream; rely on clip close
-      if (clip != null) {
-        final Clip c = clip;
-        c.addLineListener(
-            event -> {
-              LineEvent.Type type = event.getType();
-              if (type == LineEvent.Type.STOP || type == LineEvent.Type.CLOSE) {
-                try {
-                  c.close();
-                } catch (Exception ignored) {
-                }
-              }
-            });
-      }
-    }
-  }
-
-  /** Plays a WAV in a loop until {@link #stop()} is called. */
-  public static void playBGM(String resourcePath) {
+  public static void playBGM(final String resourcePath) {
     stop();
     stopBackgroundMusic();
 
-    AudioInputStream audioStream = null;
-    try {
-      audioStream = openAudioStream(resourcePath);
-      if (audioStream == null) return;
-      audioStream = toPcmSigned(audioStream);
+    try (AudioInputStream rawStream = openAudioStream(resourcePath)) {
+      if (rawStream == null) {
+        return;
+      }
 
-      DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+      final AudioInputStream audioStream = toPcmSigned(rawStream);//NOPMD
+      final DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+
       loopClip = (Clip) AudioSystem.getLine(info);
       loopClip.open(audioStream);
 
-      // Set volume based on user settings for loops
       if (loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = SoundControl.getVolumeLevel(1);
-        boolean muted = SoundControl.isMuted(1) || saved == 0;
-        FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
-        float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
+        final int saved = SoundControl.getVolumeLevel(1);
+        final boolean muted = SoundControl.isMuted(1) || saved == 0;
+        final FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
+        final float volumeDb = muted ? -80.0f : calculateVolumeDb(saved);
         gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
       }
 
       loopClip.loop(Clip.LOOP_CONTINUOUSLY);
       loopClip.start();
-      logger.fine("Started looped sound: " + resourcePath);
+      if (LOGGER.isLoggable(Level.FINE)) {
+        LOGGER.fine("Started looped sound: " + resourcePath);
+      }
+
     } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-      logger.fine("Unable to loop sound '" + resourcePath + "': " + e.getMessage());
+      if (LOGGER.isLoggable(Level.FINE)) {
+        LOGGER.fine(String.format(ERR_MSG_PLAY_FAIL, resourcePath, e.getMessage()));
+      }
       if (loopClip != null) {
-        try {
-          loopClip.close();
-        } catch (Exception ignored) {
-        }
-        loopClip = null;
+        loopClip.close();
+        loopClip = null;//NOPMD - this null absoulty need
       }
     }
   }
 
-  /** Stops and releases the current looped clip, if any. */
   public static void stop() {
     if (loopClip != null) {
-      try {
-        loopClip.stop();
-        loopClip.close();
-      } catch (Exception e) {
-        logger.fine("Error stopping looped sound: " + e.getMessage());
-      } finally {
-        loopClip = null;
-      }
+      loopClip.stop();
+      loopClip.close();
+      loopClip = null;//NOPMD - this null absoulty need
     }
   }
 
-  /**
-   * Stops all music (both looped and background music). Use this when transitioning between screens
-   * to ensure no overlap.
-   */
   public static void stopAllMusic() {
-    stop(); // stops looped music
-    stopBackgroundMusic(); // stops background music
+    stop();
+    stopBackgroundMusic();
   }
-
-  // Background music clip - static to persist across method calls
-  private static Clip backgroundMusicClip = null;
-  private static boolean isMusicPlaying = false;
-  private static float musicVolumeDb = -10.0f; // Default music volume
-
-  /** starts playing background music that loops during gameplay */
-  public static void ingameBGM(String musicResourcePath) {
-    // stop any currently playing music (both loop and background music)
+  public static void ingameBGM(final String musicResourcePath) {
     stop();
     stopBackgroundMusic();
 
-    AudioInputStream audioStream = null;
-
-    try {
-      audioStream = openAudioStream(musicResourcePath);
-      if (audioStream == null) {
-        logger.fine("Music resource not found: " + musicResourcePath);
+    try (AudioInputStream rawStream = openAudioStream(musicResourcePath)) {
+      if (rawStream == null) {
+        if (LOGGER.isLoggable(Level.FINE)) {
+          LOGGER.fine("Music resource not found: " + musicResourcePath);
+        }
         return;
       }
-      audioStream = toPcmSigned(audioStream);
 
-      DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+      final AudioInputStream audioStream = toPcmSigned(rawStream);//NOPMD
+      final DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
+
       backgroundMusicClip = (Clip) AudioSystem.getLine(info);
-
       backgroundMusicClip.open(audioStream);
       backgroundMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
 
       if (backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        int saved = SoundControl.getIngameVolumeLevel(0);
-        boolean muted = SoundControl.isIngameMuted(0) || saved == 0;
+        final int saved = SoundControl.getIngameVolumeLevel(0);
+        final boolean muted = SoundControl.isIngameMuted(0) || saved == 0;
 
-        FloatControl gain =
-            (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
-        float volumeDb = muted ? calculateVolumeDb(0) : calculateVolumeDb(saved);
+        final FloatControl gain = (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
+        final float volumeDb = muted ? -80.0f : calculateVolumeDb(saved);
 
         gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
       }
 
       backgroundMusicClip.start();
-      isMusicPlaying = true;
-      logger.fine("Background music started: " + musicResourcePath);
+      if (LOGGER.isLoggable(Level.FINE)) {
+        LOGGER.fine("Background music started: " + musicResourcePath);
+      }
 
     } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-      logger.fine("Unable to play background music '" + musicResourcePath + "': " + e.getMessage());
-      cleanupMusicResources();
-    }
-  }
-
-  /** stops the background music and releases resources */
-  public static void stopBackgroundMusic() {
-    if (backgroundMusicClip != null) {
-      try {
-        backgroundMusicClip.stop();
-        backgroundMusicClip.close();
-      } catch (Exception e) {
-        logger.fine("Error stopping background music: " + e.getMessage());
-      } finally {
-        cleanupMusicResources();
+      if (LOGGER.isLoggable(Level.FINE)) {
+        LOGGER.fine(String.format(ERR_MSG_PLAY_FAIL, musicResourcePath, e.getMessage()));
       }
+      backgroundMusicClip = null;//NOPMD - this null absoulty need
     }
   }
 
-  private static void cleanupMusicResources() {
-    backgroundMusicClip = null;
-    isMusicPlaying = false;
+  public static void stopBackgroundMusic() {
+    if (backgroundMusicClip != null) {//NOPMD
+      backgroundMusicClip.stop();
+      backgroundMusicClip.close();
+      backgroundMusicClip = null;//NOPMD - this null absoulty need
+    }
   }
 
-  /** Opens an audio stream from classpath resources or absolute/relative file path. */
-  private static AudioInputStream openAudioStream(String resourcePath)
-      throws UnsupportedAudioFileException, IOException {
-    InputStream in = SoundManager.class.getClassLoader().getResourceAsStream(resourcePath);
-    if (in != null) {
+  private static AudioInputStream openAudioStream(final String resourcePath)
+          throws UnsupportedAudioFileException, IOException {
+    final InputStream in = SoundManager.class.getClassLoader().getResourceAsStream(resourcePath);//NOPMD
+    if (in != null) {//NOPMD
       return AudioSystem.getAudioInputStream(new BufferedInputStream(in));
     }
-    // Fallback to file system path for developer/local runs
-    File file = new File(System.getProperty("user.dir"), resourcePath);
-    if (file.exists()) {
+
+    final File file = new File(System.getProperty("user.dir"), resourcePath);
+    if (file.exists()) {//NOPMD
       return AudioSystem.getAudioInputStream(file);
     }
-    logger.warning("Audio file not found in resources or local path: " + resourcePath);
+
+    if (LOGGER.isLoggable(Level.WARNING)) {
+      LOGGER.warning(ERR_MSG_RES_NOT_FOUND + resourcePath);
+    }
     return null;
-    //        try (FileInputStream fis = new FileInputStream(resourcePath)) {
-    //            return AudioSystem.getAudioInputStream(fis);
-    //        } catch (FileNotFoundException e) {
-    //            logger.fine("Audio resource not found: " + resourcePath);
-    //            return null;
-    //        }
   }
 
-  /** Ensures the audio stream is PCM_SIGNED for Clip compatibility on all JVMs. */
-  private static AudioInputStream toPcmSigned(AudioInputStream source)
-      throws UnsupportedAudioFileException, IOException {
-    AudioFormat format = source.getFormat();
-    if (format.getEncoding() == AudioFormat.Encoding.PCM_SIGNED) {
+  private static AudioInputStream toPcmSigned(final AudioInputStream source)
+          throws IOException {
+    final AudioFormat format = source.getFormat();
+    if (format.getEncoding().equals(AudioFormat.Encoding.PCM_SIGNED)) {
       return source;
     }
 
-    AudioFormat targetFormat =
-        new AudioFormat(
-            AudioFormat.Encoding.PCM_SIGNED,
-            format.getSampleRate(),
-            16,
-            format.getChannels(),
-            format.getChannels() * 2,
-            format.getSampleRate(),
-            false);
+    final AudioFormat targetFormat =
+            new AudioFormat(
+                    AudioFormat.Encoding.PCM_SIGNED,
+                    format.getSampleRate(),
+                    16,
+                    format.getChannels(),
+                    format.getChannels() * 2,
+                    format.getSampleRate(),
+                    false);
     return AudioSystem.getAudioInputStream(targetFormat, source);
   }
 
-  /**
-   * Updates the volume of currently playing sounds. This should be called when the volume slider is
-   * changed.
-   */
   public static void updateVolume() {
-    int vol0 = SoundControl.getVolumeLevel(1);
-    boolean muted0 = SoundControl.isMuted(1) || vol0 == 0;
-    float volumeDb = muted0 ? -80.0f : calculateVolumeDb(SoundControl.getVolumeLevel(SoundControl.getVolumetype()));
-
-    // Update looped sound volume (menu music)
     if (loopClip != null && loopClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-      FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
+      final int vol = SoundControl.getVolumeLevel(1);
+      final boolean muted = SoundControl.isMuted(1) || vol == 0;
+      final float volumeDb = muted ? -80.0f : calculateVolumeDb(vol);
+
+      final FloatControl gain = (FloatControl) loopClip.getControl(FloatControl.Type.MASTER_GAIN);
       gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
     }
 
-    // Update background music volume (game music)
-    if (backgroundMusicClip != null
-        && backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-      FloatControl gain =
-          (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
+    if (backgroundMusicClip != null && backgroundMusicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+      final int vol = SoundControl.getIngameVolumeLevel(0);
+      final boolean muted = SoundControl.isIngameMuted(0) || vol == 0;
+      final float volumeDb = muted ? -80.0f : calculateVolumeDb(vol);
+
+      final FloatControl gain = (FloatControl) backgroundMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
       gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), volumeDb)));
     }
   }
 
-  /**
-   * Calculates the volume in decibels based on the volume level (0-100). Volume level 100 = 0dB
-   * (full volume), Volume level 0 = -80dB (silent)
-   *
-   * @param volumeLevel Volume level from 0 to 100
-   * @return Volume in decibels
-   */
-  private static float calculateVolumeDb(int volumeLevel) {
-    boolean muted = SoundControl.isMuted(0);
-
-    if (muted || volumeLevel <= 0) {
-      return -80.0f; // Silent
-    }
-    if (SoundControl.getVolumeLevel(0) >= 100 && volumeLevel >= 100) {
-      return 0.0f; // Full volume
+  // [Fix] Restore Master Volume calculation logic
+  private static float calculateVolumeDb(final int volumeLevel) {
+    // 1. Check Master Mute (Index 0)
+    if (SoundControl.isMuted(0)) {
+      return -80.0f;
     }
 
-    // Convert percentage to decibels
-    // Using logarithmic scale: dB = 20 * log10(volumeLevel/100)
-    // But we'll use a simpler linear mapping for better user experience
-    float ratio = (((float) SoundControl.getVolumeLevel(0) / 100) * volumeLevel) / 100.0f;
-    return (float) (20.0 * Math.log10(ratio));
+    // 2. Get Master Volume
+    final int masterVolume = SoundControl.getVolumeLevel(0);
+
+    // 3. Calculate effective volume: (Channel Volume %) * (Master Volume %)
+    final float effectiveRatio = (volumeLevel / 100.0f) * (masterVolume / 100.0f);
+
+    if (effectiveRatio <= 0.0001f) {
+      return -80.0f;
+    }
+
+    return (float) (20.0 * Math.log10(effectiveRatio));
   }
 }

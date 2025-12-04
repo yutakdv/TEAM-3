@@ -148,7 +148,7 @@ public class Entity { // NOPMD
     this.team = t == null ? Team.NEUTRAL : t;
   }
 
-  public void setSpriteType(SpriteType type){
+  public void setSpriteType(final SpriteType type) {
     this.spriteType = type;
   }
 }

@@ -72,6 +72,23 @@ public class Score implements Comparable<Score> {
     return this.score;
   }
 
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof Score)) {
+      return false;
+    }
+    final Score other = (Score) obj;
+    return this.score == other.score;
+  }
+
+  @Override
+  public int hashCode() {
+    return Integer.hashCode(this.score);
+  }
+
   /**
    * Orders the scores descending by score.
    *
