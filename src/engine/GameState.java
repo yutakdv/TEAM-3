@@ -104,7 +104,7 @@ public class GameState {
   }
 
   public void addScore(final int p, final int delta) {
-    int realDelta = delta;
+    final int realDelta = delta;
     statsManager.addRawScore(p, realDelta);
   }
 

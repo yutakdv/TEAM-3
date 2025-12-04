@@ -141,7 +141,7 @@ public class InputHandler { // NOPMD
     handleMouseInteractions(handler, drawManager, screen, mx, my, pressed, clicked, numSliders);
   }
 
-  private void handleMouseDrag(
+  private void handleMouseDrag( // NOPMD
       final PauseMenuHandler handler,
       final DrawManager drawManager,
       final GameScreen screen,
@@ -150,7 +150,7 @@ public class InputHandler { // NOPMD
       final int draggingIdx) {
 
     if (pressed) {
-      final Rectangle sliderBox = drawManager.settings().getpauseVolumeBarHitbox(screen, draggingIdx);
+      final Rectangle sliderBox = drawManager.settings().getpauseVolumeBarHitbox(screen, draggingIdx); // NOPMD
       setVolumeFromX(sliderBox, mx, draggingIdx);
 
       if (handler.getVolumeType() != draggingIdx) {
@@ -179,7 +179,7 @@ public class InputHandler { // NOPMD
       }
     }
   }
-
+    @SuppressWarnings("PMD.LawOfDemeter")
   private void handleMouseInteractions( // NOPMD
       final PauseMenuHandler handler,
       final DrawManager drawManager,
@@ -194,7 +194,7 @@ public class InputHandler { // NOPMD
       final Rectangle iconBox = drawManager.settings().getPauseSpeakerHitbox(screen, i);
       final Rectangle sliderBox = drawManager.settings().getpauseVolumeBarHitbox(screen, i); // NOPMD
 
-      if (clicked && iconBox.contains(mx, my)) { // NOPMD
+      if (clicked && iconBox.contains(mx, my)) {
         handler.setVolumeType(i);
         SoundControl.setIngameVolumetype(i);
         SoundControl.toggleIngameMute(i);
@@ -202,7 +202,7 @@ public class InputHandler { // NOPMD
         return;
       }
 
-      if (pressed && sliderBox.contains(mx, my)) { // NOPMD
+      if (pressed && sliderBox.contains(mx, my)) {
         handler.setVolumeType(i);
         handler.setDraggingIndex(i);
         SoundControl.setIngameVolumetype(i);
@@ -210,7 +210,7 @@ public class InputHandler { // NOPMD
         return;
       }
 
-      if (!pressed && (iconBox.contains(mx, my) || sliderBox.contains(mx, my))) { // NOPMD
+      if (!pressed && (iconBox.contains(mx, my) || sliderBox.contains(mx, my))) {
         if (handler.getVolumeType() != i) {
           handler.setVolumeType(i);
           SoundControl.setIngameVolumetype(i);

@@ -2,7 +2,7 @@ package engine;
 
 import java.util.logging.Level;
 
-public class CoinManager {
+public final class CoinManager {
   private static final java.util.logging.Logger logger = Core.getLogger();
 
   // 2P mode: number of players used for shared lives in co-op

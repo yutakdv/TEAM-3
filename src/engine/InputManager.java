@@ -7,12 +7,19 @@ import java.io.*;
 import java.awt.event.MouseEvent; // add this line
 import java.awt.event.MouseListener; // add this line
 import java.awt.event.MouseMotionListener; // add this line
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manages keyboard input for the provided screen.
  *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
+@SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+@SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods"})
 public final class InputManager
     implements KeyListener,
         MouseListener,
@@ -29,7 +36,7 @@ public final class InputManager
   private static boolean[] prestatuskeys = new boolean[NUM_KEYS];
 
   /** Mouse pressed state. */
-  private static boolean mousePressed; // add this line
+  private static boolean mousePressed;//NOPMD // add this line
 
   /** Singleton instance of the class. */
   private static InputManager instance;
@@ -40,21 +47,23 @@ public final class InputManager
   /** Flag to check if a character was typed. */
   private static boolean charTyped;
 
+  private static final Logger LOGGER = Logger.getLogger(InputManager.class.getName());
+
   // add three variable
 
   private static int mouseX;
   private static int mouseY;
-  private static boolean mouseClicked;
+  private static boolean mouseClicked;//NOPMD
 
   /** Declare variables to save and return input keys */
   private int lastPressedKey = -1;
 
   private static final String KEY_CONFIG_FILE = "keyconfig.txt";
 
-  protected static int[] player1Keys;
-  protected static int[] player2Keys;
+  static int[] player1Keys;//NOPMD
+  static int[] player2Keys;//NOPMD
 
-  public void setPlayer1Keys(int[] newKeys) {
+  public void setPlayer1Keys(final int[] newKeys) { // NOPMD-do no need varargs
     player1Keys = newKeys.clone();
   }
 
@@ -62,7 +71,7 @@ public final class InputManager
     return player1Keys.clone();
   }
 
-  public void setPlayer2Keys(int[] newKeys) {
+  public void setPlayer2Keys(final int[] newKeys) { // NOPMD-do no need varargs
     player2Keys = newKeys.clone();
   }
 
@@ -72,10 +81,10 @@ public final class InputManager
 
   /** Private constructor. */
   private InputManager() {
-    keys = new boolean[NUM_KEYS];
+    keys = new boolean[NUM_KEYS];//NOPMD
     //        prestatuskeys = new boolean[NUM_KEYS];
-    lastCharTyped = '\0';
-    charTyped = false;
+    lastCharTyped = '\0';//NOPMD
+    charTyped = false;//NOPMD
   }
 
   /**
@@ -83,8 +92,11 @@ public final class InputManager
    *
    * @return Shared instance of InputManager.
    */
-  protected static InputManager getInstance() {
-    if (instance == null) instance = new InputManager();
+  @SuppressFBWarnings("MS_EXPOSE_REP")
+  public static synchronized InputManager getInstance() {
+    if (instance == null) {
+      instance = new InputManager();
+    }
     return instance;
   }
 
@@ -203,7 +215,9 @@ public final class InputManager
    */
   @Override
   public void keyReleased(final KeyEvent key) {
-    if (key.getKeyCode() >= 0 && key.getKeyCode() < NUM_KEYS) keys[key.getKeyCode()] = false;
+    if (key.getKeyCode() >= 0 && key.getKeyCode() < NUM_KEYS) {
+      keys[key.getKeyCode()] = false;
+    }
   }
 
   /**
@@ -219,7 +233,7 @@ public final class InputManager
 
   // Save and return the last pressed key
   public int getLastPressedKey() {
-    int temp = lastPressedKey;
+    final int temp = lastPressedKey;
     lastPressedKey = -1;
     return temp;
   }
@@ -234,49 +248,69 @@ public final class InputManager
 
   // Create and return a project path/res/keyconfig.txt file object
   private File getKeyConfigFile() {
-    String projectPath = System.getProperty("user.dir");
+    final String projectPath = System.getProperty("user.dir");
     return new File(projectPath + File.separator + "res" + File.separator + KEY_CONFIG_FILE);
   }
 
   // write a key code in a keyconfig.txt file
   public void saveKeyConfig() {
     try {
-      File file = getKeyConfigFile();
-      File folder = file.getParentFile();
-      if (!folder.exists()) folder.mkdirs();
+      final File file = getKeyConfigFile();
+      final File folder = file.getParentFile();//NOPMD-LOD
+      if (!folder.exists()) { // NOPMD-LOD
+        final boolean created = folder.mkdirs(); // NOPMD-LOD
+        if (!created && !folder.exists()) { // NOPMD-LOD
+          if (LOGGER.isLoggable(Level.WARNING)) { //NOPMD - Deeply nested
+            LOGGER.log(
+                    Level.WARNING,
+                    "Could not create directory for key config: {0}",
+                    folder.getAbsolutePath()//NOPMD-LOD
+            );
+          }
+          return;
+        }
+      }
 
-      try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+      try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {//NOPMD-LOD
         writer.write(player1Keys[0] + "," + player1Keys[1] + "," + player1Keys[2]);
         writer.newLine();
         writer.write(player2Keys[0] + "," + player2Keys[1] + "," + player2Keys[2]);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      if (LOGGER.isLoggable(Level.SEVERE)) {
+        LOGGER.log(Level.SEVERE, "Failed to save key config", e);
+      }
     }
   }
 
   // Import a file and change the saved input key code
   public void loadKeyConfig() {
-    File file = getKeyConfigFile();
+    final File file = getKeyConfigFile();
 
-    if (!file.exists()) {
+    if (!file.exists()) { // NOPMD-LOD
       return;
     }
 
-    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-      String line1 = reader.readLine();
-      String line2 = reader.readLine();
+    try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+      final String line1 = reader.readLine();
+      final String line2 = reader.readLine();
       if (line1 != null) {
-        String[] parts = line1.split(",");
-        for (int i = 0; i < 3; i++) player1Keys[i] = Integer.parseInt(parts[i]);
+        final String[] parts = line1.split(","); // NOPMD-LOD
+        for (int i = 0; i < 3; i++) {
+          player1Keys[i] = Integer.parseInt(parts[i]);
+        }
       }
       if (line2 != null) {
-        String[] parts = line2.split(",");
-        for (int i = 0; i < 3; i++) player2Keys[i] = Integer.parseInt(parts[i]);
+        final String[] parts = line2.split(","); // NOPMD-LOD
+        for (int i = 0; i < 3; i++) {
+          player2Keys[i] = Integer.parseInt(parts[i]);
+        }
       }
 
     } catch (IOException e) {
-      e.printStackTrace();
+      if (LOGGER.isLoggable(Level.SEVERE)) {
+        LOGGER.log(Level.SEVERE, "Failed to load key config", e);
+      }
     }
   }
 
