@@ -43,7 +43,7 @@ public class SettingControl {//NOPMD
         if (handleBackNavigation(mx, my, clicked)) {
             return;
         }
-        final boolean pressed = inputManager.isMousePressed();
+        final boolean pressed = inputManager.isMousePressed();//NOPMD
 
         handleMenuNavigation();
 

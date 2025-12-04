@@ -24,7 +24,7 @@ public class SettingScreen extends Screen {//NOPMD
   private int selectedKeyIndex;
 
   private final boolean[] keySelected = {false, false, false};
-  private boolean waitingForNewKey = false;
+  private boolean waitingForNewKey;
 
   private final int[] player1Keys;
   private final int[] player2Keys;
