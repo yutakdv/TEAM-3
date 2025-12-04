@@ -16,6 +16,7 @@ public class AchievementScreen extends Screen {
   private List<String> completer;
   private int currentIdx;
   private static final String HOVER_SOUND = "sound/hover.wav";
+  private static final String SELECT_SOUND = "sound/select.wav";
 
   public AchievementScreen(final int width, final int height, final int fps) {
     super(width, height, fps);
@@ -55,7 +56,7 @@ public class AchievementScreen extends Screen {
 
     if (inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
       this.returnCode = 1;
-      SoundManager.playeffect(HOVER_SOUND);
+      SoundManager.playeffect(SELECT_SOUND);
       this.isRunning = false;
     }
 
@@ -66,7 +67,7 @@ public class AchievementScreen extends Screen {
 
       if (backBox.contains(mx, my)) {
         this.returnCode = 1;
-        SoundManager.playeffect(HOVER_SOUND);
+        SoundManager.playeffect(SELECT_SOUND);
         this.isRunning = false;
       }
 
