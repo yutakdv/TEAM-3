@@ -92,7 +92,8 @@ public final class InputManager
    *
    * @return Shared instance of InputManager.
    */
-  public static InputManager getInstance() {
+  @SuppressFBWarnings("MS_EXPOSE_REP")
+  public static synchronized InputManager getInstance() {
     if (instance == null) {
       instance = new InputManager();
     }
