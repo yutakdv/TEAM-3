@@ -40,7 +40,6 @@ public class SettingControl {
         if (handleBackNavigation(mx, my, clicked)) {
             return;
         }
-        final boolean pressed = inputManager.isMousePressed();
 
         handleMenuNavigation();
 
@@ -56,6 +55,7 @@ public class SettingControl {
             return;
         }
 
+        final boolean pressed = inputManager.isMousePressed();
         handleMouseInput(mx, my, pressed, clicked);
         handleReturnToTitle();
     }

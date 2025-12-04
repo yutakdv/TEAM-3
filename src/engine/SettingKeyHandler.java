@@ -5,10 +5,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import screen.SettingScreen;
 
-public class SettingKeyHandler {
+@SuppressWarnings("PMD.LawOfDemeter")
+public class SettingKeyHandler {//NOPMD
 
     private static final Logger LOGGER = Core.getLogger();
     private static final int MENU_P1_KEYS = 1;
+    private static final String SOUND_SELECT = "sound/select.wav";
+    private static final String SOUND_HOVER = "sound/hover.wav";
 
     private final SettingScreen screen;
     private final InputManager inputManager;
@@ -41,7 +44,7 @@ public class SettingKeyHandler {
         if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
             screen.setSelectedSection(1);
             screen.setSelectedKeyIndex(0);
-            SoundManager.playeffect("sound/select.wav");
+            SoundManager.playeffect(SOUND_SELECT);
             this.inputCooldown.reset();
         }
     }
@@ -49,7 +52,7 @@ public class SettingKeyHandler {
     private void handleKeyNavigation() {
         if (inputManager.isKeyPressed(KeyEvent.VK_BACK_SPACE)) {
             screen.setSelectedSection(0);
-            SoundManager.playeffect("sound/select.wav");
+            SoundManager.playeffect(SOUND_SELECT);
             this.inputCooldown.reset();
             return;
         }
@@ -63,10 +66,10 @@ public class SettingKeyHandler {
 
         if (inputManager.isKeyPressed(KeyEvent.VK_UP) && selectedKeyIndex > 0) {
             selectedKeyIndex--;
-            SoundManager.playeffect("sound/hover.wav");
+            SoundManager.playeffect(SOUND_HOVER);
         } else if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) && selectedKeyIndex < screen.getKeyItemsCount() - 1) {
             selectedKeyIndex++;
-            SoundManager.playeffect("sound/hover.wav");
+            SoundManager.playeffect(SOUND_HOVER);
         }
         screen.setSelectedKeyIndex(selectedKeyIndex);
     }
@@ -75,7 +78,7 @@ public class SettingKeyHandler {
         if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
             screen.setKeySelected(screen.getSelectedKeyIndex(), true);
             screen.setWaitingForNewKey(true);
-            SoundManager.playeffect("sound/select.wav");
+            SoundManager.playeffect(SOUND_SELECT);
             this.inputCooldown.reset();
             inputManager.getLastPressedKey();
         }
@@ -117,8 +120,8 @@ public class SettingKeyHandler {
         return false;
     }
 
-    private boolean checkDuplicate(int i, int selectedIndex, int targetKey, int otherKey, int newKey) {
-        if ((i != selectedIndex && targetKey == newKey) || otherKey == newKey) {
+    private boolean checkDuplicate(final int i, final int selectedIndex, final int targetKey, final int otherKey, final int newKey) {
+        if (i != selectedIndex && targetKey == newKey || otherKey == newKey) {
             if (LOGGER.isLoggable(Level.INFO)) {
                 LOGGER.info("Key already in use: " + KeyEvent.getKeyText(newKey));
             }
@@ -147,11 +150,11 @@ public class SettingKeyHandler {
         if (LOGGER.isLoggable(Level.INFO)) {
             LOGGER.info("New key saved -> " + KeyEvent.getKeyText(newKey));
         }
-        SoundManager.playeffect("sound/select.wav");
+        SoundManager.playeffect(SOUND_SELECT);
         this.inputCooldown.reset();
     }
 
-    private void updatePlayerKeys(int index, int newKey) {
+    private void updatePlayerKeys(final int index, final int newKey) {
         if (screen.getSelectMenuItem() == MENU_P1_KEYS) {
             final int[] keys = screen.getPlayer1Keys();
             keys[index] = newKey;

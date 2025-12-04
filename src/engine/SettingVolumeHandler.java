@@ -4,7 +4,11 @@ import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import screen.SettingScreen;
 
-public class SettingVolumeHandler {
+@SuppressWarnings("PMD.LawOfDemeter")
+public class SettingVolumeHandler {//NOPMD
+
+    private static final String SOUND_SELECT = "sound/select.wav";
+    private static final String SOUND_HOVER = "sound/hover.wav";
 
     private final SettingScreen screen;
     private final InputManager inputManager;
@@ -32,7 +36,7 @@ public class SettingVolumeHandler {
         if (inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
             screen.setSelectedSection(1);
             screen.setVolumetype(0);
-            SoundManager.playeffect("sound/select.wav");
+            SoundManager.playeffect(SOUND_SELECT);
             this.inputCooldown.reset();
         }
     }
@@ -40,7 +44,7 @@ public class SettingVolumeHandler {
     private void handleVolumeControlSection() {
         if (inputManager.isKeyPressed(KeyEvent.VK_BACK_SPACE)) {
             screen.setSelectedSection(0);
-            SoundManager.playeffect("sound/select.wav");
+            SoundManager.playeffect(SOUND_SELECT);
         }
         handleVolumeAdjustment();
     }
@@ -57,10 +61,10 @@ public class SettingVolumeHandler {
 
         if (inputManager.isKeyPressed(KeyEvent.VK_UP) && type > 0) {
             type--;
-            SoundManager.playeffect("sound/hover.wav");
+            SoundManager.playeffect(SOUND_HOVER);
         } else if (inputManager.isKeyPressed(KeyEvent.VK_DOWN) && type < maxType) {
             type++;
-            SoundManager.playeffect("sound/hover.wav");
+            SoundManager.playeffect(SOUND_HOVER);
         }
         screen.setVolumetype(type);
         screen.setVolumelevel(screen.getVolumeLevel(type));
@@ -108,7 +112,9 @@ public class SettingVolumeHandler {
     }
 
     private void checkMouseHoverOnSliders(final int mx, final int my, final boolean pressed) {
-        if (!pressed) return;
+        if (!pressed) {
+            return;
+        }
 
         for (int i = 0; i < screen.getSliderTitlesCount(); i++) {
             final Rectangle box = screen.getVolumeBarHitbox(i);
@@ -132,7 +138,9 @@ public class SettingVolumeHandler {
     }
 
     public void handleMouseMuteControl(final int mx, final int my, final boolean clicked) {
-        if (!clicked) return;
+        if (!clicked) {
+            return;
+        }
 
         for (int i = 0; i < screen.getSliderTitlesCount(); i++) {
             final Rectangle iconBox = screen.getSpeakerHitbox(i);
