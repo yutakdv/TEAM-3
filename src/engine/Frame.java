@@ -53,7 +53,7 @@ public class Frame extends JFrame {
    * @return Return code of the finished screen.
    */
   public final int setScreen(final Screen screen) { // NOPMD
-    /** Screen currently shown. */
+    /* Screen currently shown. */
     screen.initialize();
     return screen.run();
   }

@@ -173,7 +173,8 @@ public class EnemyShip extends Entity {
   private static int clamp(final int v) {
     return Math.max(100, Math.min(255, v));
   }
-    @SuppressWarnings("PMD")
+
+  @SuppressWarnings("PMD")
   private void applyColorWithAlpha(final int alpha) {
     Color c = this.getColor();
     if (c == null) {

@@ -1,6 +1,5 @@
 package entity;
 
-import engine.*; // NOPMD
 import screen.Screen;
 
 @SuppressWarnings("PMD.DataClass")

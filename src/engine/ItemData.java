@@ -3,7 +3,7 @@ package engine;
 /**
  * Represents the data for an item, including its type, sprite, tier, effect value, and duration.
  */
-public class ItemData { //NOPMD
+public class ItemData { // NOPMD
   /** Unique identifier for the item (e.g. "COIN", "HEAL", "SCORE"). */
   private final String type;
 
@@ -26,10 +26,8 @@ public class ItemData { //NOPMD
    * @param dropTier rarity tier.
    * @param effectValue numerical value of the item's effect.duration the effect remains active.
    */
-  public ItemData(final String type,
-                  final String spriteType,
-                  final String dropTier,
-                  final int effectValue) {
+  public ItemData(
+      final String type, final String spriteType, final String dropTier, final int effectValue) {
     // Unique identifier for the item (e.g "COIN", "HEAL", "SCORE").
     this.type = type;
     // The sprite type (e.g "ItemScore, ItemHeal", etc).

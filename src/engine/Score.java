@@ -77,10 +77,9 @@ public class Score implements Comparable<Score> {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof Score)) {
+    if (!(obj instanceof Score other)) {
       return false;
     }
-    final Score other = (Score) obj;
     return this.score == other.score;
   }
 

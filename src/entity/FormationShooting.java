@@ -66,7 +66,7 @@ public class FormationShooting {
 
     if (shooter.getSpriteType() == SpriteType.EnemyShipC1
         || shooter.getSpriteType() == SpriteType.EnemyShipC2) {
-      createSplitBullets(bullets, shooter, spawnY, bulletSpeed, bulletWidth, bulletHeight);
+      createSplitBullets(bullets, shooter, spawnY, bulletSpeed);
     } else {
       final Bullet b =
           BulletPool.getBullet(
@@ -81,28 +81,23 @@ public class FormationShooting {
   }
 
   private void createSplitBullets(
-      final Set<Bullet> bullets,
-      final EnemyShip shooter,
-      final int spawnY,
-      final int speed,
-      final int w,
-      final int h) {
+      final Set<Bullet> bullets, final EnemyShip shooter, final int spawnY, final int speed) {
     final int offset = 6;
     bullets.add(
         BulletPool.getBullet(
             shooter.getPositionX() + shooter.getWidth() / 2 - offset,
             spawnY,
             speed,
-            w,
-            h,
+            6,
+            10,
             Entity.Team.ENEMY));
     bullets.add(
         BulletPool.getBullet(
             shooter.getPositionX() + shooter.getWidth() / 2 + offset,
             spawnY,
             speed,
-            w,
-            h,
+            6,
+            10,
             Entity.Team.ENEMY));
   }
 }

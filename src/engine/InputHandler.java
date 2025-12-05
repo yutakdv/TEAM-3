@@ -150,7 +150,8 @@ public class InputHandler { // NOPMD
       final int draggingIdx) {
 
     if (pressed) {
-      final Rectangle sliderBox = drawManager.settings().getpauseVolumeBarHitbox(screen, draggingIdx); // NOPMD
+      final Rectangle sliderBox =
+          drawManager.settings().getpauseVolumeBarHitbox(screen, draggingIdx); // NOPMD
       setVolumeFromX(sliderBox, mx, draggingIdx);
 
       if (handler.getVolumeType() != draggingIdx) {
@@ -179,7 +180,8 @@ public class InputHandler { // NOPMD
       }
     }
   }
-    @SuppressWarnings("PMD.LawOfDemeter")
+
+  @SuppressWarnings("PMD.LawOfDemeter")
   private void handleMouseInteractions( // NOPMD
       final PauseMenuHandler handler,
       final DrawManager drawManager,
@@ -192,7 +194,8 @@ public class InputHandler { // NOPMD
 
     for (int i = 0; i < numSliders; i++) {
       final Rectangle iconBox = drawManager.settings().getPauseSpeakerHitbox(screen, i);
-      final Rectangle sliderBox = drawManager.settings().getpauseVolumeBarHitbox(screen, i); // NOPMD
+      final Rectangle sliderBox = // NOPMD
+          drawManager.settings().getpauseVolumeBarHitbox(screen, i); // NOPMD
 
       if (clicked && iconBox.contains(mx, my)) {
         handler.setVolumeType(i);

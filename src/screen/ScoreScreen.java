@@ -11,7 +11,6 @@ import engine.*; // NOPMD - false positive, engine classes used implicitly
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
 @SuppressWarnings({"PMD.OnlyOneReturn", "PMD.LawOfDemeter"})
-
 public class ScoreScreen extends Screen {
 
   /** Milliseconds between changes in user selection. */
@@ -108,8 +107,7 @@ public class ScoreScreen extends Screen {
 
     try {
       this.highScores = Core.getFileManager().loadHighScores(this.mode);
-      if (highScores.size() < MAX_HIGH_SCORE_NUM
-          || highScores.get(highScores.size() - 1).getScore() < this.score) {
+      if (highScores.size() < MAX_HIGH_SCORE_NUM || highScores.getLast().getScore() < this.score) {
         this.isNewRecord = true;
       }
 
@@ -232,10 +230,8 @@ public class ScoreScreen extends Screen {
         if (newScore.getScore()
             > existingScore.getScore()) { // NOPMD - LoD acceptable in value comparison
           highScores.set(i, newScore);
-          foundAndReplaced = true;
-        } else {
-          foundAndReplaced = true;
         }
+        foundAndReplaced = true;
         break;
       }
     }
@@ -244,7 +240,7 @@ public class ScoreScreen extends Screen {
     }
     Collections.sort(highScores);
     if (highScores.size() > MAX_HIGH_SCORE_NUM) {
-      highScores.remove(highScores.size() - 1);
+      highScores.removeLast();
     }
     try {
       Core.getFileManager()
@@ -268,16 +264,18 @@ public class ScoreScreen extends Screen {
     // 2P mode: edit to include co-op + individual score/coins
     if (this.gameState != null && this.gameState.isCoop()) {
       // team summary
-      drawManager.hud().drawResults(
-          this,
-          this.gameState.getScore(),
-          this.gameState.getCoins(), // team score
-          this.gameState.getLivesRemaining(),
-          this.gameState.getShipsDestroyed(),
-          0f, // leaving out team accuracy
-          this.isNewRecord,
-          false // Draw accuracy for 2P mode
-          );
+      drawManager
+          .hud()
+          .drawResults(
+              this,
+              this.gameState.getScore(),
+              this.gameState.getCoins(), // team score
+              this.gameState.getLivesRemaining(),
+              this.gameState.getShipsDestroyed(),
+              0f, // leaving out team accuracy
+              this.isNewRecord,
+              false // Draw accuracy for 2P mode
+              );
 
       // show per-player lines when in 2P mode
 
@@ -307,15 +305,17 @@ public class ScoreScreen extends Screen {
     } else {
       // 1P legacy summary with accuracy
       final float acc = this.bulletsShot > 0 ? (float) this.shipsDestroyed / this.bulletsShot : 0f;
-      drawManager.hud().drawResults(
-          this,
-          this.score,
-          this.coins,
-          this.livesRemaining,
-          this.shipsDestroyed,
-          acc,
-          this.isNewRecord,
-          true); // Draw accuracy for 1P mode
+      drawManager
+          .hud()
+          .drawResults(
+              this,
+              this.score,
+              this.coins,
+              this.livesRemaining,
+              this.shipsDestroyed,
+              acc,
+              this.isNewRecord,
+              true); // Draw accuracy for 1P mode
     }
 
     drawManager.hud().drawNameInput(this, this.name, this.isNewRecord);
@@ -323,6 +323,6 @@ public class ScoreScreen extends Screen {
       drawManager.hud().drawNameInputError(this);
     }
 
-    drawManager.completeDrawing(this);
+    drawManager.completeDrawing();
   }
 }

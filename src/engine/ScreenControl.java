@@ -24,16 +24,16 @@ public class ScreenControl {
 
   private static final int EXTRA_LIFE_FREQUENCY = 3;
 
-    private final Map<Integer, ScreenAction> screenActions = new HashMap<>();
+  private final Map<Integer, ScreenAction> screenActions = new HashMap<>();
 
-    /** Frame to draw the screen on. */
-    private final Frame frame;
+  /** Frame to draw the screen on. */
+  private final Frame frame;
 
-    private final List<GameSettings> gameSettings;
+  private final List<GameSettings> gameSettings;
 
-    private boolean coopSelected = false; // false = 1P, true = 2P // NOPMD
-    private Ship.ShipType shipTypeP1 = Ship.ShipType.NORMAL; // P1 Ship Type
-    private Ship.ShipType shipTypeP2 = Ship.ShipType.NORMAL; // P2 Ship Type
+  private boolean coopSelected = false; // false = 1P, true = 2P // NOPMD
+  private Ship.ShipType shipTypeP1 = Ship.ShipType.NORMAL; // P1 Ship Type
+  private Ship.ShipType shipTypeP2 = Ship.ShipType.NORMAL; // P2 Ship Type
 
   // 1. 함수형 인터페이스 정의: 각 화면 메서드가 이 형태를 따름
   @FunctionalInterface
@@ -62,7 +62,8 @@ public class ScreenControl {
     screenActions.put(8, mgr -> showHighScoreScreen());
   }
 
-  public int processNextScreen(final int currentReturnCode, final AchievementManager achievementManager) {
+  public int processNextScreen(
+      final int currentReturnCode, final AchievementManager achievementManager) {
     if (screenActions.containsKey(currentReturnCode)) {
       return screenActions.get(currentReturnCode).execute(achievementManager); // NOPMD
     }
@@ -187,7 +188,8 @@ public class ScreenControl {
   }
 
   private int showSettingScreen() {
-    final int returnCode = launchScreen(new SettingScreen(frame.getWidth(), frame.getHeight(), FPS));
+    final int returnCode =
+        launchScreen(new SettingScreen(frame.getWidth(), frame.getHeight(), FPS));
 
     frame.removeKeyListener(InputManager.getInstance());
     frame.addKeyListener(

@@ -34,7 +34,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
    */
   public EnemyShipFormation(final GameSettings gameSettings) {
     this.drawManager = Core.getDrawManager();
-    /** Application logger. */
+    /* Application logger. */
     final Logger logger = Core.getLogger();
 
     // 1. Movement & Shooting 초기화
@@ -61,7 +61,7 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
     // Grid에서 컬럼 정보를 가져와 사수 설정
     for (final List<EnemyShip> column : this.grid.getColumns()) {
       if (!column.isEmpty()) {
-        this.shooting.addShooter(column.get(column.size() - 1));
+        this.shooting.addShooter(column.getLast());
       }
     }
   }
@@ -179,8 +179,8 @@ public class EnemyShipFormation implements Iterable<EnemyShip> {
     for (final List<EnemyShip> col : grid.getColumns()) {
       // 파괴된 배와 X좌표가 거의 같은(같은 컬럼인) 리스트를 찾음
       if (!col.isEmpty()
-          && Math.abs(col.get(0).getPositionX() - destroyedShip.getPositionX()) < 5) { // NOPMD
-        final EnemyShip next = col.get(col.size() - 1);
+          && Math.abs(col.getFirst().getPositionX() - destroyedShip.getPositionX()) < 5) { // NOPMD
+        final EnemyShip next = col.getLast();
         if (next.isDestroyed()) { // NOPMD
           return null;
         }

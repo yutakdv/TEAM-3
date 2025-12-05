@@ -4,6 +4,7 @@ package engine;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 
+@SuppressWarnings("PMD.LawOfDemeter")
 public final class ShipSelectionInteraction {
 
   private static final int SHIP_COUNT = 4;
@@ -61,7 +62,7 @@ public final class ShipSelectionInteraction {
 
   private static ShipSelectionResult handleEscape(
       final ShipSelectionInput input, final InteractionState state) {
-    if (!input.inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) { // NOPMD - LawOfDemeter
+    if (!input.inputManager.isKeyPressed(KeyEvent.VK_ESCAPE)) {
       return null;
     }
 
@@ -73,12 +74,12 @@ public final class ShipSelectionInteraction {
 
   private static void updateBackSelection(
       final ShipSelectionInput input, final InteractionState state) {
-    if (input.inputManager.isKeyPressed(KeyEvent.VK_UP) // NOPMD - LawOfDemeter
-        || input.inputManager.isKeyPressed(KeyEvent.VK_W)) { // NOPMD - LawOfDemeter
+    if (input.inputManager.isKeyPressed(KeyEvent.VK_UP)
+        || input.inputManager.isKeyPressed(KeyEvent.VK_W)) {
       state.backSelected = true;
     }
-    if (input.inputManager.isKeyPressed(KeyEvent.VK_DOWN) // NOPMD - LawOfDemeter
-        || input.inputManager.isKeyPressed(KeyEvent.VK_S)) { // NOPMD - LawOfDemeter
+    if (input.inputManager.isKeyPressed(KeyEvent.VK_DOWN)
+        || input.inputManager.isKeyPressed(KeyEvent.VK_S)) {
       state.backSelected = false;
     }
   }
@@ -86,15 +87,14 @@ public final class ShipSelectionInteraction {
   private static void updateHover(
       final ShipSelectionInput input, final InteractionState state, final int previousHoverIndex) {
 
-    state.mouseHovering =
-        input.backBox.contains(input.mouseX, input.mouseY); // NOPMD - LawOfDemeter
+    state.mouseHovering = input.backBox.contains(input.mouseX, input.mouseY);
     state.hoverIndex = previousHoverIndex;
 
     if (!state.mouseHovering) {
       state.hoverIndex = -1;
       for (int i = 0; i < input.shipBoxes.length; i++) {
         final Rectangle box = input.shipBoxes[i];
-        if (box.contains(input.mouseX, input.mouseY)) { // NOPMD - LawOfDemeter
+        if (box.contains(input.mouseX, input.mouseY)) {
           state.hoverIndex = i;
           state.backSelected = false;
           state.mouseHovering = true;
@@ -103,7 +103,7 @@ public final class ShipSelectionInteraction {
       }
     }
 
-    input.unlockManager.updateToast(); // NOPMD - LawOfDemeter
+    input.unlockManager.updateToast();
 
     if (state.hoverIndex != -1 && state.hoverIndex != previousHoverIndex) {
       state.selectedIndex = state.hoverIndex;
@@ -117,16 +117,16 @@ public final class ShipSelectionInteraction {
       return;
     }
 
-    if (input.inputManager.isKeyPressed(KeyEvent.VK_LEFT) // NOPMD - LawOfDemeter
-        || input.inputManager.isKeyPressed(KeyEvent.VK_A)) { // NOPMD - LawOfDemeter
+    if (input.inputManager.isKeyPressed(KeyEvent.VK_LEFT)
+        || input.inputManager.isKeyPressed(KeyEvent.VK_A)) {
       state.selectedIndex = (state.selectedIndex - 1 + SHIP_COUNT) % SHIP_COUNT;
       if (!state.mouseHovering) {
         playHoverSound();
       }
     }
 
-    if (input.inputManager.isKeyPressed(KeyEvent.VK_RIGHT) // NOPMD - LawOfDemeter
-        || input.inputManager.isKeyPressed(KeyEvent.VK_D)) { // NOPMD - LawOfDemeter
+    if (input.inputManager.isKeyPressed(KeyEvent.VK_RIGHT)
+        || input.inputManager.isKeyPressed(KeyEvent.VK_D)) {
       state.selectedIndex = (state.selectedIndex + 1) % SHIP_COUNT;
       if (!state.mouseHovering) {
         playHoverSound();
@@ -136,7 +136,7 @@ public final class ShipSelectionInteraction {
 
   private static ShipSelectionResult handleSpace(
       final ShipSelectionInput input, final InteractionState state) {
-    if (!input.inputManager.isKeyPressed(KeyEvent.VK_SPACE)) { // NOPMD - LawOfDemeter
+    if (!input.inputManager.isKeyPressed(KeyEvent.VK_SPACE)) {
       return null;
     }
 
@@ -147,9 +147,9 @@ public final class ShipSelectionInteraction {
           true, returnCode, state.selectedIndex, state.backSelected, state.hoverIndex);
     }
 
-    if (!input.unlockManager.isSelectedShipUnlocked(state.selectedIndex)) { // NOPMD - LawOfDemeter
+    if (!input.unlockManager.isSelectedShipUnlocked(state.selectedIndex)) {
       input.unlockManager.tryUnlock(state.selectedIndex);
-      CoinManager.load(); // NOPMD - LawOfDemeter
+      CoinManager.load();
       return ShipSelectionResult.noChange(
           state.selectedIndex, state.backSelected, state.hoverIndex);
     }
@@ -162,11 +162,11 @@ public final class ShipSelectionInteraction {
 
   private static ShipSelectionResult handleMouseClick(
       final ShipSelectionInput input, final InteractionState state) {
-    if (!input.inputManager.isMouseClicked()) { // NOPMD - LawOfDemeter
+    if (!input.inputManager.isMouseClicked()) {
       return null;
     }
 
-    if (input.backBox.contains(input.mouseX, input.mouseY)) { // NOPMD - LawOfDemeter
+    if (input.backBox.contains(input.mouseX, input.mouseY)) {
       final int returnCode = (input.player == 1) ? 5 : 6;
       playSelectSound();
       return new ShipSelectionResult(
@@ -178,8 +178,8 @@ public final class ShipSelectionInteraction {
           state.selectedIndex, state.backSelected, state.hoverIndex);
     }
 
-    if (!input.unlockManager.isUnlocked(state.hoverIndex)) { // NOPMD - LawOfDemeter
-      input.unlockManager.tryUnlock(state.hoverIndex); // NOPMD - LawOfDemeter
+    if (!input.unlockManager.isUnlocked(state.hoverIndex)) {
+      input.unlockManager.tryUnlock(state.hoverIndex);
       state.selectedIndex = state.hoverIndex;
       return ShipSelectionResult.noChange(
           state.selectedIndex, state.backSelected, state.hoverIndex);
@@ -193,10 +193,10 @@ public final class ShipSelectionInteraction {
   }
 
   private static void playSelectSound() {
-    SoundManager.playeffect(SELECT_SOUND); // NOPMD - LawOfDemeter: centralized static audio call
+    SoundManager.playeffect(SELECT_SOUND);
   }
 
   private static void playHoverSound() {
-    SoundManager.playeffect(HOVER_SOUND); // NOPMD - LawOfDemeter: centralized static audio call
+    SoundManager.playeffect(HOVER_SOUND);
   }
 }

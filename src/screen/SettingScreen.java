@@ -7,7 +7,7 @@ import engine.SoundManager;
 import engine.SettingControl;
 
 @SuppressWarnings("PMD.LawOfDemeter")
-public class SettingScreen extends Screen {//NOPMD
+public class SettingScreen extends Screen { // NOPMD
   private static final int MENU_VOLUME = 0;
   private static final int MENU_P1_KEYS = 1;
   private static final int MENU_P2_KEYS = 2;
@@ -82,7 +82,9 @@ public class SettingScreen extends Screen {//NOPMD
     switch (this.selectMenuItem) {
       case MENU_VOLUME:
         for (int i = 0; i < sliderTitles.length; i++) {
-          drawManager.settings().drawVolumeBar(
+          drawManager
+              .settings()
+              .drawVolumeBar(
                   this,
                   volumeLevels[i],
                   draggingIndex == i,
@@ -93,12 +95,24 @@ public class SettingScreen extends Screen {//NOPMD
         }
         break;
       case MENU_P1_KEYS:
-        drawManager.settings().drawKeysettings(
-                this, 1, this.selectedSection, this.selectedKeyIndex, this.keySelected, this.player1Keys);
+        drawManager
+            .settings()
+            .drawKeysettings(
+                this,
+                this.selectedSection,
+                this.selectedKeyIndex,
+                this.keySelected,
+                this.player1Keys);
         break;
       case MENU_P2_KEYS:
-        drawManager.settings().drawKeysettings(
-                this, 2, this.selectedSection, this.selectedKeyIndex, this.keySelected, this.player2Keys);
+        drawManager
+            .settings()
+            .drawKeysettings(
+                this,
+                this.selectedSection,
+                this.selectedKeyIndex,
+                this.keySelected,
+                this.player2Keys);
         break;
       default:
         break;
@@ -106,46 +120,101 @@ public class SettingScreen extends Screen {//NOPMD
 
     final int mx = inputManager.getMouseX();
     final int my = inputManager.getMouseY();
-    final Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
+    final Rectangle backBox = drawManager.menu().getBackButtonHitbox();
     final boolean backHover = backBox.contains(mx, my);
     final boolean backSelected = this.selectMenuItem == MENU_BACK;
 
-    drawManager.menu().drawBackButton(this, backHover || backSelected);
-    drawManager.completeDrawing(this);
+    drawManager.menu().drawBackButton(backHover || backSelected);
+    drawManager.completeDrawing();
   }
 
-  public void setIsRunning(final boolean isRunning) { this.isRunning = isRunning; }
-  public void setReturnCode(final int returnCode) { this.returnCode = returnCode; }
+  public void setIsRunning(final boolean isRunning) {
+    this.isRunning = isRunning;
+  }
 
-  public int getSelectMenuItem() { return selectMenuItem; }
-  public void setSelectMenuItem(final int item) { this.selectMenuItem = item; }
+  public void setReturnCode(final int returnCode) {
+    this.returnCode = returnCode;
+  }
 
-  public int getSelectedSection() { return selectedSection; }
-  public void setSelectedSection(final int section) { this.selectedSection = section; }
+  public int getSelectMenuItem() {
+    return selectMenuItem;
+  }
 
-  public int getSelectedKeyIndex() { return selectedKeyIndex; }
-  public void setSelectedKeyIndex(final int index) { this.selectedKeyIndex = index; }
+  public void setSelectMenuItem(final int item) {
+    this.selectMenuItem = item;
+  }
 
-  public int getVolumetype() { return volumetype; }
-  public void setVolumetype(final int type) { this.volumetype = type; }
+  public int getSelectedSection() {
+    return selectedSection;
+  }
 
-  public int getVolumelevel() { return volumelevel; }
-  public void setVolumelevel(final int level) { this.volumelevel = level; }
+  public void setSelectedSection(final int section) {
+    this.selectedSection = section;
+  }
 
-  public boolean isWaitingForNewKey() { return waitingForNewKey; }
-  public void setWaitingForNewKey(final boolean waiting) { this.waitingForNewKey = waiting; }
+  public int getSelectedKeyIndex() {
+    return selectedKeyIndex;
+  }
 
-  public boolean isEnableSoundMouseControl() { return enableSoundMouseControl; }
-  public void setEnableSoundMouseControl(final boolean enable) { this.enableSoundMouseControl = enable; }
+  public void setSelectedKeyIndex(final int index) {
+    this.selectedKeyIndex = index;
+  }
 
-  public int getDraggingIndex() { return draggingIndex; }
-  public void setDraggingIndex(final int index) { this.draggingIndex = index; }
+  public int getVolumetype() {
+    return volumetype;
+  }
 
-  public int[] getPlayer1Keys() { return player1Keys; }
-  public int[] getPlayer2Keys() { return player2Keys; }
+  public void setVolumetype(final int type) {
+    this.volumetype = type;
+  }
 
-  public int getVolumeLevel(final int index) { return volumeLevels[index]; }
-  public void setVolumeLevel(final int index, final int val) { volumeLevels[index] = val; }
+  public int getVolumelevel() {
+    return volumelevel;
+  }
+
+  public void setVolumelevel(final int level) {
+    this.volumelevel = level;
+  }
+
+  public boolean isWaitingForNewKey() {
+    return waitingForNewKey;
+  }
+
+  public void setWaitingForNewKey(final boolean waiting) {
+    this.waitingForNewKey = waiting;
+  }
+
+  public boolean isEnableSoundMouseControl() {
+    return enableSoundMouseControl;
+  }
+
+  public void setEnableSoundMouseControl(final boolean enable) {
+    this.enableSoundMouseControl = enable;
+  }
+
+  public int getDraggingIndex() {
+    return draggingIndex;
+  }
+
+  public void setDraggingIndex(final int index) {
+    this.draggingIndex = index;
+  }
+
+  public int[] getPlayer1Keys() {
+    return player1Keys;
+  }
+
+  public int[] getPlayer2Keys() {
+    return player2Keys;
+  }
+
+  public int getVolumeLevel(final int index) {
+    return volumeLevels[index];
+  }
+
+  public void setVolumeLevel(final int index, final int val) {
+    volumeLevels[index] = val;
+  }
 
   public void setKeySelected(final int index, final boolean selected) {
     if (index >= 0 && index < keySelected.length) {
@@ -153,19 +222,30 @@ public class SettingScreen extends Screen {//NOPMD
     }
   }
 
-  public int getMenuItemCount() { return menuItem.length; }
-  public int getSliderTitlesCount() { return sliderTitles.length; }
-  public int getKeyItemsCount() { return keyItems.length; }
+  public int getMenuItemCount() {
+    return menuItem.length;
+  }
+
+  public int getSliderTitlesCount() {
+    return sliderTitles.length;
+  }
+
+  public int getKeyItemsCount() {
+    return keyItems.length;
+  }
 
   public Rectangle getBackButtonHitbox() {
-    return drawManager.menu().getBackButtonHitbox(this);
+    return drawManager.menu().getBackButtonHitbox();
   }
+
   public Rectangle getSettingMenuHitbox(final int index) {
     return drawManager.settings().getSettingMenuHitbox(this, index);
   }
+
   public Rectangle getVolumeBarHitbox(final int index) {
     return drawManager.settings().getVolumeBarHitbox(this, index);
   }
+
   public Rectangle getSpeakerHitbox(final int index) {
     return drawManager.settings().getSpeakerHitbox(this, index);
   }
