@@ -19,21 +19,17 @@ public class PauseMenuHandler {
   public void draw(final DrawManager drawManager, final Screen screen) {
     drawManager.hud().drawPauseOverlay(screen); // NOPMD
     for (int i = 0; i < numPauseSliders; i++) {
-      drawManager.settings().drawpauseVolumeBar( // NOPMD
-          screen,
-          SoundControl.getIngameVolumeLevel(i),
-          pauseDraggingIndex == i,
-          i,
-          PAUSE_SLIDER_TITLES[i],
-          pauseSelectedSection,
-          this.pauseVolumetype);
+      drawManager // NOPMD
+          .settings()
+          .drawpauseVolumeBar( // NOPMD
+              screen,
+              SoundControl.getIngameVolumeLevel(i),
+              pauseDraggingIndex == i,
+              i,
+              PAUSE_SLIDER_TITLES[i],
+              pauseSelectedSection,
+              this.pauseVolumetype);
     }
-  }
-
-  public void reset() {
-    this.pauseVolumetype = 0;
-    SoundControl.setIngameVolumetype(0);
-    this.pauseDraggingIndex = -1;
   }
 
   public int getNumPauseSliders() {

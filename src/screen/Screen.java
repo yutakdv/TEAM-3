@@ -14,29 +14,28 @@ import engine.InputManager;
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
 @SuppressWarnings({"PMD.LawOfDemeter"})
-
 public class Screen {
 
   /** Milliseconds until the screen accepts user input. */
   private static final int INPUT_DELAY = 1000;
 
   /** Draw Manager instance. */
-  protected DrawManager drawManager;
+  protected final DrawManager drawManager;
 
   /** Input Manager instance. */
-  protected InputManager inputManager;
+  protected final InputManager inputManager;
 
   /** Application logger. */
-  protected Logger logger;
+  protected final Logger logger;
 
   /** Screen width. */
-  protected int width;
+  protected final int width;
 
   /** Screen height. */
-  protected int height;
+  protected final int height;
 
   /** Frames per second shown on the screen. */
-  protected int fps;
+  protected final int fps;
 
   /** Time until the screen accepts user input. */
   protected Cooldown inputDelay;
@@ -120,12 +119,12 @@ public class Screen {
   }
 
   protected void handleBackButtonHover() {
-      final int mx = inputManager.getMouseX();
-      final int my = inputManager.getMouseY();
-      final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
+    final int mx = inputManager.getMouseX();
+    final int my = inputManager.getMouseY();
+    final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox();
 
-      if (backBox.contains(mx, my)) {
-          drawManager.menu().drawBackButton(this, true);
-      }
+    if (backBox.contains(mx, my)) {
+      drawManager.menu().drawBackButton(true);
+    }
   }
 }

@@ -10,11 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,11 +18,10 @@ import entity.Ship.ShipType;
 import engine.DrawManager.SpriteType;
 
 /**
- * Manages files used in the application.
- * Refactored: Achievement logic moved to AchievementManager.
+ * Manages files used in the application. Refactored: Achievement logic moved to AchievementManager.
  */
 @SuppressWarnings("PMD.LawOfDemeter")
-public final class FileManager { //NOPMD
+public final class FileManager { // NOPMD
   private static FileManager instance;
   private static final Logger LOGGER = Core.getLogger();
 
@@ -36,8 +31,7 @@ public final class FileManager { //NOPMD
   private static final String FILENAME_SHIPS = "ships.csv";
   private static final String DIR_RES = "res";
 
-  private FileManager() {
-  }
+  private FileManager() {}
 
   static FileManager getInstance() {
     if (instance == null) {
@@ -47,7 +41,8 @@ public final class FileManager { //NOPMD
   }
 
   public void loadSprite(final Map<SpriteType, boolean[][]> spriteMap) throws IOException {
-    try (InputStream inputStream = DrawManager.class.getClassLoader().getResourceAsStream("graphics")) {
+    try (InputStream inputStream =
+        DrawManager.class.getClassLoader().getResourceAsStream("graphics")) {
       if (inputStream == null) {
         throw new IOException("Graphics resource not found.");
       }
@@ -68,15 +63,15 @@ public final class FileManager { //NOPMD
 
   private boolean readBooleanChar(final InputStream is) throws IOException {
     int c;
-    c = is.read();
-    while (c != '0' && c != '1' && c != -1) {
+    do {
       c = is.read();
-    }
+    } while (c != '0' && c != '1' && c != -1);
     return c == '1';
   }
 
   public Font loadFont(final float size) throws IOException, FontFormatException {
-    try (InputStream inputStream = FileManager.class.getClassLoader().getResourceAsStream("font.ttf")) {
+    try (InputStream inputStream =
+        FileManager.class.getClassLoader().getResourceAsStream("font.ttf")) {
       if (inputStream == null) {
         throw new IOException("Font resource not found.");
       }
@@ -86,8 +81,12 @@ public final class FileManager { //NOPMD
 
   private List<Score> loadDefaultHighScores() throws IOException {
     final List<Score> highScores = new ArrayList<>();
-    try (InputStream inputStream = FileManager.class.getClassLoader().getResourceAsStream("1Pscores.csv");
-         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+    try (InputStream inputStream =
+            FileManager.class.getClassLoader().getResourceAsStream("1Pscores.csv");
+        BufferedReader reader =
+            new BufferedReader(
+                new InputStreamReader(
+                    Objects.requireNonNull(inputStream), StandardCharsets.UTF_8))) {
 
       reader.readLine(); // skip header
 
@@ -119,7 +118,7 @@ public final class FileManager { //NOPMD
   }
 
   public List<Score> loadHighScores(final String mode) throws IOException {
-    final List<Score> highScores = new ArrayList<>();//NOPMD
+    final List<Score> highScores = new ArrayList<>(); // NOPMD
     final File file = new File(getSaveDirectory() + mode + "scores.csv");
 
     if (!file.exists()) {
@@ -129,7 +128,8 @@ public final class FileManager { //NOPMD
       return loadDefaultHighScores();
     }
 
-    try (BufferedReader bufferedReader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+    try (BufferedReader bufferedReader =
+        Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
 
       if (LOGGER.isLoggable(Level.INFO)) {
         LOGGER.info("Loading user high scores.");
@@ -151,12 +151,13 @@ public final class FileManager { //NOPMD
     final File scoresFile = new File(getSaveDirectory() + mode + "scores.csv");
     if (!scoresFile.exists()) {
       final boolean created = scoresFile.createNewFile();
-        if (!created && !scoresFile.exists()) {
-            throw new IOException("Failed to create high score file: " + scoresFile.getAbsolutePath());
-        }
+      if (!created && !scoresFile.exists()) {
+        throw new IOException("Failed to create high score file: " + scoresFile.getAbsolutePath());
+      }
     }
 
-    try (BufferedWriter bufferedWriter = Files.newBufferedWriter(scoresFile.toPath(), StandardCharsets.UTF_8)) {
+    try (BufferedWriter bufferedWriter =
+        Files.newBufferedWriter(scoresFile.toPath(), StandardCharsets.UTF_8)) {
 
       if (LOGGER.isLoggable(Level.INFO)) {
         LOGGER.info("Saving user high scores.");
@@ -246,12 +247,13 @@ public final class FileManager { //NOPMD
 
     final File parent = coinsFile.getParentFile();
     if (parent != null && !parent.exists() && !parent.mkdirs()) {
-      if (LOGGER.isLoggable(Level.WARNING)) {//NOPMD
+      if (LOGGER.isLoggable(Level.WARNING)) { // NOPMD
         LOGGER.warning("Failed to create directory: " + parent.getAbsolutePath());
       }
     }
 
-    try (BufferedWriter writer = Files.newBufferedWriter(coinsFile.toPath(), StandardCharsets.UTF_8)) {
+    try (BufferedWriter writer =
+        Files.newBufferedWriter(coinsFile.toPath(), StandardCharsets.UTF_8)) {
       writer.write(Integer.toString(coins));
       writer.newLine();
 
@@ -266,7 +268,7 @@ public final class FileManager { //NOPMD
   }
 
   private boolean isRunningFromJarOrExe() {
-    final String protocol = FileManager.class.getResource("").getProtocol();
+    final String protocol = Objects.requireNonNull(FileManager.class.getResource("")).getProtocol();
     return !"file".equals(protocol);
   }
 
@@ -275,13 +277,14 @@ public final class FileManager { //NOPMD
       return testDirectory;
     }
 
-    final String dirPath = isRunningFromJarOrExe()
+    final String dirPath =
+        isRunningFromJarOrExe()
             ? System.getProperty("user.home") + File.separator + "TEAM3" + File.separator
             : System.getProperty("user.dir") + File.separator + DIR_RES + File.separator;
 
     final File d = new File(dirPath);
     if (!d.exists() && !d.mkdirs()) {
-      if (LOGGER.isLoggable(Level.WARNING)) {//NOPMD
+      if (LOGGER.isLoggable(Level.WARNING)) { // NOPMD
         LOGGER.warning("Failed to create directory: " + d.getAbsolutePath());
       }
     }

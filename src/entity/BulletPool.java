@@ -43,7 +43,9 @@ public final class BulletPool {
       bullet = pool.iterator().next(); // NOPMD - acceptable concise iterator access
       pool.remove(bullet);
     }
-    bullet.initialize(positionX, positionY, speed, width, height, team); // NOPMD - initialization delegated to Bullet, acceptable for pooling
+    bullet.initialize( // NOPMD
+        positionX, positionY, speed, width, height,
+        team); // NOPMD - initialization delegated to Bullet, acceptable for pooling
     return bullet;
   }
 

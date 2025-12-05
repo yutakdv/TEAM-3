@@ -33,10 +33,10 @@ public final class InputManager
 
   // add this line
   /** Check the status of the previous frame key */
-  private static boolean[] prestatuskeys = new boolean[NUM_KEYS];
+  private static final boolean[] prestatuskeys = new boolean[NUM_KEYS];
 
   /** Mouse pressed state. */
-  private static boolean mousePressed;//NOPMD // add this line
+  private static boolean mousePressed; // NOPMD // add this line
 
   /** Singleton instance of the class. */
   private static InputManager instance;
@@ -53,15 +53,15 @@ public final class InputManager
 
   private static int mouseX;
   private static int mouseY;
-  private static boolean mouseClicked;//NOPMD
+  private static boolean mouseClicked; // NOPMD
 
   /** Declare variables to save and return input keys */
   private int lastPressedKey = -1;
 
   private static final String KEY_CONFIG_FILE = "keyconfig.txt";
 
-  static int[] player1Keys;//NOPMD
-  static int[] player2Keys;//NOPMD
+  static int[] player1Keys; // NOPMD
+  static int[] player2Keys; // NOPMD
 
   public void setPlayer1Keys(final int[] newKeys) { // NOPMD-do no need varargs
     player1Keys = newKeys.clone();
@@ -81,10 +81,10 @@ public final class InputManager
 
   /** Private constructor. */
   private InputManager() {
-    keys = new boolean[NUM_KEYS];//NOPMD
+    keys = new boolean[NUM_KEYS]; // NOPMD
     //        prestatuskeys = new boolean[NUM_KEYS];
-    lastCharTyped = '\0';//NOPMD
-    charTyped = false;//NOPMD
+    lastCharTyped = '\0'; // NOPMD
+    charTyped = false; // NOPMD
   }
 
   /**
@@ -256,22 +256,23 @@ public final class InputManager
   public void saveKeyConfig() {
     try {
       final File file = getKeyConfigFile();
-      final File folder = file.getParentFile();//NOPMD-LOD
+      final File folder = file.getParentFile(); // NOPMD-LOD
       if (!folder.exists()) { // NOPMD-LOD
         final boolean created = folder.mkdirs(); // NOPMD-LOD
         if (!created && !folder.exists()) { // NOPMD-LOD
-          if (LOGGER.isLoggable(Level.WARNING)) { //NOPMD - Deeply nested
+          if (LOGGER.isLoggable(Level.WARNING)) { // NOPMD - Deeply nested
             LOGGER.log(
-                    Level.WARNING,
-                    "Could not create directory for key config: {0}",
-                    folder.getAbsolutePath()//NOPMD-LOD
-            );
+                Level.WARNING,
+                "Could not create directory for key config: {0}",
+                folder.getAbsolutePath() // NOPMD-LOD
+                );
           }
           return;
         }
       }
 
-      try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {//NOPMD-LOD
+      try (BufferedWriter writer =
+          Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) { // NOPMD-LOD
         writer.write(player1Keys[0] + "," + player1Keys[1] + "," + player1Keys[2]);
         writer.newLine();
         writer.write(player2Keys[0] + "," + player2Keys[1] + "," + player2Keys[2]);
@@ -314,7 +315,7 @@ public final class InputManager
     }
   }
 
-  /**
+  /*
    * After setting the default, import the saved key settings from the file and cover the default
    * values
    */
@@ -324,13 +325,6 @@ public final class InputManager
     player2Keys = new int[] {KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_ENTER};
 
     instance.loadKeyConfig();
-  }
-
-  /** Resets all key states to not pressed. */
-  public static void resetKeys() {
-    for (int i = 0; i < NUM_KEYS; i++) {
-      keys[i] = false;
-    }
   }
 
   public int getMouseX() {

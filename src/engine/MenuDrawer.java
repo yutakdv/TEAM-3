@@ -25,7 +25,7 @@ public final class MenuDrawer { // NOPMD
   }
 
   private Graphics2D g2d() {
-    return (Graphics2D) drawManager.getBackBufferGraphics();
+    return drawManager.getBackBufferGraphics();
   }
 
   private Font fontRegular() {
@@ -61,12 +61,10 @@ public final class MenuDrawer { // NOPMD
   /**
    * Draws main menu. - remodified for 2P mode, using string array for efficiency
    *
-   * @param option legacy parameter (not used for highlight anymore)
    * @param hoverOption mouse hover index (nullable)
    * @param selectedIndex keyboard selection index
    */
-  public void drawMenu(
-      final Screen screen, final int option, final Integer hoverOption, final int selectedIndex) {
+  public void drawMenu(final Screen screen, final Integer hoverOption, final int selectedIndex) {
     final String[] items = {"Play", "Achievements", "High scores", "Settings", "Exit"};
 
     final int baseY = screen.getHeight() / 3 * 2 - 20;
@@ -98,15 +96,17 @@ public final class MenuDrawer { // NOPMD
 
     g2d().setColor(Color.GREEN);
 
-    g2d().drawString(
+    g2d()
+        .drawString(
             "1-PLAYER MODE", midX / 2 - fmBig().stringWidth("1-PLAYER MODE") / 2 + 40, startY);
-    g2d().drawString(
+    g2d()
+        .drawString(
             "2-PLAYER MODE",
             midX + midX / 2 - fmBig().stringWidth("2-PLAYER MODE") / 2 + 40,
             startY);
 
     // draw back button at top-left
-    drawBackButton(screen, false);
+    drawBackButton(false);
   }
 
   /** Draws high scores for 1P or 2P column. */
@@ -203,7 +203,7 @@ public final class MenuDrawer { // NOPMD
     g2d().setColor(Color.GREEN);
     drawManager.drawCenteredRegularString(screen, prevNextString, (int) (screen.getHeight() * 0.8));
 
-    drawBackButton(screen, false);
+    drawBackButton(false);
   }
 
   /** Hitboxes for PREV / NEXT in achievement menu. */
@@ -263,7 +263,7 @@ public final class MenuDrawer { // NOPMD
         screen.getHeight() / 5 + fmRegular().getHeight() * 2);
 
     // draw back button at top-left corner
-    drawBackButton(screen, selectedIndex == 2);
+    drawBackButton(selectedIndex == 2);
 
     final int baseY = screen.getHeight() / 2 - 20;
     for (int i = 0; i < items.length; i++) {
@@ -275,7 +275,7 @@ public final class MenuDrawer { // NOPMD
   }
 
   /** Draw a "< Back" button at the top-left corner. */
-  public void drawBackButton(final Screen screen, final boolean highlighted) {
+  public void drawBackButton(final boolean highlighted) {
     g2d().setFont(fontRegular());
     g2d().setColor(highlighted ? Color.GREEN : Color.WHITE);
 
@@ -305,7 +305,7 @@ public final class MenuDrawer { // NOPMD
   }
 
   /** Hitbox for back button. */
-  public Rectangle getBackButtonHitbox(final Screen screen) {
+  public Rectangle getBackButtonHitbox() {
     if (drawManager.getFontRegularMetrics() == null) {
       g2d().setFont(fontRegular());
     }
@@ -342,13 +342,12 @@ public final class MenuDrawer { // NOPMD
 
   // ================ SHIP SELECTION =================
 
-
   public void drawShipSelectionMenu(
       final Screen screen,
       final Ship[] shipExamples,
       final int selectedShipIndex,
       final int playerIndex,
-      final boolean[] unlockedStates) { //NOPMD - do not need varargs
+      final boolean[] unlockedStates) { // NOPMD - do not need varargs
 
     final String screenTitle = "PLAYER " + playerIndex + " : CHOOSE YOUR SHIP";
 
@@ -381,7 +380,7 @@ public final class MenuDrawer { // NOPMD
         final int frameY = y - padding;
         final int frameW = s.getWidth() + padding * 2;
         final int frameH = s.getHeight() + padding * 2;
-        drawFrame(frameX, frameY, frameW, frameH, Color.WHITE, 8, 1);
+        drawFrame(frameX, frameY, frameW, frameH);
       }
     }
 
@@ -414,9 +413,7 @@ public final class MenuDrawer { // NOPMD
 
     final boolean selectedUnlocked =
         unlockedStates == null
-            || selectedShipIndex >= 0
-                && selectedShipIndex < unlockedStates.length
-                && unlockedStates[selectedShipIndex];
+            || selectedShipIndex < unlockedStates.length && unlockedStates[selectedShipIndex];
 
     g2d().setFont(fontRegular());
 
@@ -441,22 +438,15 @@ public final class MenuDrawer { // NOPMD
   }
 
   private int getShipUnlockCost(final int index) {
-    switch (index) {
-      case 0:
-        return 0;
-      case 1:
-        return 2000;
-      case 2:
-        return 3500;
-      case 3:
-        return 5000;
-      default:
-        return 0;
-    }
+    return switch (index) {
+      case 1 -> 2000;
+      case 2 -> 3500;
+      case 3 -> 5000;
+      default -> 0;
+    };
   }
 
-
-  public Rectangle[] getShipSelectionHitboxes(final Screen screen, final Ship[] ships) {//NOPMD - do not need varargs
+  public Rectangle[] getShipSelectionHitboxes(final Ship[] ships) { // NOPMD - do not need varargs
     final Rectangle[] boxes = new Rectangle[ships.length];
     for (int i = 0; i < ships.length; i++) {
       final Ship s = ships[i];
@@ -485,33 +475,25 @@ public final class MenuDrawer { // NOPMD
     return new Rectangle(x, y, textWidth, h);
   }
 
-
-  private void drawFrame(
-      final int x,
-      final int y,
-      final int width,
-      final int height,
-      final Color color,
-      final int cornerLength,
-      final int thickness) {
+  private void drawFrame(final int x, final int y, final int width, final int height) {
     final Graphics2D g2d = g2d();
-    g2d.setColor(color);
-    g2d.setStroke(new java.awt.BasicStroke(thickness));
+    g2d.setColor(Color.WHITE);
+    g2d.setStroke(new java.awt.BasicStroke(1));
 
     // upper left
-    g2d.drawLine(x, y, x + cornerLength, y);
-    g2d.drawLine(x, y, x, y + cornerLength);
+    g2d.drawLine(x, y, x + 8, y);
+    g2d.drawLine(x, y, x, y + 8);
 
     // upper right
-    g2d.drawLine(x + width - cornerLength, y, x + width, y);
-    g2d.drawLine(x + width, y, x + width, y + cornerLength);
+    g2d.drawLine(x + width - 8, y, x + width, y);
+    g2d.drawLine(x + width, y, x + width, y + 8);
 
     // lower left
-    g2d.drawLine(x, y + height, x + cornerLength, y + height);
-    g2d.drawLine(x, y + height - cornerLength, x, y + height);
+    g2d.drawLine(x, y + height, x + 8, y + height);
+    g2d.drawLine(x, y + height - 8, x, y + height);
 
     // lower right
-    g2d.drawLine(x + width - cornerLength, y + height, x + width, y + height);
-    g2d.drawLine(x + width, y + height - cornerLength, x + width, y + height);
+    g2d.drawLine(x + width - 8, y + height, x + width, y + height);
+    g2d.drawLine(x + width, y + height - 8, x + width, y + height);
   }
 }

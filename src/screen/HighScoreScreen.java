@@ -14,7 +14,6 @@ import engine.SoundManager;
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
 @SuppressWarnings({"PMD.LawOfDemeter"})
-
 public class HighScoreScreen extends Screen {
 
   /** List of past high scores. */
@@ -79,7 +78,7 @@ public class HighScoreScreen extends Screen {
     if (inputManager.isMouseClicked()) {
       final int mx = inputManager.getMouseX();
       final int my = inputManager.getMouseY();
-      final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox(this);
+      final java.awt.Rectangle backBox = drawManager.menu().getBackButtonHitbox();
 
       if (backBox.contains(mx, my)) { // NOPMD - LawOfDemeter
         this.returnCode = 1;
@@ -103,6 +102,6 @@ public class HighScoreScreen extends Screen {
     // hover highlight
     handleBackButtonHover();
 
-    drawManager.completeDrawing(this);
+    drawManager.completeDrawing();
   }
 }

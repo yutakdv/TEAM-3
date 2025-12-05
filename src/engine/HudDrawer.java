@@ -29,7 +29,7 @@ public final class HudDrawer { // NOPMD
   // --- helpers to access DrawManager state ---
 
   private Graphics2D g2d() {
-    return (Graphics2D) drawManager.getBackBufferGraphics();
+    return drawManager.getBackBufferGraphics();
   }
 
   private Font fontRegular() {
@@ -59,7 +59,7 @@ public final class HudDrawer { // NOPMD
   }
 
   /** Draws number of remaining lives on screen. */
-  public void drawLives(final Screen screen, final int lives, final boolean isCoop) {
+  public void drawLives(final int lives, final boolean isCoop) {
     g2d().setFont(fontRegular());
     g2d().setColor(Color.WHITE);
 
@@ -92,15 +92,6 @@ public final class HudDrawer { // NOPMD
     g2d().drawString("COIN : ", screen.getWidth() - 115, 52);
   }
 
-  /** 2P mode: draw coins for both players separately. */
-  public void drawCoinsP1P2(final Screen screen, final int coinsP1, final int coinsP2) {
-    g2d().setFont(fontRegular());
-    g2d().setColor(Color.YELLOW);
-
-    g2d().drawString("P1: " + String.format(FOUR_DIGIT_FORMAT, coinsP1), screen.getWidth() - 200, 25);
-    g2d().drawString("P2: " + String.format(FOUR_DIGIT_FORMAT, coinsP2), screen.getWidth() - 100, 25);
-  }
-
   /** In ship selection screen, show coin info on top-right. */
   public void drawShipSelectionCoins(final Screen screen, final int coins) {
     g2d().setFont(fontRegular());
@@ -128,7 +119,8 @@ public final class HudDrawer { // NOPMD
     g2d().setColor(Color.WHITE);
     final String levelString = level > GameState.FINITE_LEVEL ? "Infinity Stage" : "Stage " + level;
     final FontMetrics fontMetrics = fmRegular();
-    g2d().drawString(
+    g2d()
+        .drawString(
             levelString, screen.getWidth() / 2 - fontMetrics.stringWidth(levelString) / 2, 25);
   }
 
@@ -292,7 +284,7 @@ public final class HudDrawer { // NOPMD
     return message;
   }
 
-  public void drawNewHighScoreNotice(final Screen screen) {
+  public void drawNewHighScoreNotice() {
     // 이전 DrawManager에서 주석 처리되어 있던 메서드라 그대로 비워둠.
   }
 
@@ -304,7 +296,7 @@ public final class HudDrawer { // NOPMD
       return;
     }
 
-    final Achievement achievement = toasts.get(toasts.size() - 1);
+    final Achievement achievement = toasts.getLast();
     final Graphics2D g2d = (Graphics2D) g2d().create();
 
     try {

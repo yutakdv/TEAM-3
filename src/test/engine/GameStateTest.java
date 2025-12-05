@@ -9,18 +9,20 @@ import static org.junit.jupiter.api.Assertions.*;
 /** GameState 단위 테스트 — 최신 구조(LifeManager, CoinManager, StatsManager, EffectManager) 반영 */
 public class GameStateTest {
 
-  /** ---------------------------------------------
-   * Helper: coinManager.coins 반영 (reflection)
-   * --------------------------------------------- */
+  /**
+   * --------------------------------------------- Helper: coinManager.coins 반영 (reflection)
+   * ---------------------------------------------
+   */
   private void setCoins(int value) throws Exception {
     var coinsField = CoinManager.class.getDeclaredField("coins");
     coinsField.setAccessible(true);
     coinsField.setInt(null, value);
   }
 
-  /** ======================================================
-   * Constructor Tests
-   * ====================================================== */
+  /**
+   * ====================================================== Constructor Tests
+   * ======================================================
+   */
   @Test
   void testConstructorSinglePlayer() throws Exception {
     GameState gs = new GameState(1, 100, 3, 10, 5);
@@ -39,9 +41,10 @@ public class GameStateTest {
     assertEquals(3 * GameState.NUM_PLAYERS, gs.getTeamLives());
   }
 
-  /** ======================================================
-   *  Score / Stats
-   * ====================================================== */
+  /**
+   * ====================================================== Score / Stats
+   * ======================================================
+   */
   @Test
   void testAddScoreNormal() {
     GameState gs = new GameState(1, 3, false);
@@ -68,9 +71,10 @@ public class GameStateTest {
     assertEquals(1, gs.getShipsDestroyed(0));
   }
 
-  /** ======================================================
-   * Coin System
-   * ====================================================== */
+  /**
+   * ====================================================== Coin System
+   * ======================================================
+   */
   @Test
   void testAddCoins() throws Exception {
     GameState gs = new GameState(1, 3, false);
@@ -98,9 +102,10 @@ public class GameStateTest {
     assertEquals(5, gs.getCoins());
   }
 
-  /** ======================================================
-   *  Life System
-   * ====================================================== */
+  /**
+   * ====================================================== Life System
+   * ======================================================
+   */
   @Test
   void testDecLifeSinglePlayer() {
     GameState gs = new GameState(1, 3, false);
@@ -127,9 +132,10 @@ public class GameStateTest {
     assertEquals(5, gs.getLivesRemaining());
   }
 
-  /** ======================================================
-   *  Level
-   * ====================================================== */
+  /**
+   * ====================================================== Level
+   * ======================================================
+   */
   @Test
   void testNextLevel() {
     GameState gs = new GameState(1, 1, false);

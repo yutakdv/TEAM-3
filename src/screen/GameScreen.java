@@ -3,20 +3,13 @@ package screen;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
-
-import engine.Cooldown;
-import engine.Core;
-import engine.GameSettings;
-import engine.GameState;
 import engine.*; // NOPMD
-import engine.SoundManager;
 import entity.Bullet;
 import entity.BulletPool;
 import entity.EnemyShip;
 import entity.EnemyShipFormation;
 import entity.Entity;
 import entity.Ship;
-import java.awt.*; // NOPMD
 
 // NEW Item code
 import entity.Item;
@@ -28,7 +21,6 @@ import entity.ItemPool;
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  */
 @SuppressWarnings({"PMD.LawOfDemeter"})
-
 public class GameScreen extends Screen { // NOPMD
   /** Milliseconds until the screen accepts user input. */
   private static final int INPUT_DELAY = 6000;
@@ -508,7 +500,7 @@ public class GameScreen extends Screen { // NOPMD
 
   private void drawHUD() {
     drawManager.hud().drawScore(this, state.getScore());
-    drawManager.hud().drawLives(this, state.getLivesRemaining(), state.isCoop());
+    drawManager.hud().drawLives(state.getLivesRemaining(), state.isCoop());
     drawManager.hud().drawCoins(this, state.getCoins());
     drawManager.hud().drawLevel(this, this.state.getLevel());
     drawManager.hud().drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
@@ -533,16 +525,18 @@ public class GameScreen extends Screen { // NOPMD
     if (this.highScoreNotified
         && System.currentTimeMillis() - this.highScoreNoticeStartTime
             < HIGH_SCORE_NOTICE_DURATION) {
-      drawManager.hud().drawNewHighScoreNotice(this);
+      drawManager.hud().drawNewHighScoreNotice();
     }
   }
 
   private void drawAchievementToastsSection() {
-    drawManager.hud().drawAchievementToasts(
-        this,
-        (this.achievementManager != null)
-            ? this.achievementManager.getActiveToasts()
-            : java.util.Collections.emptyList()); // NOPMD
+    drawManager
+        .hud()
+        .drawAchievementToasts(
+            this,
+            (this.achievementManager != null)
+                ? this.achievementManager.getActiveToasts()
+                : java.util.Collections.emptyList()); // NOPMD
   }
 
   private void drawPauseMenuIfNeeded() {
@@ -552,7 +546,7 @@ public class GameScreen extends Screen { // NOPMD
   }
 
   private void finishFrame() {
-    drawManager.completeDrawing(this);
+    drawManager.completeDrawing();
   }
 
   private void cleanBullets() {

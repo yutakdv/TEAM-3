@@ -12,7 +12,6 @@ public class ShipUnlockManager {
   private static final String SELECT_SOUND = "sound/select.wav";
   private static final String HOVER_SOUND = "sound/hover.wav";
 
-
   private final FileManager fileManager;
 
   private final Logger logger;
@@ -58,7 +57,6 @@ public class ShipUnlockManager {
     unlockedStates[3] = false;
   }
 
-
   public int getCoins() {
     return coins;
   }
@@ -78,22 +76,21 @@ public class ShipUnlockManager {
     return index >= 0 && index < unlockedStates.length && unlockedStates[index];
   }
 
-  public boolean tryUnlock(final int index) {
+  public void tryUnlock(final int index) {
     if (isUnlocked(index)) {
-      return true;
+      return;
     }
 
     final int cost = getShipUnlockCost(index);
     if (coins < cost) {
       showNotEnoughCoinsToast();
-      return false;
+      return;
     }
 
     coins -= cost;
     unlockedStates[index] = true;
     saveUnlockState(index);
     SoundManager.playeffect(SELECT_SOUND);
-    return true;
   }
 
   public void updateToast() {
@@ -111,33 +108,26 @@ public class ShipUnlockManager {
   }
 
   private int getShipUnlockCost(final int index) {
-    switch (index) {
-      case 0: // NORMAL
-        return 0;
-      case 1: // BIG_SHOT
-        return 2000;
-      case 2: // DOUBLE_SHOT
-        return 3500;
-      case 3: // MOVE_FAST
-        return 5000;
-      default:
-        return 0;
-    }
+    return switch (index) {
+      case 0 -> // NORMAL
+          0;
+      case 1 -> // BIG_SHOT
+          2000;
+      case 2 -> // DOUBLE_SHOT
+          3500;
+      case 3 -> // MOVE_FAST
+          5000;
+      default -> 0;
+    };
   }
 
   private ShipType getShipTypeByIndex(final int index) {
-    switch (index) {
-      case 0:
-        return ShipType.NORMAL;
-      case 1:
-        return ShipType.BIG_SHOT;
-      case 2:
-        return ShipType.DOUBLE_SHOT;
-      case 3:
-        return ShipType.MOVE_FAST;
-      default:
-        return ShipType.NORMAL;
-    }
+    return switch (index) {
+      case 1 -> ShipType.BIG_SHOT;
+      case 2 -> ShipType.DOUBLE_SHOT;
+      case 3 -> ShipType.MOVE_FAST;
+      default -> ShipType.NORMAL;
+    };
   }
 
   private void showNotEnoughCoinsToast() {

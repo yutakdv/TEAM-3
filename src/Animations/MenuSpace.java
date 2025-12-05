@@ -50,10 +50,6 @@ public class MenuSpace { // NOPMD - DataClass
 
   public void setColor(final int state) {
     switch (state) {
-      case 0:
-        color = Color.YELLOW;
-        break;
-
       case 1:
         color = Color.WHITE;
         break;
@@ -68,6 +64,7 @@ public class MenuSpace { // NOPMD - DataClass
       case 4:
         color = Color.RED;
         break;
+      case 0:
       default:
         color = Color.YELLOW;
         break;
@@ -91,7 +88,7 @@ public class MenuSpace { // NOPMD - DataClass
   }
 
   private static class Star {
-    int x;
+    final int x;
     int y;
 
     Star(final int x, final int y) {

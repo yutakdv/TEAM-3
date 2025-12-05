@@ -1,7 +1,6 @@
 // engine/GameState.java
 package engine;
 
-
 /**
  * Implements an object that stores the state of the game between levels - supports 2-player co-op
  * with shared lives.
@@ -10,8 +9,6 @@ package engine;
  */
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyMethods"})
 public class GameState {
-
-  private static final java.util.logging.Logger logger = Core.getLogger();
 
   // 2P mode: number of players used for shared lives in co-op
   public static final int NUM_PLAYERS = 2; // adjust later if needed
@@ -104,8 +101,7 @@ public class GameState {
   }
 
   public void addScore(final int p, final int delta) {
-    final int realDelta = delta;
-    statsManager.addRawScore(p, realDelta);
+    statsManager.addRawScore(p, delta);
   }
 
   public void incBulletsShot(final int p) {
@@ -126,7 +122,7 @@ public class GameState {
   }
 
   public boolean spendCoins(final int p, final int amount) {
-    return CoinManager  .spendCoins(p, amount);
+    return CoinManager.spendCoins(p, amount);
   }
 
   // ===== Mode / life-pool helpers expected elsewhere =====
@@ -178,6 +174,4 @@ public class GameState {
   public int get1PlayerLives() {
     return lifeManager.getPlayerLives(0);
   }
-
-
 }

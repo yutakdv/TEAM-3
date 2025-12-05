@@ -91,7 +91,7 @@ public class Ship extends Entity {
   }
 
   /** Game state and Ship type * */
-  private final GameState gameState; // NOPMD
+  final GameState gameState; // NOPMD
 
   private final ShipType type;
 
@@ -246,7 +246,7 @@ public class Ship extends Entity {
     final Bullet bullet =
         BulletPool.getBullet(
             x, y, this.bulletSpeed, this.bulletWidth, this.bulletHeight, this.getTeam());
-    bullet.setOwnerPlayerId(this.getPlayerId()); //NOPMD
+    bullet.setOwnerPlayerId(this.getPlayerId()); // NOPMD
     bullets.add(bullet);
   }
 
